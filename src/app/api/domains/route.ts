@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { DomainVerification } from '@do-mails/domain-verification'
+import { DomainVerification } from '../../../../libs/domain-verification/src'
 import {
   createUserClient,
   extractAuthToken,
@@ -11,6 +11,8 @@ const domainVerifier = new DomainVerification({
   defaultTimeout: 10000,
   defaultRetries: 3,
   recordPrefix: '_domails-verify',
+  blockedDomains: [],
+  cacheTimeout: 300000, // 5 minutes
 })
 
 /**

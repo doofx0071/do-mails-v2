@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createServiceClient } from '@/lib/supabase/server'
 import { EmailProcessing } from '@/lib/email-processing'
 
-// Initialize Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+// Initialize Supabase client with service role for webhook processing
+// Note: Service role is appropriate here since webhooks are system events,
+// not user-scoped requests. RLS is bypassed intentionally for email ingestion.
+const supabase = createServiceClient()
 
 // Initialize email processing service
 const emailProcessor = new EmailProcessing({

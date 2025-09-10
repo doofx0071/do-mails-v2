@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 import { AliasManagement } from '@do-mails/alias-management'
-
-// Initialize Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+import { createAuthenticatedClient } from '@/lib/supabase/server'
 
 // Initialize alias management service
 const aliasManager = new AliasManagement({
@@ -26,25 +20,8 @@ const aliasManager = new AliasManagement({
  */
 export async function GET(request: NextRequest) {
   try {
-    // Extract auth token from Authorization header
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Bearer token required' },
-        { status: 401 }
-      )
-    }
-
-    const token = authHeader.substring(7)
-    
-    // Verify the token and get user
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Invalid token' },
-        { status: 401 }
-      )
-    }
+    // Create authenticated client (respects RLS)
+    const { supabase, user } = await createAuthenticatedClient(request)
 
     // Parse query parameters
     const { searchParams } = new URL(request.url)
@@ -61,18 +38,16 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Build query - join with domains to ensure user ownership
+    // Build query - RLS automatically filters by user
     let query = supabase
       .from('email_aliases')
       .select(`
         *,
         domains!inner(
           id,
-          domain_name,
-          user_id
+          domain_name
         )
       `)
-      .eq('domains.user_id', user.id)
       .order('created_at', { ascending: false })
 
     // Apply domain filter if provided
@@ -165,25 +140,8 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    // Extract auth token from Authorization header
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Bearer token required' },
-        { status: 401 }
-      )
-    }
-
-    const token = authHeader.substring(7)
-    
-    // Verify the token and get user
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Invalid token' },
-        { status: 401 }
-      )
-    }
+    // Create authenticated client (respects RLS)
+    const { supabase, user } = await createAuthenticatedClient(request)
 
     // Validate content type
     const contentType = request.headers.get('content-type')
@@ -245,12 +203,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verify domain exists and is owned by user
+    // Verify domain exists and is owned by user (RLS enforces ownership)
     const { data: domain, error: domainError } = await supabase
       .from('domains')
       .select('id, domain_name, verification_status')
       .eq('id', domainId)
-      .eq('user_id', user.id)
       .single()
 
     if (domainError) {

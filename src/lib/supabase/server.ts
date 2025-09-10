@@ -63,14 +63,31 @@ export function extractAuthToken(request: Request): string | null {
 
 /**
  * Verify user authentication and return user info
+ * Uses service client only for token verification, not data access
  */
 export async function verifyAuth(token: string) {
   const supabase = createServiceClient()
   const { data: { user }, error } = await supabase.auth.getUser(token)
-  
+
   if (error || !user) {
     throw new Error('Unauthorized - Invalid token')
   }
-  
+
   return user
+}
+
+/**
+ * Create authenticated Supabase client from request
+ * Returns both the client (with RLS enforced) and user info
+ */
+export async function createAuthenticatedClient(request: Request) {
+  const token = extractAuthToken(request)
+  if (!token) {
+    throw new Error('Unauthorized - Bearer token required')
+  }
+
+  const user = await verifyAuth(token)
+  const supabase = createUserClient(token)
+
+  return { supabase, user }
 }
