@@ -1,0 +1,180 @@
+# Email Processing Library Documentation
+
+## Overview
+The @do-mails/email-processing library provides comprehensive email processing capabilities with Mailgun integration, including sending emails, processing webhooks, email threading, and validation.
+
+## Core Components
+
+### EmailProcessing (Main Class)
+- Primary interface for all email operations
+- Combines Mailgun service, threading service, and processor
+- Provides high-level methods for common operations
+
+### MailgunService
+- Direct integration with Mailgun API
+- Handles email sending, webhook parsing, signature validation
+- Manages API authentication and error handling
+
+### EmailThreadingService
+- Intelligent email conversation grouping
+- Subject normalization and reference tracking
+- Participant-based grouping with time windows
+
+### EmailProcessor
+- Processes inbound webhooks into EmailMessage format
+- Validates email messages and requests
+- Handles attachment processing and size limits
+
+## Key Features
+
+### Email Sending
+- Send emails via Mailgun API with full feature support
+- Attachment handling with size and type validation
+- Reply-to and threading header support
+- HTML and plain text content support
+
+### Webhook Processing
+- Parse Mailgun inbound email webhooks
+- Signature validation for security
+- Convert webhook data to standardized EmailMessage format
+- Handle attachments and special headers
+
+### Email Threading
+- Group related emails into conversation threads
+- Multiple threading strategies (subject, references, participants)
+- Configurable time windows and normalization rules
+- Thread merging and message addition
+
+### Validation
+- Email address format validation
+- Message content validation
+- Attachment size and type checking
+- Request parameter validation
+
+## CLI Interface
+
+### Commands
+- `parse-webhook`: Process inbound email webhooks
+- `send-email`: Send emails via Mailgun
+- `process-thread`: Group messages into threads
+- `validate-email`: Validate email addresses
+- `help`: Display usage information
+
+### Configuration
+- Environment variables (MAILGUN_API_KEY, MAILGUN_DOMAIN, etc.)
+- Configuration file support (JSON format)
+- Command-line option overrides
+- Flexible configuration hierarchy
+
+## Data Types
+
+### EmailMessage
+Complete email message representation with:
+- Unique identifiers (id, messageId)
+- Addressing (from, to, cc, bcc)
+- Content (subject, bodyText, bodyHtml)
+- Threading (inReplyTo, references)
+- Metadata (receivedAt, attachments)
+
+### EmailThread
+Conversation thread containing:
+- Thread identifier and subject
+- Participant list and message count
+- Chronological message ordering
+- Last message timestamp
+
+### Configuration Objects
+- MailgunConfig: API credentials and settings
+- ThreadingOptions: Threading behavior configuration
+- EmailProcessingConfig: Complete library configuration
+
+## Error Handling
+
+### Error Types
+- EmailProcessingError: Base error class with code and details
+- MailgunError: Mailgun API specific errors
+- WebhookValidationError: Webhook security validation errors
+- ThreadingError: Email threading operation errors
+
+### Error Context
+- Detailed error messages with context
+- Original error preservation
+- Request/response data inclusion
+- Structured error codes
+
+## Security Features
+
+### Webhook Validation
+- HMAC signature verification using webhook signing key
+- Timestamp validation to prevent replay attacks
+- Secure webhook data parsing and validation
+
+### Input Validation
+- Email address format validation using RFC standards
+- Content sanitization and size limits
+- Attachment type and size restrictions
+- Request parameter validation with Zod schemas
+
+## Performance Considerations
+
+### Threading Optimization
+- Efficient message grouping algorithms
+- Configurable time windows to limit processing scope
+- Memory-efficient thread merging
+- Indexed participant and reference lookups
+
+### API Efficiency
+- Batch operations where possible
+- Proper error handling to avoid retries
+- Connection pooling and timeout management
+- Rate limiting awareness
+
+## Integration Patterns
+
+### Webhook Processing Flow
+1. Receive webhook from Mailgun
+2. Validate signature for security
+3. Parse webhook data into EmailMessage
+4. Process attachments if present
+5. Return standardized message object
+
+### Email Sending Flow
+1. Validate send request parameters
+2. Format message for Mailgun API
+3. Handle attachments and special headers
+4. Send via Mailgun with error handling
+5. Return response with message ID
+
+### Threading Flow
+1. Collect messages for threading
+2. Apply normalization rules
+3. Group by references and subjects
+4. Merge threads if needed
+5. Sort by chronological order
+
+## Usage Examples
+
+### Basic Email Sending
+```typescript
+const processor = new EmailProcessing(config)
+const response = await processor.sendEmail({
+  from: 'sender@domain.com',
+  to: ['recipient@domain.com'],
+  subject: 'Test Email',
+  text: 'Hello World'
+})
+```
+
+### Webhook Processing
+```typescript
+const message = await processor.processInboundWebhook(webhookData)
+console.log(`Received email from ${message.from}`)
+```
+
+### Message Threading
+```typescript
+const threads = processor.groupIntoThreads(messages)
+console.log(`Grouped into ${threads.length} conversations`)
+```
+
+This library is designed for high-volume email processing with reliability, security, and performance as primary concerns.

@@ -1,0 +1,244 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { DomainVerification } from '@do-mails/domain-verification'
+import {
+  createUserClient,
+  extractAuthToken,
+  verifyAuth,
+} from '@/lib/supabase/server'
+
+// Initialize domain verification service
+const domainVerifier = new DomainVerification({
+  defaultTimeout: 10000,
+  defaultRetries: 3,
+  recordPrefix: '_domails-verify',
+})
+
+/**
+ * GET /api/domains
+ * List user's domains with optional status filter
+ */
+export async function GET(request: NextRequest) {
+  try {
+    // Extract and validate auth token
+    const token = extractAuthToken(request)
+    if (!token) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Bearer token required' },
+        { status: 401 }
+      )
+    }
+
+    // Verify authentication
+    await verifyAuth(token)
+
+    // Create user-context client (respects RLS)
+    const supabase = createUserClient(token)
+
+    // Parse query parameters
+    const { searchParams } = new URL(request.url)
+    const status = searchParams.get('status')
+
+    // Validate status parameter if provided
+    if (status && !['pending', 'verified', 'failed'].includes(status)) {
+      return NextResponse.json(
+        {
+          error:
+            'Invalid status parameter. Must be: pending, verified, or failed',
+        },
+        { status: 400 }
+      )
+    }
+
+    // Build query - RLS automatically filters by user
+    let query = supabase
+      .from('domains')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    // Apply status filter if provided
+    if (status) {
+      query = query.eq('verification_status', status)
+    }
+
+    const { data: domains, error: dbError } = await query
+
+    if (dbError) {
+      console.error('Database error:', dbError)
+      return NextResponse.json(
+        { error: 'Failed to fetch domains' },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json(
+      { domains: domains || [] },
+      {
+        status: 200,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        },
+      }
+    )
+  } catch (error) {
+    console.error('Unexpected error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
+/**
+ * POST /api/domains
+ * Add a new domain for verification
+ */
+export async function POST(request: NextRequest) {
+  try {
+    // Extract and validate auth token
+    const token = extractAuthToken(request)
+    if (!token) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Bearer token required' },
+        { status: 401 }
+      )
+    }
+
+    // Verify authentication
+    await verifyAuth(token)
+
+    // Create user-context client (respects RLS)
+    const supabase = createUserClient(token)
+
+    // Validate content type
+    const contentType = request.headers.get('content-type')
+    if (!contentType || !contentType.includes('application/json')) {
+      return NextResponse.json(
+        { error: 'Invalid content-type. Must be application/json' },
+        { status: 400 }
+      )
+    }
+
+    // Parse request body
+    let body
+    try {
+      body = await request.json()
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Invalid JSON in request body' },
+        { status: 400 }
+      )
+    }
+
+    // Validate required fields
+    if (!body.domain_name || typeof body.domain_name !== 'string') {
+      return NextResponse.json(
+        { error: 'Missing or invalid domain_name field' },
+        { status: 400 }
+      )
+    }
+
+    const domainName = body.domain_name.toLowerCase().trim()
+
+    // Validate domain format using domain verification library
+    const validation = domainVerifier.validate.validateDomain(domainName)
+    if (!validation.valid) {
+      return NextResponse.json(
+        {
+          error: `Invalid domain format: ${validation.errors.join(', ')}`,
+          suggestions: validation.suggestions,
+        },
+        { status: 400 }
+      )
+    }
+
+    // Check if domain already exists
+    const { data: existingDomain, error: checkError } = await supabase
+      .from('domains')
+      .select('id')
+      .eq('domain_name', domainName)
+      .single()
+
+    if (checkError && checkError.code !== 'PGRST116') {
+      // PGRST116 = no rows returned
+      console.error('Database error checking existing domain:', checkError)
+      return NextResponse.json(
+        { error: 'Failed to check domain availability' },
+        { status: 500 }
+      )
+    }
+
+    if (existingDomain) {
+      return NextResponse.json(
+        { error: 'Domain already exists' },
+        { status: 409 }
+      )
+    }
+
+    // Generate verification token
+    const verificationToken = domainVerifier.verify.generateVerificationToken({
+      length: 32,
+      charset: 'alphanumeric',
+    })
+
+    // Create domain record - RLS will automatically set user_id
+    const { data: newDomain, error: createError } = await supabase
+      .from('domains')
+      .insert({
+        domain_name: domainName,
+        verification_status: 'pending',
+        verification_token: verificationToken,
+      })
+      .select()
+      .single()
+
+    if (createError) {
+      console.error('Database error creating domain:', createError)
+
+      // Handle unique constraint violation
+      if (createError.code === '23505') {
+        return NextResponse.json(
+          { error: 'Domain already exists' },
+          { status: 409 }
+        )
+      }
+
+      return NextResponse.json(
+        { error: 'Failed to create domain' },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json(newDomain, {
+      status: 201,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
+    })
+  } catch (error) {
+    console.error('Unexpected error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
+/**
+ * OPTIONS /api/domains
+ * Handle CORS preflight requests
+ */
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Max-Age': '86400',
+    },
+  })
+}

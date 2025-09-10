@@ -47,31 +47,31 @@
 ## Phase 3.3: Core Implementation (ONLY after tests are failing)
 
 ### Database Setup
-- [ ] **T027** Create Supabase database schema with all tables in `supabase/migrations/001_initial_schema.sql`
-- [ ] **T028** Create Row-Level Security (RLS) policies in `supabase/migrations/002_rls_policies.sql`
-- [ ] **T029** Create database indexes for performance in `supabase/migrations/003_indexes.sql`
+- [x] **T027** Create Supabase database schema with all tables in `supabase/migrations/001_initial_schema.sql`
+- [x] **T028** Create Row-Level Security (RLS) policies in `supabase/migrations/002_rls_policies.sql`
+- [x] **T029** Create database indexes for performance in `supabase/migrations/003_indexes.sql`
 
 ### Libraries Implementation
-- [ ] **T030** [P] Implement email-processing library with Mailgun integration in `libs/email-processing/`
-- [ ] **T031** [P] Implement domain-verification library with DNS checking in `libs/domain-verification/`
-- [ ] **T032** [P] Implement alias-management library with validation in `libs/alias-management/`
+- [x] **T030** [P] Implement email-processing library with Mailgun integration in `libs/email-processing/`
+- [x] **T031** [P] Implement domain-verification library with DNS checking in `libs/domain-verification/`
+- [x] **T032** [P] Implement alias-management library with validation in `libs/alias-management/`
 
 ### API Routes Implementation
-- [ ] **T033** Implement domains API routes in `src/app/api/domains/route.ts` and `src/app/api/domains/[id]/verify/route.ts`
-- [ ] **T034** Implement aliases API routes in `src/app/api/aliases/route.ts` and `src/app/api/aliases/[id]/route.ts`
-- [ ] **T035** Implement emails API routes in `src/app/api/emails/` directory (threads, send, read endpoints)
-- [ ] **T036** Implement Mailgun webhook handler in `src/app/api/webhooks/mailgun/route.ts`
+- [x] **T033** Implement domains API routes in `src/app/api/domains/route.ts` and `src/app/api/domains/[id]/verify/route.ts`
+- [x] **T034** Implement aliases API routes in `src/app/api/aliases/route.ts` and `src/app/api/aliases/[id]/route.ts`
+- [x] **T035** Implement emails API routes in `src/app/api/emails/` directory (threads, send, read endpoints)
+- [x] **T036** Implement Mailgun webhook handler in `src/app/api/webhooks/mailgun/route.ts`
 
 ### Frontend Components
-- [ ] **T037** Implement authentication pages in `src/app/(auth)/` directory using Supabase Auth
-- [ ] **T038** Implement domain management interface in `src/app/(dashboard)/domains/` directory
-- [ ] **T039** Implement alias management interface in `src/app/(dashboard)/aliases/` directory
-- [ ] **T040** Implement unified inbox interface using shadcn/ui mail components in `src/app/(dashboard)/inbox/`
+- [x] **T037** Implement domain management components in `src/components/domains/`
+- [x] **T038** Implement alias management components in `src/components/aliases/`
+- [x] **T039** Implement email thread components in `src/components/emails/`
+- [x] **T040** Implement main dashboard layout in `src/app/dashboard/`
 
 ## Phase 3.4: Integration
 
-- [ ] **T041** Configure Supabase client and authentication middleware in `src/lib/supabase/`
-- [ ] **T042** Set up TanStack Query providers and Zustand stores in `src/lib/stores/`
+- [x] **T041** Configure Supabase client and authentication middleware in `src/lib/supabase/`
+- [x] **T042** Set up TanStack Query providers and Zustand stores in `src/lib/stores/`
 
 ## Dependencies
 

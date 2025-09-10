@@ -1,0 +1,227 @@
+# Alias Management Library Documentation
+
+## Overview
+The @do-mails/alias-management library provides comprehensive email alias management capabilities including creation, validation, generation, availability checking, and usage statistics.
+
+## Core Components
+
+### AliasManagement (Main Class)
+- Primary interface for all alias management operations
+- Combines manager, validator, and generator functionality
+- Provides high-level methods for common alias operations
+
+### AliasManager
+- Core alias lifecycle management (CRUD operations)
+- Search and filtering capabilities with pagination
+- Statistics and usage tracking
+- Bulk operations and quota management
+
+### AliasValidator
+- Comprehensive alias name format validation
+- Reserved alias and blocked pattern checking
+- Availability verification with suggestions
+- Similarity detection and duplicate prevention
+
+### AliasGenerator
+- Multiple generation patterns (random, readable, UUID, timestamp)
+- Customizable generation options and constraints
+- Unique alias generation avoiding duplicates
+- Pattern-based generation with placeholders
+
+## Key Features
+
+### Alias Creation and Management
+- Create aliases with validation and availability checking
+- Update alias properties (name, enabled status)
+- Delete aliases with proper cleanup
+- Bulk operations for managing multiple aliases
+
+### Validation System
+- Format validation using regex patterns and character sets
+- Length constraints (configurable min/max)
+- Reserved alias detection (admin, support, etc.)
+- Blocked pattern filtering (spam, temp, etc.)
+- Optional profanity filtering
+- Similarity checking to prevent confusing aliases
+
+### Generation Capabilities
+- Random generation with configurable character sets
+- Readable generation using adjective-noun combinations
+- UUID-based generation for guaranteed uniqueness
+- Timestamp-based generation for time-aware aliases
+- Custom pattern generation with placeholder replacement
+
+### Search and Filtering
+- Advanced search with multiple filter criteria
+- Pagination support for large alias lists
+- Sorting by name, creation date, or activity
+- Domain-specific filtering and queries
+
+## CLI Interface
+
+### Commands
+- `create-alias`: Create new email aliases with validation
+- `list-aliases`: List and search existing aliases
+- `validate-alias`: Validate alias name format and rules
+- `generate-alias`: Generate random alias names
+- `check-availability`: Check alias availability
+- `stats`: Get comprehensive alias statistics
+
+### Configuration
+- JSON configuration file support
+- Command-line option overrides
+- Flexible validation rule configuration
+- Quota and limit management
+
+## Data Types
+
+### EmailAlias
+Complete alias representation containing:
+- Unique identifier and domain association
+- Alias name and full email address
+- Enabled/disabled status
+- Creation and modification timestamps
+- Last email activity tracking
+
+### AliasValidationResult
+Validation outcome with:
+- Validity status and specific error messages
+- Warning messages for potential issues
+- Suggestions for invalid alias names
+- Detailed validation rule results
+
+### AliasGenerationOptions
+Generation configuration including:
+- Length constraints and character set options
+- Pattern selection and customization
+- Prefix/suffix addition and exclusion rules
+- Count specification for bulk generation
+
+## Validation Rules
+
+### Character Validation
+- Allowed characters: letters, numbers, dots, underscores, hyphens
+- Prohibited characters: spaces, special symbols, Unicode
+- Structure rules: no leading/trailing dots, no consecutive dots
+- Case normalization to lowercase
+
+### Content Validation
+- Reserved alias detection (admin, postmaster, etc.)
+- Blocked pattern filtering (test, temp, spam, etc.)
+- Optional profanity filtering with customizable word lists
+- Similarity checking to prevent confusing aliases
+
+### Length and Format
+- Configurable minimum and maximum length limits
+- Email address format compliance
+- Domain-specific validation rules
+- Special character usage guidelines
+
+## Generation Patterns
+
+### Random Pattern
+- Cryptographically secure random generation
+- Configurable character sets and length
+- Exclusion of confusing characters option
+- Guaranteed uniqueness checking
+
+### Readable Pattern
+- Human-friendly adjective-noun combinations
+- Memorable and pronounceable results
+- Optional number suffixes for uniqueness
+- Curated word lists for appropriate content
+
+### UUID Pattern
+- UUID-based generation for guaranteed uniqueness
+- Configurable length truncation
+- Hyphen removal for email compatibility
+- Timestamp correlation option
+
+### Timestamp Pattern
+- Time-based generation for chronological ordering
+- Base36 encoding for compact representation
+- Optional random suffix for additional uniqueness
+- Configurable prefix and format options
+
+## Error Handling
+
+### Error Types
+- AliasManagementError: Base error class with structured details
+- ValidationError: Format and rule validation failures
+- DuplicateAliasError: Alias already exists errors
+- AliasNotFoundError: Alias lookup failures
+- QuotaExceededError: Limit and quota violations
+
+### Error Context
+- Detailed error messages with actionable information
+- Suggestion generation for resolution
+- Request context preservation for debugging
+- Structured error codes for programmatic handling
+
+## Performance Considerations
+
+### Memory Management
+- Efficient in-memory storage for demonstration
+- Configurable caching strategies
+- Bulk operation optimization
+- Memory usage monitoring and cleanup
+
+### Search Optimization
+- Indexed search capabilities
+- Pagination for large result sets
+- Efficient filtering algorithms
+- Query optimization strategies
+
+## Integration Patterns
+
+### Alias Creation Flow
+1. Validate alias name format and rules
+2. Check availability against existing aliases
+3. Verify domain quota limits
+4. Create alias with proper metadata
+5. Update domain statistics and counters
+
+### Validation Flow
+1. Normalize alias name format
+2. Apply character and structure validation
+3. Check against reserved and blocked lists
+4. Perform similarity analysis if enabled
+5. Generate suggestions for invalid names
+
+### Generation Flow
+1. Select appropriate generation pattern
+2. Apply configuration constraints and options
+3. Generate candidate aliases with uniqueness checking
+4. Validate generated aliases against rules
+5. Return filtered and verified results
+
+## Usage Examples
+
+### Basic Alias Management
+```typescript
+const manager = new AliasManagement()
+const alias = await manager.createAlias('domain-id', 'myalias')
+const validation = manager.validateAlias('test-alias')
+```
+
+### Advanced Generation
+```typescript
+const aliases = manager.generateAliases({
+  count: 10,
+  pattern: 'readable',
+  length: 12,
+  includeNumbers: true
+})
+```
+
+### Search and Statistics
+```typescript
+const results = await manager.searchAliases({
+  domainId: 'domain-id',
+  isEnabled: true,
+  query: 'user'
+})
+const stats = await manager.getStats('domain-id')
+```
+
+This library is designed for scalable alias management with comprehensive validation, flexible generation, and robust error handling for production email systems.

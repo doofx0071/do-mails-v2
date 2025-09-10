@@ -1,0 +1,204 @@
+# Domain Verification Library Documentation
+
+## Overview
+The @do-mails/domain-verification library provides comprehensive domain verification capabilities including DNS-based ownership verification, domain validation, DNS queries, and health checks.
+
+## Core Components
+
+### DomainVerification (Main Class)
+- Primary interface for all domain verification operations
+- Combines verifier, validator, and DNS service functionality
+- Provides high-level methods for common domain operations
+
+### DomainVerifier
+- Core domain ownership verification using DNS TXT records
+- Token generation and verification instruction creation
+- Domain health checks and accessibility testing
+- Caching mechanism for verification results
+
+### DomainValidator
+- Comprehensive domain name format validation
+- Reserved domain checking and blocked domain lists
+- Domain suggestion generation for common typos
+- Subdomain detection and root domain extraction
+
+### DNSService
+- Direct DNS query functionality for all record types
+- Timeout and retry mechanisms for reliable queries
+- Support for custom DNS servers
+- Reverse DNS lookup capabilities
+
+## Key Features
+
+### Domain Ownership Verification
+- DNS TXT record based verification process
+- Secure token generation with multiple character sets
+- Configurable record prefixes and verification parameters
+- Retry logic with exponential backoff for reliability
+
+### Domain Validation
+- RFC-compliant domain name format validation
+- Length and character validation with specific error messages
+- TLD validation and pattern recognition
+- Reserved domain detection (localhost, example.com, etc.)
+
+### DNS Operations
+- Support for all major DNS record types (A, AAAA, MX, TXT, NS, CNAME, SOA)
+- Configurable DNS servers and query timeouts
+- Domain existence checking across multiple record types
+- DNS server connectivity testing
+
+### Health Checking
+- Comprehensive domain accessibility testing
+- HTTP/HTTPS support detection
+- SSL certificate validation
+- MX and TXT record enumeration
+
+## CLI Interface
+
+### Commands
+- `verify-domain`: Perform DNS-based domain ownership verification
+- `check-dns`: Query specific DNS record types for domains
+- `validate-domain`: Validate domain name format and rules
+- `generate-token`: Create secure verification tokens
+- `health-check`: Comprehensive domain health assessment
+
+### Configuration
+- JSON configuration file support
+- Command-line option overrides
+- Environment-specific DNS server configuration
+- Flexible timeout and retry settings
+
+## Verification Process
+
+### Token Generation
+- Cryptographically secure random token generation
+- Multiple character set options (alphanumeric, hex, base64)
+- Optional timestamp inclusion for time-based verification
+- Configurable token length and prefix support
+
+### DNS Record Setup
+- Standardized TXT record format for verification
+- Configurable record name prefix (_domails-verify by default)
+- Clear instructions generation for DNS setup
+- TTL recommendations for optimal propagation
+
+### Verification Execution
+- Multi-step verification process with validation
+- DNS query with timeout and retry mechanisms
+- Token matching with exact string comparison
+- Detailed result reporting with timing information
+
+## Data Types
+
+### DomainVerificationResult
+Complete verification result containing:
+- Domain and token information
+- Verification status and timing
+- DNS records found during verification
+- Error details for failed verifications
+
+### DomainValidationResult
+Domain format validation result with:
+- Validity status and specific error messages
+- Warning messages for potential issues
+- Suggestions for common domain typos
+- Detailed validation rule results
+
+### DomainHealthCheck
+Comprehensive domain health assessment including:
+- Accessibility and response time metrics
+- HTTPS support and certificate validity
+- DNS record enumeration (MX, TXT)
+- Error collection for troubleshooting
+
+## Error Handling
+
+### Error Types
+- DomainVerificationError: Base error class with structured details
+- DNSError: DNS query and resolution specific errors
+- ValidationError: Domain format and rule validation errors
+- TimeoutError: Operation timeout with timing information
+
+### Error Context
+- Detailed error messages with actionable information
+- Original error preservation for debugging
+- Request context inclusion for troubleshooting
+- Structured error codes for programmatic handling
+
+## Security Features
+
+### Token Security
+- Cryptographically secure random generation
+- Multiple character sets to prevent prediction
+- Optional timestamp inclusion for replay protection
+- Configurable token length for security requirements
+
+### DNS Security
+- Query timeout protection against slow responses
+- Retry limits to prevent resource exhaustion
+- DNS server validation and connectivity testing
+- Cache management with configurable expiration
+
+## Performance Considerations
+
+### Caching Strategy
+- Verification result caching with configurable TTL
+- Memory-efficient cache with automatic cleanup
+- Cache statistics and management functions
+- Selective caching based on verification success
+
+### DNS Optimization
+- Parallel DNS queries where appropriate
+- Efficient record type selection for existence checks
+- Connection pooling and reuse for DNS queries
+- Timeout optimization based on network conditions
+
+## Integration Patterns
+
+### Verification Flow
+1. Generate secure verification token
+2. Provide DNS setup instructions to user
+3. Wait for DNS propagation (typically 5-15 minutes)
+4. Execute verification with retry logic
+5. Return detailed verification result
+
+### Validation Flow
+1. Normalize domain name format
+2. Apply comprehensive validation rules
+3. Check against reserved and blocked domain lists
+4. Generate suggestions for invalid domains
+5. Return structured validation result
+
+### Health Check Flow
+1. Validate domain format first
+2. Check DNS existence across record types
+3. Query MX and TXT records for email setup
+4. Test HTTP/HTTPS accessibility
+5. Compile comprehensive health report
+
+## Usage Examples
+
+### Basic Domain Verification
+```typescript
+const verifier = new DomainVerification()
+const token = verifier.generateToken()
+const result = await verifier.verifyDomain('example.com', token)
+```
+
+### Domain Validation
+```typescript
+const validation = verifier.validateDomain('example.com')
+if (!validation.valid) {
+  console.log('Errors:', validation.errors)
+  console.log('Suggestions:', validation.suggestions)
+}
+```
+
+### DNS Queries
+```typescript
+const mxRecords = await verifier.queryDNS('example.com', 'MX')
+console.log('Mail servers:', mxRecords.records)
+```
+
+This library is designed for reliable domain verification with comprehensive error handling, security considerations, and performance optimization for production use.
