@@ -1,0 +1,536 @@
+openapi: 3.0.3
+info:
+  title: do-Mails API
+  description: Email alias and inbox management system API
+  version: 1.0.0
+  contact:
+    name: do-Mails API Support
+    email: support@do-mails.com
+
+servers:
+  - url: https://do-mails.vercel.app/api
+    description: Production server
+  - url: http://localhost:3000/api
+    description: Development server
+
+security:
+  - BearerAuth: []
+
+paths:
+  # Domain Management
+  /domains:
+    get:
+      summary: List user's domains
+      tags: [Domains]
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, verified, failed]
+          description: Filter by verification status
+      responses:
+        '200':
+          description: List of domains
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  domains:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Domain'
+    post:
+      summary: Add new domain
+      tags: [Domains]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [domain_name]
+              properties:
+                domain_name:
+                  type: string
+                  format: hostname
+                  example: "example.com"
+      responses:
+        '201':
+          description: Domain created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Domain'
+        '400':
+          description: Invalid domain name
+        '409':
+          description: Domain already exists
+
+  /domains/{domainId}/verify:
+    post:
+      summary: Verify domain ownership
+      tags: [Domains]
+      parameters:
+        - name: domainId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Verification successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Domain'
+        '400':
+          description: Verification failed
+
+  # Email Alias Management
+  /aliases:
+    get:
+      summary: List user's email aliases
+      tags: [Aliases]
+      parameters:
+        - name: domain_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter by domain
+        - name: enabled
+          in: query
+          schema:
+            type: boolean
+          description: Filter by enabled status
+      responses:
+        '200':
+          description: List of aliases
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  aliases:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EmailAlias'
+    post:
+      summary: Create new email alias
+      tags: [Aliases]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [domain_id]
+              properties:
+                domain_id:
+                  type: string
+                  format: uuid
+                alias_name:
+                  type: string
+                  description: If not provided, generates random alias
+                  example: "shopping"
+      responses:
+        '201':
+          description: Alias created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailAlias'
+
+  /aliases/{aliasId}:
+    patch:
+      summary: Update email alias
+      tags: [Aliases]
+      parameters:
+        - name: aliasId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                is_enabled:
+                  type: boolean
+      responses:
+        '200':
+          description: Alias updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailAlias'
+
+  # Email Management
+  /emails/threads:
+    get:
+      summary: List email threads
+      tags: [Emails]
+      parameters:
+        - name: alias_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter by alias
+        - name: archived
+          in: query
+          schema:
+            type: boolean
+          description: Filter by archived status
+        - name: labels
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          description: Filter by labels
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: List of email threads
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  threads:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EmailThread'
+                  total:
+                    type: integer
+                  has_more:
+                    type: boolean
+
+  /emails/threads/{threadId}:
+    get:
+      summary: Get email thread with messages
+      tags: [Emails]
+      parameters:
+        - name: threadId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Email thread with messages
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailThreadWithMessages'
+    patch:
+      summary: Update email thread
+      tags: [Emails]
+      parameters:
+        - name: threadId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                is_archived:
+                  type: boolean
+                labels:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Thread updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailThread'
+
+  /emails/messages/{messageId}/read:
+    post:
+      summary: Mark message as read
+      tags: [Emails]
+      parameters:
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Message marked as read
+
+  # Email Composition
+  /emails/send:
+    post:
+      summary: Send email
+      tags: [Emails]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [alias_id, to_addresses, subject, body_html]
+              properties:
+                alias_id:
+                  type: string
+                  format: uuid
+                to_addresses:
+                  type: array
+                  items:
+                    type: string
+                    format: email
+                cc_addresses:
+                  type: array
+                  items:
+                    type: string
+                    format: email
+                bcc_addresses:
+                  type: array
+                  items:
+                    type: string
+                    format: email
+                subject:
+                  type: string
+                body_text:
+                  type: string
+                body_html:
+                  type: string
+                in_reply_to:
+                  type: string
+                  description: Message ID if replying
+                attachments:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      filename:
+                        type: string
+                      content_type:
+                        type: string
+                      data:
+                        type: string
+                        format: base64
+      responses:
+        '200':
+          description: Email sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message_id:
+                    type: string
+                  mailgun_id:
+                    type: string
+
+  # Webhooks
+  /webhooks/mailgun:
+    post:
+      summary: Mailgun webhook for inbound emails
+      tags: [Webhooks]
+      security: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                recipient:
+                  type: string
+                sender:
+                  type: string
+                subject:
+                  type: string
+                body-plain:
+                  type: string
+                body-html:
+                  type: string
+                Message-Id:
+                  type: string
+                In-Reply-To:
+                  type: string
+                References:
+                  type: string
+                attachment-count:
+                  type: integer
+      responses:
+        '200':
+          description: Webhook processed successfully
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Domain:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        domain_name:
+          type: string
+          format: hostname
+        verification_status:
+          type: string
+          enum: [pending, verified, failed]
+        verification_token:
+          type: string
+        verified_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    EmailAlias:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        domain_id:
+          type: string
+          format: uuid
+        alias_name:
+          type: string
+        full_address:
+          type: string
+          format: email
+        is_enabled:
+          type: boolean
+        last_email_received_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    EmailThread:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        alias_id:
+          type: string
+          format: uuid
+        subject:
+          type: string
+        participants:
+          type: array
+          items:
+            type: string
+            format: email
+        message_count:
+          type: integer
+        last_message_at:
+          type: string
+          format: date-time
+        is_archived:
+          type: boolean
+        labels:
+          type: array
+          items:
+            type: string
+
+    EmailMessage:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        thread_id:
+          type: string
+          format: uuid
+        message_id:
+          type: string
+        from_address:
+          type: string
+          format: email
+        to_addresses:
+          type: array
+          items:
+            type: string
+            format: email
+        subject:
+          type: string
+        body_text:
+          type: string
+        body_html:
+          type: string
+        is_read:
+          type: boolean
+        is_sent:
+          type: boolean
+        received_at:
+          type: string
+          format: date-time
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmailAttachment'
+
+    EmailAttachment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        filename:
+          type: string
+        content_type:
+          type: string
+        file_size:
+          type: integer
+        download_url:
+          type: string
+          format: uri
+
+    EmailThreadWithMessages:
+      allOf:
+        - $ref: '#/components/schemas/EmailThread'
+        - type: object
+          properties:
+            messages:
+              type: array
+              items:
+                $ref: '#/components/schemas/EmailMessage'
