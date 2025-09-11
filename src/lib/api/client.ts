@@ -29,11 +29,11 @@ class APIClient {
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`
-    
+
     try {
       // Get auth headers
       const authHeaders = await getAuthHeaders()
-      
+
       const response = await fetch(url, {
         ...options,
         headers: {
@@ -45,7 +45,7 @@ class APIClient {
       // Handle different response types
       let data: any
       const contentType = response.headers.get('content-type')
-      
+
       if (contentType?.includes('application/json')) {
         data = await response.json()
       } else {
@@ -65,12 +65,12 @@ class APIClient {
       if (error instanceof APIError) {
         throw error
       }
-      
+
       // Handle network errors
       if (error instanceof TypeError && error.message.includes('fetch')) {
         throw new APIError('Network error - please check your connection', 0)
       }
-      
+
       throw new APIError(
         error instanceof Error ? error.message : 'Unknown error occurred',
         0
@@ -80,17 +80,22 @@ class APIClient {
 
   // HTTP methods
   async get<T>(endpoint: string, params?: Record<string, any>): Promise<T> {
-    const url = new URL(endpoint, this.baseURL)
-    
+    let fullEndpoint = endpoint
+
     if (params) {
+      const searchParams = new URLSearchParams()
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
-          url.searchParams.append(key, String(value))
+          searchParams.append(key, String(value))
         }
       })
+
+      if (searchParams.toString()) {
+        fullEndpoint += `?${searchParams.toString()}`
+      }
     }
 
-    return this.request<T>(url.pathname + url.search)
+    return this.request<T>(fullEndpoint)
   }
 
   async post<T>(endpoint: string, data?: any): Promise<T> {
@@ -135,27 +140,28 @@ export const apiClient = new APIClient()
 
 // Domain API
 export const domainsAPI = {
-  list: (params?: { status?: string }) => 
+  list: (params?: { status?: string }) =>
     apiClient.get<{ domains: any[] }>('/domains', params),
-  
+
   create: (data: { domain_name: string }) =>
     apiClient.post<any>('/domains', data),
-  
-  verify: (id: string) =>
-    apiClient.post<any>(`/domains/${id}/verify`),
+
+  verify: (id: string) => apiClient.post<any>(`/domains/${id}/verify`),
 }
 
 // Aliases API
 export const aliasesAPI = {
   list: (params?: { domain_id?: string; enabled?: string }) =>
     apiClient.get<{ aliases: any[] }>('/aliases', params),
-  
-  create: (data: { domain_id: string; alias_name: string; is_enabled?: boolean }) =>
-    apiClient.post<any>('/aliases', data),
-  
-  get: (id: string) =>
-    apiClient.get<any>(`/aliases/${id}`),
-  
+
+  create: (data: {
+    domain_id: string
+    alias_name: string
+    is_enabled?: boolean
+  }) => apiClient.post<any>('/aliases', data),
+
+  get: (id: string) => apiClient.get<any>(`/aliases/${id}`),
+
   update: (id: string, data: { is_enabled?: boolean }) =>
     apiClient.patch<any>(`/aliases/${id}`, data),
 }
@@ -163,16 +169,23 @@ export const aliasesAPI = {
 // Emails API
 export const emailsAPI = {
   threads: {
-    list: (params?: { archived?: string; alias_id?: string; limit?: number; offset?: number }) =>
-      apiClient.get<{ threads: any[]; total: number; has_more: boolean }>('/emails/threads', params),
-    
-    get: (id: string) =>
-      apiClient.get<any>(`/emails/threads/${id}`),
-    
+    list: (params?: {
+      archived?: string
+      alias_id?: string
+      limit?: number
+      offset?: number
+    }) =>
+      apiClient.get<{ threads: any[]; total: number; has_more: boolean }>(
+        '/emails/threads',
+        params
+      ),
+
+    get: (id: string) => apiClient.get<any>(`/emails/threads/${id}`),
+
     update: (id: string, data: { is_archived?: boolean; labels?: string[] }) =>
       apiClient.patch<any>(`/emails/threads/${id}`, data),
   },
-  
+
   send: (data: {
     alias_id: string
     to_addresses: string[]
@@ -183,11 +196,10 @@ export const emailsAPI = {
     body_html?: string
     in_reply_to?: string
     references?: string[]
-  }) =>
-    apiClient.post<any>('/emails/send', data),
-  
+  }) => apiClient.post<any>('/emails/send', data),
+
   messages: {
     markRead: (id: string, isRead: boolean) =>
       apiClient.patch<any>(`/emails/messages/${id}/read`, { is_read: isRead }),
-  }
+  },
 }

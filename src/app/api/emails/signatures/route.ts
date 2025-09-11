@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createAuthenticatedClient } from '@/lib/supabase/server'
+import {
+  extractAuthToken,
+  verifyAuth,
+  createUserClient,
+} from '@/lib/supabase/server'
 
 /**
  * GET /api/emails/signatures
@@ -7,8 +11,27 @@ import { createAuthenticatedClient } from '@/lib/supabase/server'
  */
 export async function GET(request: NextRequest) {
   try {
-    // Create authenticated client (respects RLS)
-    const { supabase, user } = await createAuthenticatedClient(request)
+    // Extract and validate auth token
+    const token = extractAuthToken(request)
+    if (!token) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Bearer token required' },
+        { status: 401 }
+      )
+    }
+
+    // Verify authentication
+    try {
+      await verifyAuth(token)
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Invalid token' },
+        { status: 401 }
+      )
+    }
+
+    // Create user-context client (respects RLS)
+    const supabase = createUserClient(token)
 
     // Parse query parameters
     const { searchParams } = new URL(request.url)
@@ -16,7 +39,8 @@ export async function GET(request: NextRequest) {
 
     // Validate alias_id parameter if provided
     if (aliasId) {
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+      const uuidRegex =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
       if (!uuidRegex.test(aliasId)) {
         return NextResponse.json(
           { error: 'Invalid alias_id format' },
@@ -28,7 +52,8 @@ export async function GET(request: NextRequest) {
     // Build query - RLS automatically filters by user ownership
     let query = supabase
       .from('email_signatures')
-      .select(`
+      .select(
+        `
         *,
         email_aliases!inner(
           id,
@@ -38,7 +63,8 @@ export async function GET(request: NextRequest) {
             domain_name
           )
         )
-      `)
+      `
+      )
       .order('created_at', { ascending: false })
 
     // Apply alias filter if provided
@@ -57,7 +83,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Transform the data to include computed fields
-    const transformedSignatures = (signatures || []).map(signature => ({
+    const transformedSignatures = (signatures || []).map((signature) => ({
       id: signature.id,
       alias_id: signature.alias_id,
       signature_html: signature.signature_html,
@@ -68,22 +94,21 @@ export async function GET(request: NextRequest) {
       alias: {
         id: signature.email_aliases.id,
         alias_name: signature.email_aliases.alias_name,
-        full_address: `${signature.email_aliases.alias_name}@${signature.email_aliases.domains.domain_name}`
-      }
+        full_address: `${signature.email_aliases.alias_name}@${signature.email_aliases.domains.domain_name}`,
+      },
     }))
 
     return NextResponse.json(
       { signatures: transformedSignatures },
-      { 
+      {
         status: 200,
         headers: {
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-        }
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        },
       }
     )
-
   } catch (error) {
     console.error('Unexpected error:', error)
     return NextResponse.json(
@@ -99,8 +124,27 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    // Create authenticated client (respects RLS)
-    const { supabase, user } = await createAuthenticatedClient(request)
+    // Extract and validate auth token
+    const token = extractAuthToken(request)
+    if (!token) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Bearer token required' },
+        { status: 401 }
+      )
+    }
+
+    // Verify authentication
+    try {
+      await verifyAuth(token)
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Invalid token' },
+        { status: 401 }
+      )
+    }
+
+    // Create user-context client (respects RLS)
+    const supabase = createUserClient(token)
 
     // Validate content type
     const contentType = request.headers.get('content-type')
@@ -133,10 +177,16 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const { alias_id, signature_html, signature_text, is_default = false } = body
+    const {
+      alias_id,
+      signature_html,
+      signature_text,
+      is_default = false,
+    } = body
 
     // Validate alias_id format
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
     if (!uuidRegex.test(alias_id)) {
       return NextResponse.json(
         { error: 'Invalid alias_id format' },
@@ -145,14 +195,20 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate signature content
-    if (typeof signature_html !== 'string' || signature_html.trim().length === 0) {
+    if (
+      typeof signature_html !== 'string' ||
+      signature_html.trim().length === 0
+    ) {
       return NextResponse.json(
         { error: 'signature_html must be a non-empty string' },
         { status: 400 }
       )
     }
 
-    if (typeof signature_text !== 'string' || signature_text.trim().length === 0) {
+    if (
+      typeof signature_text !== 'string' ||
+      signature_text.trim().length === 0
+    ) {
       return NextResponse.json(
         { error: 'signature_text must be a non-empty string' },
         { status: 400 }
@@ -162,7 +218,8 @@ export async function POST(request: NextRequest) {
     // Verify alias exists and user owns it
     const { data: alias, error: aliasError } = await supabase
       .from('email_aliases')
-      .select(`
+      .select(
+        `
         id,
         alias_name,
         domains!inner(
@@ -170,19 +227,21 @@ export async function POST(request: NextRequest) {
           domain_name,
           user_id
         )
-      `)
+      `
+      )
       .eq('id', alias_id)
       .eq('domains.user_id', user.id)
       .single()
 
     if (aliasError) {
-      if (aliasError.code === 'PGRST116') { // No rows returned
+      if (aliasError.code === 'PGRST116') {
+        // No rows returned
         return NextResponse.json(
           { error: 'Alias not found or access denied' },
           { status: 404 }
         )
       }
-      
+
       console.error('Database error fetching alias:', aliasError)
       return NextResponse.json(
         { error: 'Failed to fetch alias' },
@@ -207,7 +266,10 @@ export async function POST(request: NextRequest) {
 
     if (existingSignature) {
       return NextResponse.json(
-        { error: 'Signature already exists for this alias. Use PATCH to update.' },
+        {
+          error:
+            'Signature already exists for this alias. Use PATCH to update.',
+        },
         { status: 409 }
       )
     }
@@ -219,9 +281,10 @@ export async function POST(request: NextRequest) {
         alias_id,
         signature_html: signature_html.trim(),
         signature_text: signature_text.trim(),
-        is_default
+        is_default,
       })
-      .select(`
+      .select(
+        `
         *,
         email_aliases!inner(
           id,
@@ -231,12 +294,13 @@ export async function POST(request: NextRequest) {
             domain_name
           )
         )
-      `)
+      `
+      )
       .single()
 
     if (createError) {
       console.error('Database error creating signature:', createError)
-      
+
       // Handle unique constraint violation
       if (createError.code === '23505') {
         return NextResponse.json(
@@ -244,7 +308,7 @@ export async function POST(request: NextRequest) {
           { status: 409 }
         )
       }
-      
+
       return NextResponse.json(
         { error: 'Failed to create signature' },
         { status: 500 }
@@ -263,22 +327,18 @@ export async function POST(request: NextRequest) {
       alias: {
         id: newSignature.email_aliases.id,
         alias_name: newSignature.email_aliases.alias_name,
-        full_address: `${newSignature.email_aliases.alias_name}@${newSignature.email_aliases.domains.domain_name}`
-      }
+        full_address: `${newSignature.email_aliases.alias_name}@${newSignature.email_aliases.domains.domain_name}`,
+      },
     }
 
-    return NextResponse.json(
-      responseSignature,
-      { 
-        status: 201,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-        }
-      }
-    )
-
+    return NextResponse.json(responseSignature, {
+      status: 201,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
+    })
   } catch (error) {
     console.error('Unexpected error:', error)
     return NextResponse.json(
@@ -299,7 +359,7 @@ export async function OPTIONS() {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      'Access-Control-Max-Age': '86400'
-    }
+      'Access-Control-Max-Age': '86400',
+    },
   })
 }

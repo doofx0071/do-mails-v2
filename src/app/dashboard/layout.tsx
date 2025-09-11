@@ -5,14 +5,16 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
-import { 
-  Mail, 
-  Globe, 
-  AtSign, 
-  Settings, 
+import {
+  Mail,
+  Globe,
+  AtSign,
+  Settings,
   Menu,
   LogOut,
-  User
+  User,
+  LayoutDashboard,
+  Inbox,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -25,29 +27,35 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 
 const navigation = [
   {
-    name: 'Emails',
+    name: 'Dashboard',
     href: '/dashboard',
-    icon: Mail,
-    description: 'View and manage your email conversations'
+    icon: LayoutDashboard,
+    description: 'Overview and quick actions',
+  },
+  {
+    name: 'Emails',
+    href: '/dashboard/emails',
+    icon: Inbox,
+    description: 'View and manage your email conversations',
   },
   {
     name: 'Domains',
     href: '/dashboard/domains',
     icon: Globe,
-    description: 'Manage your custom domains'
+    description: 'Manage your custom domains',
   },
   {
     name: 'Aliases',
     href: '/dashboard/aliases',
     icon: AtSign,
-    description: 'Create and manage email aliases'
+    description: 'Create and manage email aliases',
   },
   {
     name: 'Settings',
     href: '/dashboard/settings',
     icon: Settings,
-    description: 'Account and application settings'
-  }
+    description: 'Account and application settings',
+  },
 ]
 
 export default function DashboardLayout({
@@ -84,9 +92,10 @@ export default function DashboardLayout({
       <nav className="flex flex-1 flex-col px-6 py-4">
         <ul className="flex flex-1 flex-col gap-y-2">
           {navigation.map((item) => {
-            const isActive = pathname === item.href || 
+            const isActive =
+              pathname === item.href ||
               (item.href !== '/dashboard' && pathname.startsWith(item.href))
-            
+
             return (
               <li key={item.name}>
                 <Link
@@ -111,31 +120,33 @@ export default function DashboardLayout({
       </nav>
 
       {/* User menu */}
-      <div className="px-6 py-4 border-t">
+      <div className="border-t px-6 py-4">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="w-full justify-start p-3">
-              <Avatar className="h-8 w-8 mr-3">
+              <Avatar className="mr-3 h-8 w-8">
                 <AvatarFallback>
                   <User className="h-4 w-4" />
                 </AvatarFallback>
               </Avatar>
               <div className="flex flex-col items-start">
                 <span className="text-sm font-medium">Account</span>
-                <span className="text-xs text-muted-foreground">Manage account</span>
+                <span className="text-xs text-muted-foreground">
+                  Manage account
+                </span>
               </div>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuItem asChild>
               <Link href="/dashboard/settings">
-                <Settings className="h-4 w-4 mr-2" />
+                <Settings className="mr-2 h-4 w-4" />
                 Settings
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleSignOut}>
-              <LogOut className="h-4 w-4 mr-2" />
+              <LogOut className="mr-2 h-4 w-4" />
               Sign out
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -160,59 +171,57 @@ export default function DashboardLayout({
             <SidebarContent />
           </div>
         </SheetContent>
-      </Sheet>
 
-      {/* Main content */}
-      <div className="lg:pl-72 flex flex-1 flex-col">
-        {/* Top bar */}
-        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b bg-background px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="sm" className="lg:hidden">
-              <Menu className="h-5 w-5" />
-              <span className="sr-only">Open sidebar</span>
-            </Button>
-          </SheetTrigger>
+        {/* Main content */}
+        <div className="flex flex-1 flex-col lg:pl-72">
+          {/* Top bar */}
+          <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b bg-background px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="sm" className="lg:hidden">
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Open sidebar</span>
+              </Button>
+            </SheetTrigger>
 
-          <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
-            <div className="flex flex-1"></div>
-            
-            {/* Desktop user menu */}
-            <div className="hidden lg:flex lg:items-center lg:gap-x-6">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback>
-                        <User className="h-4 w-4" />
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem asChild>
-                    <Link href="/dashboard/settings">
-                      <Settings className="h-4 w-4 mr-2" />
-                      Settings
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut}>
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Sign out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+            <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
+              <div className="flex flex-1"></div>
+
+              {/* Desktop user menu */}
+              <div className="hidden lg:flex lg:items-center lg:gap-x-6">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback>
+                          <User className="h-4 w-4" />
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuItem asChild>
+                      <Link href="/dashboard/settings">
+                        <Settings className="mr-2 h-4 w-4" />
+                        Settings
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleSignOut}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Sign out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Page content */}
-        <main className="flex-1 overflow-y-auto">
-          <div className="px-4 py-6 sm:px-6 lg:px-8">
-            {children}
-          </div>
-        </main>
-      </div>
+          {/* Page content */}
+          <main className="flex-1 overflow-y-auto">
+            <div className="px-4 py-6 sm:px-6 lg:px-8">{children}</div>
+          </main>
+        </div>
+      </Sheet>
     </div>
   )
 }

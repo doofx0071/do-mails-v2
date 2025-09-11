@@ -60,7 +60,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Handle different auth events
       switch (event) {
         case 'SIGNED_IN':
-          // User signed in successfully
+          // User signed in successfully - handle redirect only once
+          if (typeof window !== 'undefined' && window.location.pathname.includes('/auth/')) {
+            const urlParams = new URLSearchParams(window.location.search)
+            const redirectTo = urlParams.get('redirectTo') || '/dashboard'
+            console.log('User signed in, redirecting to:', redirectTo)
+            router.push(redirectTo)
+          }
           break
         case 'SIGNED_OUT':
           // User signed out

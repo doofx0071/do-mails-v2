@@ -36,8 +36,8 @@ const emailProcessor = new EmailProcessing({
 })
 
 /**
- * POST /api/emails/send
- * Send an email via Mailgun using an alias
+ * POST /api/emails/send-from-domain
+ * Send an email from any address on a verified domain (catch-all sending)
  */
 export async function POST(request: NextRequest) {
   try {
@@ -85,7 +85,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate required fields
-    const requiredFields = ['alias_id', 'to_addresses', 'subject', 'body_html']
+    const requiredFields = [
+      'from_address',
+      'to_addresses',
+      'subject',
+      'body_html',
+    ]
     for (const field of requiredFields) {
       if (!body[field]) {
         return NextResponse.json(
@@ -96,7 +101,7 @@ export async function POST(request: NextRequest) {
     }
 
     const {
-      alias_id,
+      from_address,
       to_addresses,
       cc_addresses = [],
       bcc_addresses = [],
@@ -107,12 +112,42 @@ export async function POST(request: NextRequest) {
       references = [],
     } = body
 
-    // Validate alias_id format
-    const uuidRegex =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-    if (!uuidRegex.test(alias_id)) {
+    // Parse from_address to get domain
+    const [fromAlias, fromDomain] = from_address.split('@')
+    if (!fromAlias || !fromDomain) {
       return NextResponse.json(
-        { error: 'Invalid alias_id format' },
+        { error: 'Invalid from_address format' },
+        { status: 400 }
+      )
+    }
+
+    // Verify user owns the domain
+    const { data: domain, error: domainError } = await supabase
+      .from('domains')
+      .select('id, domain_name, verification_status')
+      .eq('domain_name', fromDomain.toLowerCase())
+      .eq('user_id', user.id)
+      .single()
+
+    if (domainError) {
+      if (domainError.code === 'PGRST116') {
+        return NextResponse.json(
+          { error: 'Domain not found or access denied' },
+          { status: 404 }
+        )
+      }
+
+      console.error('Database error fetching domain:', domainError)
+      return NextResponse.json(
+        { error: 'Failed to fetch domain' },
+        { status: 500 }
+      )
+    }
+
+    // Check if domain is verified
+    if (domain.verification_status !== 'verified') {
+      return NextResponse.json(
+        { error: 'Domain must be verified before sending emails' },
         { status: 400 }
       )
     }
@@ -157,63 +192,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get alias and verify ownership
-    const { data: alias, error: aliasError } = await supabase
-      .from('email_aliases')
-      .select(
-        `
-        *,
-        domains!inner(
-          id,
-          domain_name,
-          user_id,
-          verification_status
-        )
-      `
-      )
-      .eq('id', alias_id)
-      .eq('domains.user_id', user.id)
-      .single()
-
-    if (aliasError) {
-      if (aliasError.code === 'PGRST116') {
-        // No rows returned
-        return NextResponse.json(
-          { error: 'Alias not found or access denied' },
-          { status: 404 }
-        )
-      }
-
-      console.error('Database error fetching alias:', aliasError)
-      return NextResponse.json(
-        { error: 'Failed to fetch alias' },
-        { status: 500 }
-      )
-    }
-
-    // Check if alias is enabled
-    if (!alias.is_enabled) {
-      return NextResponse.json({ error: 'Alias is disabled' }, { status: 400 })
-    }
-
-    // Check if domain is verified
-    if (alias.domains.verification_status !== 'verified') {
-      return NextResponse.json(
-        { error: 'Domain must be verified before sending emails' },
-        { status: 400 }
-      )
-    }
-
-    const aliasAddress = `${alias.alias_name}@${alias.domains.domain_name}`
-    // Use a default sender that's authorized in Mailgun
+    // Use default sender for Mailgun but set reply-to as the from_address
     const defaultSender =
-      process.env.MAILGUN_DEFAULT_SENDER ||
-      `noreply@${alias.domains.domain_name}`
-    const fromAddress = defaultSender
+      process.env.MAILGUN_DEFAULT_SENDER || `noreply@${domain.domain_name}`
 
     // Prepare email request
     const emailRequest = {
-      from: fromAddress,
+      from: defaultSender,
       to: to_addresses,
       cc: cc_addresses.length > 0 ? cc_addresses : undefined,
       bcc: bcc_addresses.length > 0 ? bcc_addresses : undefined,
@@ -222,7 +207,7 @@ export async function POST(request: NextRequest) {
       html: body_html,
       inReplyTo: in_reply_to,
       references: references.length > 0 ? references : undefined,
-      replyTo: aliasAddress, // Set the alias as reply-to address
+      replyTo: from_address, // Set the desired from_address as reply-to
     }
 
     // Send email via Mailgun
@@ -238,7 +223,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate unique message ID for our database
-    const messageId = `<${Date.now()}.${Math.random().toString(36).substr(2, 9)}@${alias.domains.domain_name}>`
+    const messageId = `<${Date.now()}.${Math.random().toString(36).substr(2, 9)}@${domain.domain_name}>`
 
     // Find or create thread for this email
     let threadId: string | null = null
@@ -254,7 +239,7 @@ export async function POST(request: NextRequest) {
       const { data: existingThread, error: threadError } = await supabase
         .from('email_messages')
         .select('thread_id')
-        .eq('alias_id', alias_id)
+        .eq('domain_id', domain.id)
         .in('message_id', referenceIds)
         .limit(1)
         .single()
@@ -275,7 +260,8 @@ export async function POST(request: NextRequest) {
         const { data: subjectThread, error: subjectError } = await supabase
           .from('email_threads')
           .select('id')
-          .eq('alias_id', alias_id)
+          .eq('domain_id', domain.id)
+          .eq('recipient_address', from_address.toLowerCase())
           .ilike('subject', `%${normalizedSubject}%`)
           .limit(1)
           .single()
@@ -289,13 +275,14 @@ export async function POST(request: NextRequest) {
     // Create new thread if none found
     if (!threadId) {
       const participants = Array.from(
-        new Set([fromAddress, ...to_addresses, ...cc_addresses])
+        new Set([from_address, ...to_addresses, ...cc_addresses])
       )
 
       const { data: newThread, error: createThreadError } = await supabase
         .from('email_threads')
         .insert({
-          alias_id: alias_id,
+          domain_id: domain.id,
+          recipient_address: from_address.toLowerCase(),
           subject: subject,
           participants: participants,
           message_count: 0, // Will be updated by trigger
@@ -317,16 +304,17 @@ export async function POST(request: NextRequest) {
       threadId = newThread.id
     }
 
-    // Store the sent message in database
+    // Store the sent message in database (catch-all style)
     const { data: storedMessage, error: storeError } = await supabase
       .from('email_messages')
       .insert({
         thread_id: threadId,
-        alias_id: alias_id,
+        domain_id: domain.id,
+        recipient_address: from_address.toLowerCase(),
         message_id: messageId,
         in_reply_to: in_reply_to || null,
         references: references,
-        from_address: fromAddress,
+        from_address: from_address,
         to_addresses: to_addresses,
         cc_addresses: cc_addresses,
         bcc_addresses: bcc_addresses,
@@ -352,13 +340,11 @@ export async function POST(request: NextRequest) {
         success: true,
         message_id: messageId,
         mailgun_id: mailgunResponse.id,
-        from: fromAddress,
+        from: from_address,
         to: to_addresses,
         cc: cc_addresses,
         bcc: bcc_addresses,
         subject: subject,
-        sent_at: new Date().toISOString(),
-        stored_message_id: storedMessage?.id,
       },
       {
         status: 200,
@@ -369,8 +355,8 @@ export async function POST(request: NextRequest) {
         },
       }
     )
-  } catch (error) {
-    console.error('Unexpected error:', error)
+  } catch (error: any) {
+    console.error('Unexpected error in send email:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -379,17 +365,19 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * OPTIONS /api/emails/send
+ * OPTIONS /api/emails/send-from-domain
  * Handle CORS preflight requests
  */
 export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      'Access-Control-Max-Age': '86400',
-    },
-  })
+  return NextResponse.json(
+    {},
+    {
+      status: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
+    }
+  )
 }

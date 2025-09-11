@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { AliasManagement } from '@do-mails/alias-management'
-import { createAuthenticatedClient } from '@/lib/supabase/server'
+import {
+  extractAuthToken,
+  verifyAuth,
+  createUserClient,
+} from '@/lib/supabase/server'
 
 // Initialize alias management service
 const aliasManager = new AliasManagement({
@@ -12,13 +16,24 @@ const aliasManager = new AliasManagement({
   enableSimilarityCheck: true,
   similarityThreshold: 0.8,
   reservedAliases: [
-    'admin', 'administrator', 'root', 'postmaster', 'webmaster',
-    'hostmaster', 'abuse', 'security', 'noreply', 'no-reply',
-    'support', 'help', 'info', 'contact', 'sales', 'billing'
+    'admin',
+    'administrator',
+    'root',
+    'postmaster',
+    'webmaster',
+    'hostmaster',
+    'abuse',
+    'security',
+    'noreply',
+    'no-reply',
+    'support',
+    'help',
+    'info',
+    'contact',
+    'sales',
+    'billing',
   ],
-  blockedPatterns: [
-    'test', 'temp', 'temporary', 'delete', 'remove', 'spam'
-  ]
+  blockedPatterns: ['test', 'temp', 'temporary', 'delete', 'remove', 'spam'],
 })
 
 /**
@@ -30,13 +45,33 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    // Create authenticated client (respects RLS)
-    const { supabase, user } = await createAuthenticatedClient(request)
+    // Extract and validate auth token
+    const token = extractAuthToken(request)
+    if (!token) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Bearer token required' },
+        { status: 401 }
+      )
+    }
+
+    // Verify authentication
+    try {
+      await verifyAuth(token)
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Invalid token' },
+        { status: 401 }
+      )
+    }
+
+    // Create user-context client (respects RLS)
+    const supabase = createUserClient(token)
 
     const aliasId = params.id
 
     // Validate alias ID format (UUID)
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
     if (!uuidRegex.test(aliasId)) {
       return NextResponse.json(
         { error: 'Invalid alias ID format' },
@@ -66,11 +101,16 @@ export async function PATCH(
 
     // Validate that at least one field is provided for update
     const allowedFields = ['alias_name', 'is_enabled']
-    const providedFields = Object.keys(body).filter(key => allowedFields.includes(key))
-    
+    const providedFields = Object.keys(body).filter((key) =>
+      allowedFields.includes(key)
+    )
+
     if (providedFields.length === 0) {
       return NextResponse.json(
-        { error: 'At least one field must be provided for update: alias_name, is_enabled' },
+        {
+          error:
+            'At least one field must be provided for update: alias_name, is_enabled',
+        },
         { status: 400 }
       )
     }
@@ -78,7 +118,8 @@ export async function PATCH(
     // Get existing alias and verify ownership
     const { data: existingAlias, error: aliasError } = await supabase
       .from('email_aliases')
-      .select(`
+      .select(
+        `
         *,
         domains!inner(
           id,
@@ -86,19 +127,20 @@ export async function PATCH(
           user_id,
           verification_status
         )
-      `)
+      `
+      )
       .eq('id', aliasId)
-      .eq('domains.user_id', user.id) // Ensure user owns this alias
       .single()
 
     if (aliasError) {
-      if (aliasError.code === 'PGRST116') { // No rows returned
+      if (aliasError.code === 'PGRST116') {
+        // No rows returned
         return NextResponse.json(
           { error: 'Alias not found or access denied' },
           { status: 404 }
         )
       }
-      
+
       console.error('Database error fetching alias:', aliasError)
       return NextResponse.json(
         { error: 'Failed to fetch alias' },
@@ -108,7 +150,7 @@ export async function PATCH(
 
     // Prepare update data
     const updateData: any = {
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     }
 
     // Validate and process alias_name if provided
@@ -126,9 +168,9 @@ export async function PATCH(
       const validation = aliasManager.validateAlias(newAliasName)
       if (!validation.valid) {
         return NextResponse.json(
-          { 
+          {
             error: `Invalid alias name: ${validation.errors.join(', ')}`,
-            suggestions: validation.suggestions
+            suggestions: validation.suggestions,
           },
           { status: 400 }
         )
@@ -145,7 +187,10 @@ export async function PATCH(
           .single()
 
         if (conflictError && conflictError.code !== 'PGRST116') {
-          console.error('Database error checking alias conflict:', conflictError)
+          console.error(
+            'Database error checking alias conflict:',
+            conflictError
+          )
           return NextResponse.json(
             { error: 'Failed to check alias availability' },
             { status: 500 }
@@ -180,17 +225,19 @@ export async function PATCH(
       .from('email_aliases')
       .update(updateData)
       .eq('id', aliasId)
-      .select(`
+      .select(
+        `
         *,
         domains!inner(
           domain_name
         )
-      `)
+      `
+      )
       .single()
 
     if (updateError) {
       console.error('Database error updating alias:', updateError)
-      
+
       // Handle unique constraint violation
       if (updateError.code === '23505') {
         return NextResponse.json(
@@ -198,7 +245,7 @@ export async function PATCH(
           { status: 409 }
         )
       }
-      
+
       return NextResponse.json(
         { error: 'Failed to update alias' },
         { status: 500 }
@@ -214,21 +261,17 @@ export async function PATCH(
       is_enabled: updatedAlias.is_enabled,
       last_email_received_at: updatedAlias.last_email_received_at,
       created_at: updatedAlias.created_at,
-      updated_at: updatedAlias.updated_at
+      updated_at: updatedAlias.updated_at,
     }
 
-    return NextResponse.json(
-      responseAlias,
-      { 
-        status: 200,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'PATCH, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-        }
-      }
-    )
-
+    return NextResponse.json(responseAlias, {
+      status: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'PATCH, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
+    })
   } catch (error) {
     console.error('Unexpected error:', error)
     return NextResponse.json(
@@ -247,13 +290,33 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    // Create authenticated client (respects RLS)
-    const { supabase, user } = await createAuthenticatedClient(request)
+    // Extract and validate auth token
+    const token = extractAuthToken(request)
+    if (!token) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Bearer token required' },
+        { status: 401 }
+      )
+    }
+
+    // Verify authentication
+    try {
+      await verifyAuth(token)
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Invalid token' },
+        { status: 401 }
+      )
+    }
+
+    // Create user-context client (respects RLS)
+    const supabase = createUserClient(token)
 
     const aliasId = params.id
 
     // Validate alias ID format (UUID)
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
     if (!uuidRegex.test(aliasId)) {
       return NextResponse.json(
         { error: 'Invalid alias ID format' },
@@ -264,26 +327,28 @@ export async function GET(
     // Get alias and verify ownership
     const { data: alias, error: aliasError } = await supabase
       .from('email_aliases')
-      .select(`
+      .select(
+        `
         *,
         domains!inner(
           id,
           domain_name,
           user_id
         )
-      `)
+      `
+      )
       .eq('id', aliasId)
-      .eq('domains.user_id', user.id) // Ensure user owns this alias
       .single()
 
     if (aliasError) {
-      if (aliasError.code === 'PGRST116') { // No rows returned
+      if (aliasError.code === 'PGRST116') {
+        // No rows returned
         return NextResponse.json(
           { error: 'Alias not found or access denied' },
           { status: 404 }
         )
       }
-      
+
       console.error('Database error fetching alias:', aliasError)
       return NextResponse.json(
         { error: 'Failed to fetch alias' },
@@ -300,21 +365,17 @@ export async function GET(
       is_enabled: alias.is_enabled,
       last_email_received_at: alias.last_email_received_at,
       created_at: alias.created_at,
-      updated_at: alias.updated_at
+      updated_at: alias.updated_at,
     }
 
-    return NextResponse.json(
-      responseAlias,
-      { 
-        status: 200,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, PATCH, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-        }
-      }
-    )
-
+    return NextResponse.json(responseAlias, {
+      status: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, PATCH, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
+    })
   } catch (error) {
     console.error('Unexpected error:', error)
     return NextResponse.json(
@@ -335,7 +396,7 @@ export async function OPTIONS() {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, PATCH, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      'Access-Control-Max-Age': '86400'
-    }
+      'Access-Control-Max-Age': '86400',
+    },
   })
 }

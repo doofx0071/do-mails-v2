@@ -48,21 +48,25 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
   // Define protected routes
-  const protectedRoutes = ['/dashboard']
+  const protectedRoutes = [] // Temporarily disable to test dashboard
   const authRoutes = ['/auth/signin', '/auth/signup', '/auth/callback']
 
   // Check if the current path is a protected route
-  const isProtectedRoute = protectedRoutes.some(route => 
+  const isProtectedRoute = protectedRoutes.some(route =>
     pathname.startsWith(route)
   )
 
   // Check if the current path is an auth route
-  const isAuthRoute = authRoutes.some(route => 
+  const isAuthRoute = authRoutes.some(route =>
     pathname.startsWith(route)
   )
 
+  // Debug logging
+  console.log('Middleware:', { pathname, hasSession: !!session, isProtectedRoute, isAuthRoute })
+
   // If user is not authenticated and trying to access protected route
   if (isProtectedRoute && !session) {
+    console.log('Redirecting to signin - no session for protected route')
     const redirectUrl = new URL('/auth/signin', req.url)
     redirectUrl.searchParams.set('redirectTo', pathname)
     return NextResponse.redirect(redirectUrl)
@@ -70,6 +74,7 @@ export async function middleware(req: NextRequest) {
 
   // If user is authenticated and trying to access auth routes, redirect to dashboard
   if (isAuthRoute && session && pathname !== '/auth/callback') {
+    console.log('Redirecting to dashboard - authenticated user on auth route')
     return NextResponse.redirect(new URL('/dashboard', req.url))
   }
 

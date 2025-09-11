@@ -45,13 +45,15 @@ export default function SignInPage() {
       // Store token for API calls (temporary until we fully migrate to Supabase auth)
       localStorage.setItem('auth_token', session.access_token)
 
+      console.log('Authentication successful, user:', user.email)
+      console.log('Auth provider will handle redirect...')
+
       toast({
         title: 'Welcome back!',
         description: 'You have been signed in successfully.',
       })
 
-      // Redirect to dashboard
-      router.push('/dashboard')
+      // The auth provider will handle the redirect automatically
       
     } catch (error: any) {
       console.error('Sign in error:', error)
@@ -162,7 +164,7 @@ export default function SignInPage() {
           <CardContent className="pt-6">
             <div className="text-center text-sm text-muted-foreground">
               <p className="font-medium mb-2">Demo Account</p>
-              <p>Email: demo@example.com</p>
+              <p>Email: demo@veenusra.com</p>
               <p>Password: demo123</p>
             </div>
           </CardContent>

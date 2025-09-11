@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { AliasManagement } from '@do-mails/alias-management'
-import { createAuthenticatedClient } from '@/lib/supabase/server'
+import {
+  extractAuthToken,
+  verifyAuth,
+  createUserClient,
+} from '@/lib/supabase/server'
 
 // Initialize alias management service
 const aliasManager = new AliasManagement({
@@ -12,13 +16,24 @@ const aliasManager = new AliasManagement({
   enableSimilarityCheck: true,
   similarityThreshold: 0.8,
   reservedAliases: [
-    'admin', 'administrator', 'root', 'postmaster', 'webmaster',
-    'hostmaster', 'abuse', 'security', 'noreply', 'no-reply',
-    'support', 'help', 'info', 'contact', 'sales', 'billing'
+    'admin',
+    'administrator',
+    'root',
+    'postmaster',
+    'webmaster',
+    'hostmaster',
+    'abuse',
+    'security',
+    'noreply',
+    'no-reply',
+    'support',
+    'help',
+    'info',
+    'contact',
+    'sales',
+    'billing',
   ],
-  blockedPatterns: [
-    'test', 'temp', 'temporary', 'delete', 'remove', 'spam'
-  ]
+  blockedPatterns: ['test', 'temp', 'temporary', 'delete', 'remove', 'spam'],
 })
 
 /**
@@ -27,8 +42,27 @@ const aliasManager = new AliasManagement({
  */
 export async function GET(request: NextRequest) {
   try {
-    // Create authenticated client (respects RLS)
-    const { supabase, user } = await createAuthenticatedClient(request)
+    // Extract and validate auth token
+    const token = extractAuthToken(request)
+    if (!token) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Bearer token required' },
+        { status: 401 }
+      )
+    }
+
+    // Verify authentication
+    try {
+      await verifyAuth(token)
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Invalid token' },
+        { status: 401 }
+      )
+    }
+
+    // Create user-context client (respects RLS)
+    const supabase = createUserClient(token)
 
     // Parse query parameters
     const { searchParams } = new URL(request.url)
@@ -48,19 +82,22 @@ export async function GET(request: NextRequest) {
     // Build query - RLS automatically filters by user
     let query = supabase
       .from('email_aliases')
-      .select(`
+      .select(
+        `
         *,
         domains!inner(
           id,
           domain_name
         )
-      `)
+      `
+      )
       .order('created_at', { ascending: false })
 
     // Apply domain filter if provided
     if (domainId) {
       // Validate UUID format
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+      const uuidRegex =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
       if (!uuidRegex.test(domainId)) {
         return NextResponse.json(
           { error: 'Invalid domain_id format' },
@@ -109,7 +146,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Transform the data to include full_address computed field
-    const transformedAliases = (aliases || []).map(alias => ({
+    const transformedAliases = (aliases || []).map((alias) => ({
       id: alias.id,
       domain_id: alias.domain_id,
       alias_name: alias.alias_name,
@@ -117,21 +154,20 @@ export async function GET(request: NextRequest) {
       is_enabled: alias.is_enabled,
       last_email_received_at: alias.last_email_received_at,
       created_at: alias.created_at,
-      updated_at: alias.updated_at
+      updated_at: alias.updated_at,
     }))
 
     return NextResponse.json(
       { aliases: transformedAliases },
-      { 
+      {
         status: 200,
         headers: {
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-        }
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        },
       }
     )
-
   } catch (error) {
     console.error('Unexpected error:', error)
     return NextResponse.json(
@@ -147,8 +183,27 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    // Create authenticated client (respects RLS)
-    const { supabase, user } = await createAuthenticatedClient(request)
+    // Extract and validate auth token
+    const token = extractAuthToken(request)
+    if (!token) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Bearer token required' },
+        { status: 401 }
+      )
+    }
+
+    // Verify authentication
+    try {
+      await verifyAuth(token)
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Invalid token' },
+        { status: 401 }
+      )
+    }
+
+    // Create user-context client (respects RLS)
+    const supabase = createUserClient(token)
 
     // Validate content type
     const contentType = request.headers.get('content-type')
@@ -190,7 +245,8 @@ export async function POST(request: NextRequest) {
     const isEnabled = body.is_enabled !== undefined ? body.is_enabled : true
 
     // Validate domain ID format
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
     if (!uuidRegex.test(domainId)) {
       return NextResponse.json(
         { error: 'Invalid domain_id format' },
@@ -202,9 +258,9 @@ export async function POST(request: NextRequest) {
     const validation = aliasManager.validateAlias(aliasName)
     if (!validation.valid) {
       return NextResponse.json(
-        { 
+        {
           error: `Invalid alias name: ${validation.errors.join(', ')}`,
-          suggestions: validation.suggestions
+          suggestions: validation.suggestions,
         },
         { status: 400 }
       )
@@ -218,13 +274,14 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (domainError) {
-      if (domainError.code === 'PGRST116') { // No rows returned
+      if (domainError.code === 'PGRST116') {
+        // No rows returned
         return NextResponse.json(
           { error: 'Domain not found or access denied' },
           { status: 404 }
         )
       }
-      
+
       console.error('Database error fetching domain:', domainError)
       return NextResponse.json(
         { error: 'Failed to verify domain ownership' },
@@ -248,7 +305,8 @@ export async function POST(request: NextRequest) {
       .eq('alias_name', aliasName)
       .single()
 
-    if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows returned
+    if (checkError && checkError.code !== 'PGRST116') {
+      // PGRST116 = no rows returned
       console.error('Database error checking existing alias:', checkError)
       return NextResponse.json(
         { error: 'Failed to check alias availability' },
@@ -269,14 +327,14 @@ export async function POST(request: NextRequest) {
       .insert({
         domain_id: domainId,
         alias_name: aliasName,
-        is_enabled: isEnabled
+        is_enabled: isEnabled,
       })
       .select()
       .single()
 
     if (createError) {
       console.error('Database error creating alias:', createError)
-      
+
       // Handle unique constraint violation
       if (createError.code === '23505') {
         return NextResponse.json(
@@ -284,7 +342,7 @@ export async function POST(request: NextRequest) {
           { status: 409 }
         )
       }
-      
+
       return NextResponse.json(
         { error: 'Failed to create alias' },
         { status: 500 }
@@ -294,21 +352,17 @@ export async function POST(request: NextRequest) {
     // Return the created alias with full_address
     const responseAlias = {
       ...newAlias,
-      full_address: `${newAlias.alias_name}@${domain.domain_name}`
+      full_address: `${newAlias.alias_name}@${domain.domain_name}`,
     }
 
-    return NextResponse.json(
-      responseAlias,
-      { 
-        status: 201,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-        }
-      }
-    )
-
+    return NextResponse.json(responseAlias, {
+      status: 201,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
+    })
   } catch (error) {
     console.error('Unexpected error:', error)
     return NextResponse.json(
@@ -329,7 +383,7 @@ export async function OPTIONS() {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      'Access-Control-Max-Age': '86400'
-    }
+      'Access-Control-Max-Age': '86400',
+    },
   })
 }

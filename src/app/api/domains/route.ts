@@ -37,10 +37,11 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Verify authentication
+    // Verify authentication and get user
     logger.debug('Verifying authentication')
+    let user
     try {
-      await verifyAuth(token)
+      user = await verifyAuth(token)
     } catch (error) {
       logger.warn('Authentication failed', {
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -127,9 +128,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verify authentication
+    // Verify authentication and get user
+    let user
     try {
-      await verifyAuth(token)
+      user = await verifyAuth(token)
     } catch (error) {
       return NextResponse.json(
         { error: 'Unauthorized - Invalid token' },
@@ -211,13 +213,14 @@ export async function POST(request: NextRequest) {
       charset: 'alphanumeric',
     })
 
-    // Create domain record - RLS will automatically set user_id
+    // Create domain record with explicit user_id
     const { data: newDomain, error: createError } = await supabase
       .from('domains')
       .insert({
         domain_name: domainName,
         verification_status: 'pending',
         verification_token: verificationToken,
+        user_id: user.id,
       })
       .select()
       .single()

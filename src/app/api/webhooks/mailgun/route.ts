@@ -13,21 +13,28 @@ const emailProcessor = new EmailProcessing({
     apiKey: process.env.MAILGUN_API_KEY!,
     domain: process.env.MAILGUN_DOMAIN!,
     baseUrl: process.env.MAILGUN_BASE_URL || 'https://api.mailgun.net',
-    webhookSigningKey: process.env.MAILGUN_WEBHOOK_SIGNING_KEY
+    webhookSigningKey: process.env.MAILGUN_WEBHOOK_SIGNING_KEY,
   },
   threading: {
     subjectNormalization: true,
     referencesTracking: true,
     participantGrouping: true,
-    timeWindowHours: 24
+    timeWindowHours: 24,
   },
   maxAttachmentSize: 25 * 1024 * 1024, // 25MB
   allowedAttachmentTypes: [
-    'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-    'application/pdf', 'text/plain', 'text/csv',
-    'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-  ]
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+    'application/pdf',
+    'text/plain',
+    'text/csv',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  ],
 })
 
 /**
@@ -63,15 +70,12 @@ export async function POST(request: NextRequest) {
       signature,
       timestamp,
       token,
-      body: webhookData
+      body: webhookData,
     })
 
     if (!isValidSignature) {
       console.error('Invalid Mailgun webhook signature')
-      return NextResponse.json(
-        { error: 'Invalid signature' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
     }
 
     console.log('Received verified Mailgun webhook:', Object.keys(webhookData))
@@ -108,47 +112,41 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Find the alias in our database
-    const { data: alias, error: aliasError } = await supabase
-      .from('email_aliases')
-      .select(`
-        *,
-        domains!inner(
-          id,
-          domain_name,
-          user_id,
-          verification_status
-        )
-      `)
-      .eq('alias_name', aliasName.toLowerCase())
-      .eq('domains.domain_name', domainName.toLowerCase())
-      .eq('domains.verification_status', 'verified')
+    // Find the domain in our database (catch-all approach)
+    const { data: domain, error: domainError } = await supabase
+      .from('domains')
+      .select(
+        `
+        id,
+        domain_name,
+        user_id,
+        verification_status
+      `
+      )
+      .eq('domain_name', domainName.toLowerCase())
+      .eq('verification_status', 'verified')
       .single()
 
-    if (aliasError) {
-      if (aliasError.code === 'PGRST116') { // No rows returned
-        console.error('Alias not found:', recipientEmail)
+    if (domainError) {
+      if (domainError.code === 'PGRST116') {
+        // No rows returned
+        console.error('Domain not found or not verified:', domainName)
         return NextResponse.json(
-          { error: 'Alias not found or domain not verified' },
+          { error: 'Domain not found or not verified' },
           { status: 404 }
         )
       }
-      
-      console.error('Database error fetching alias:', aliasError)
+
+      console.error('Database error fetching domain:', domainError)
       return NextResponse.json(
-        { error: 'Failed to fetch alias' },
+        { error: 'Failed to fetch domain' },
         { status: 500 }
       )
     }
 
-    // Check if alias is enabled
-    if (!alias.is_enabled) {
-      console.error('Alias is disabled:', recipientEmail)
-      return NextResponse.json(
-        { error: 'Alias is disabled' },
-        { status: 400 }
-      )
-    }
+    console.log(
+      `✅ Catch-all: Accepting email for ${recipientEmail} on verified domain ${domainName}`
+    )
 
     // Check if message already exists (prevent duplicates)
     const { data: existingMessage, error: checkError } = await supabase
@@ -168,7 +166,11 @@ export async function POST(request: NextRequest) {
     if (existingMessage) {
       console.log('Message already exists:', emailMessage.messageId)
       return NextResponse.json(
-        { success: true, message: 'Message already processed', duplicate: true },
+        {
+          success: true,
+          message: 'Message already processed',
+          duplicate: true,
+        },
         { status: 200 }
       )
     }
@@ -181,13 +183,13 @@ export async function POST(request: NextRequest) {
       // Look for thread by message references
       const referenceIds = [
         ...(emailMessage.inReplyTo ? [emailMessage.inReplyTo] : []),
-        ...emailMessage.references
+        ...emailMessage.references,
       ]
 
       const { data: existingThread, error: threadError } = await supabase
         .from('email_messages')
         .select('thread_id')
-        .eq('alias_id', alias.id)
+        .eq('domain_id', domain.id)
         .in('message_id', referenceIds)
         .limit(1)
         .single()
@@ -208,7 +210,8 @@ export async function POST(request: NextRequest) {
         const { data: subjectThread, error: subjectError } = await supabase
           .from('email_threads')
           .select('id')
-          .eq('alias_id', alias.id)
+          .eq('domain_id', domain.id)
+          .eq('recipient_address', recipientEmail.toLowerCase())
           .ilike('subject', `%${normalizedSubject}%`)
           .limit(1)
           .single()
@@ -221,22 +224,21 @@ export async function POST(request: NextRequest) {
 
     // Create new thread if none found
     if (!threadId) {
-      const participants = Array.from(new Set([
-        emailMessage.from,
-        ...emailMessage.to,
-        ...emailMessage.cc
-      ]))
+      const participants = Array.from(
+        new Set([emailMessage.from, ...emailMessage.to, ...emailMessage.cc])
+      )
 
       const { data: newThread, error: createThreadError } = await supabase
         .from('email_threads')
         .insert({
-          alias_id: alias.id,
+          domain_id: domain.id,
+          recipient_address: recipientEmail.toLowerCase(),
           subject: emailMessage.subject,
           participants: participants,
           message_count: 0, // Will be updated by trigger
           last_message_at: emailMessage.receivedAt.toISOString(),
           is_archived: false,
-          labels: []
+          labels: [],
         })
         .select('id')
         .single()
@@ -257,7 +259,8 @@ export async function POST(request: NextRequest) {
       .from('email_messages')
       .insert({
         thread_id: threadId,
-        alias_id: alias.id,
+        domain_id: domain.id,
+        recipient_address: recipientEmail.toLowerCase(),
         message_id: emailMessage.messageId,
         in_reply_to: emailMessage.inReplyTo,
         references: emailMessage.references,
@@ -271,7 +274,7 @@ export async function POST(request: NextRequest) {
         is_read: false,
         is_sent: false,
         mailgun_message_id: webhookData['Message-Id'],
-        received_at: emailMessage.receivedAt.toISOString()
+        received_at: emailMessage.receivedAt.toISOString(),
       })
       .select()
       .single()
@@ -305,12 +308,14 @@ export async function POST(request: NextRequest) {
             const storagePath = `attachments/${alias.domains.user_id}/${uniqueFilename}`
 
             // Upload to Supabase Storage
-            const { data: uploadData, error: uploadError } = await supabase.storage
-              .from('email-attachments')
-              .upload(storagePath, attachmentFile, {
-                contentType: attachmentFile.type || 'application/octet-stream',
-                upsert: false
-              })
+            const { data: uploadData, error: uploadError } =
+              await supabase.storage
+                .from('email-attachments')
+                .upload(storagePath, attachmentFile, {
+                  contentType:
+                    attachmentFile.type || 'application/octet-stream',
+                  upsert: false,
+                })
 
             if (uploadError) {
               console.error(`Failed to upload attachment ${i}:`, uploadError)
@@ -318,21 +323,26 @@ export async function POST(request: NextRequest) {
             }
 
             // Store attachment metadata in database
-            const { data: attachmentRecord, error: attachmentError } = await supabase
-              .from('email_attachments')
-              .insert({
-                message_id: storedMessage.id,
-                filename: attachmentName,
-                content_type: attachmentFile.type || 'application/octet-stream',
-                size: attachmentFile.size,
-                storage_path: storagePath,
-                storage_bucket: 'email-attachments'
-              })
-              .select('id')
-              .single()
+            const { data: attachmentRecord, error: attachmentError } =
+              await supabase
+                .from('email_attachments')
+                .insert({
+                  message_id: storedMessage.id,
+                  filename: attachmentName,
+                  content_type:
+                    attachmentFile.type || 'application/octet-stream',
+                  size: attachmentFile.size,
+                  storage_path: storagePath,
+                  storage_bucket: 'email-attachments',
+                })
+                .select('id')
+                .single()
 
             if (attachmentError) {
-              console.error(`Failed to store attachment metadata ${i}:`, attachmentError)
+              console.error(
+                `Failed to store attachment metadata ${i}:`,
+                attachmentError
+              )
               // Clean up uploaded file
               await supabase.storage
                 .from('email-attachments')
@@ -341,15 +351,18 @@ export async function POST(request: NextRequest) {
             }
 
             attachmentIds.push(attachmentRecord.id)
-            console.log(`Successfully stored attachment ${i}: ${attachmentName}`)
-
+            console.log(
+              `Successfully stored attachment ${i}: ${attachmentName}`
+            )
           } catch (error) {
             console.error(`Error processing attachment ${i}:`, error)
           }
         }
       }
 
-      console.log(`Successfully processed ${attachmentIds.length}/${attachmentCount} attachments`)
+      console.log(
+        `Successfully processed ${attachmentIds.length}/${attachmentCount} attachments`
+      )
     }
 
     // Update alias last_email_received_at
@@ -357,7 +370,7 @@ export async function POST(request: NextRequest) {
       .from('email_aliases')
       .update({
         last_email_received_at: emailMessage.receivedAt.toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
       .eq('id', alias.id)
 
@@ -366,7 +379,7 @@ export async function POST(request: NextRequest) {
       threadId: threadId,
       aliasId: alias.id,
       from: emailMessage.from,
-      subject: emailMessage.subject
+      subject: emailMessage.subject,
     })
 
     return NextResponse.json(
@@ -380,11 +393,10 @@ export async function POST(request: NextRequest) {
         subject: emailMessage.subject,
         received_at: emailMessage.receivedAt,
         attachments_processed: attachmentIds.length,
-        attachment_ids: attachmentIds
+        attachment_ids: attachmentIds,
       },
       { status: 200 }
     )
-
   } catch (error) {
     console.error('Unexpected error processing webhook:', error)
     return NextResponse.json(
@@ -400,10 +412,10 @@ export async function POST(request: NextRequest) {
  */
 export async function GET() {
   return NextResponse.json(
-    { 
-      status: 'ok', 
+    {
+      status: 'ok',
       message: 'Mailgun webhook endpoint is active',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     },
     { status: 200 }
   )

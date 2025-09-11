@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { DomainVerification } from '@do-mails/domain-verification'
-import { createAuthenticatedClient } from '@/lib/supabase/server'
+import {
+  extractAuthToken,
+  verifyAuth,
+  createUserClient,
+} from '@/lib/supabase/server'
 
 // Initialize domain verification service
 const domainVerifier = new DomainVerification({
@@ -13,9 +17,9 @@ const domainVerifier = new DomainVerification({
     'example.org',
     'example.net',
     'test.com',
-    'invalid'
+    'invalid',
   ],
-  cacheTimeout: 300000 // 5 minutes
+  cacheTimeout: 300000, // 5 minutes
 })
 
 /**
@@ -27,13 +31,34 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    // Create authenticated client (respects RLS)
-    const { supabase, user } = await createAuthenticatedClient(request)
+    // Extract and validate auth token
+    const token = extractAuthToken(request)
+    if (!token) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Bearer token required' },
+        { status: 401 }
+      )
+    }
+
+    // Verify authentication and get user
+    let user
+    try {
+      user = await verifyAuth(token)
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Invalid token' },
+        { status: 401 }
+      )
+    }
+
+    // Create user-context client (respects RLS)
+    const supabase = createUserClient(token)
 
     const domainId = params.id
 
     // Validate domain ID format (UUID)
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
     if (!uuidRegex.test(domainId)) {
       return NextResponse.json(
         { error: 'Invalid domain ID format' },
@@ -50,13 +75,14 @@ export async function POST(
       .single()
 
     if (domainError) {
-      if (domainError.code === 'PGRST116') { // No rows returned
+      if (domainError.code === 'PGRST116') {
+        // No rows returned
         return NextResponse.json(
           { error: 'Domain not found or access denied' },
           { status: 404 }
         )
       }
-      
+
       console.error('Database error fetching domain:', domainError)
       return NextResponse.json(
         { error: 'Failed to fetch domain' },
@@ -74,8 +100,8 @@ export async function POST(
             id: domain.id,
             domain_name: domain.domain_name,
             verification_status: domain.verification_status,
-            verified_at: domain.verified_at
-          }
+            verified_at: domain.verified_at,
+          },
         },
         { status: 200 }
       )
@@ -95,7 +121,7 @@ export async function POST(
           .update({
             verification_status: 'verified',
             verified_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
           })
           .eq('id', domainId)
           .select()
@@ -117,21 +143,21 @@ export async function POST(
               id: updatedDomain.id,
               domain_name: updatedDomain.domain_name,
               verification_status: updatedDomain.verification_status,
-              verified_at: updatedDomain.verified_at
+              verified_at: updatedDomain.verified_at,
             },
             verification_details: {
               record_name: verificationResult.recordName,
               verification_time: verificationResult.verificationTime,
-              dns_records_found: verificationResult.dnsRecords
-            }
+              dns_records_found: verificationResult.dnsRecords,
+            },
           },
-          { 
+          {
             status: 200,
             headers: {
               'Access-Control-Allow-Origin': '*',
               'Access-Control-Allow-Methods': 'POST, OPTIONS',
-              'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-            }
+              'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+            },
           }
         )
       } else {
@@ -140,7 +166,7 @@ export async function POST(
           .from('domains')
           .update({
             verification_status: 'failed',
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
           })
           .eq('id', domainId)
 
@@ -160,20 +186,19 @@ export async function POST(
               instructions: domainVerifier.getVerificationInstructions(
                 domain.domain_name,
                 domain.verification_token
-              )
-            }
+              ),
+            },
           },
-          { 
+          {
             status: 400,
             headers: {
               'Access-Control-Allow-Origin': '*',
               'Access-Control-Allow-Methods': 'POST, OPTIONS',
-              'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-            }
+              'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+            },
           }
         )
       }
-
     } catch (verificationError: any) {
       console.error('Domain verification error:', verificationError)
 
@@ -182,7 +207,7 @@ export async function POST(
         .from('domains')
         .update({
           verification_status: 'failed',
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq('id', domainId)
 
@@ -201,20 +226,19 @@ export async function POST(
             instructions: domainVerifier.getVerificationInstructions(
               domain.domain_name,
               domain.verification_token
-            )
-          }
+            ),
+          },
         },
-        { 
+        {
           status: 400,
           headers: {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-          }
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          },
         }
       )
     }
-
   } catch (error) {
     console.error('Unexpected error:', error)
     return NextResponse.json(
@@ -235,7 +259,7 @@ export async function OPTIONS() {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      'Access-Control-Max-Age': '86400'
-    }
+      'Access-Control-Max-Age': '86400',
+    },
   })
 }

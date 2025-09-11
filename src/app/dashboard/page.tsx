@@ -1,74 +1,114 @@
 'use client'
 
-import { useState } from 'react'
-import { ThreadList, ThreadView } from '@/components/emails'
-
-interface EmailThread {
-  id: string
-  alias_id: string
-  subject: string
-  participants: string[]
-  message_count: number
-  last_message_at: string
-  is_archived: boolean
-  labels: string[]
-  created_at: string
-  updated_at: string
-  alias: {
-    id: string
-    alias_name: string
-    full_address: string
-  }
-}
+import { useRouter } from 'next/navigation'
+import { Mail, Globe, AtSign, Settings } from 'lucide-react'
 
 export default function DashboardPage() {
-  const [selectedThread, setSelectedThread] = useState<EmailThread | null>(null)
+  console.log('Dashboard page rendering...')
+  const router = useRouter()
 
-  const handleThreadSelect = (thread: EmailThread) => {
-    setSelectedThread(thread)
+  const handleAddDomain = () => {
+    router.push('/dashboard/domains')
+  }
+
+  const handleCreateAlias = () => {
+    router.push('/dashboard/aliases')
+  }
+
+  const handleSettings = () => {
+    router.push('/dashboard/settings')
   }
 
   return (
-    <div className="h-full">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
-        {/* Thread List */}
-        <div className="lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto">
-          <ThreadList 
-            onThreadSelect={handleThreadSelect}
-            selectedThreadId={selectedThread?.id}
-          />
+    <div className="min-h-screen space-y-6 bg-gray-50 p-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+          Dashboard
+        </h1>
+        <p className="text-gray-600">
+          Overview and quick actions for your email alias system
+        </p>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <h3 className="text-sm font-medium text-gray-900">Total Emails</h3>
+            <Mail className="h-4 w-4 text-gray-500" />
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-gray-900">0</div>
+            <p className="text-xs text-gray-500">No emails yet</p>
+          </div>
         </div>
 
-        {/* Thread View */}
-        <div className="lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto">
-          {selectedThread ? (
-            <ThreadView threadId={selectedThread.id} />
-          ) : (
-            <div className="flex items-center justify-center h-full min-h-[400px]">
-              <div className="text-center">
-                <div className="text-muted-foreground mb-2">
-                  <svg
-                    className="mx-auto h-12 w-12"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    aria-hidden="true"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1}
-                      d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-medium text-foreground">Select a conversation</h3>
-                <p className="text-muted-foreground">
-                  Choose a thread from the list to view its messages
-                </p>
-              </div>
-            </div>
-          )}
+        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <h3 className="text-sm font-medium text-gray-900">
+              Active Domains
+            </h3>
+            <Globe className="h-4 w-4 text-gray-500" />
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-gray-900">0</div>
+            <p className="text-xs text-gray-500">Add your first domain</p>
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <h3 className="text-sm font-medium text-gray-900">Email Aliases</h3>
+            <AtSign className="h-4 w-4 text-gray-500" />
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-gray-900">0</div>
+            <p className="text-xs text-gray-500">Create your first alias</p>
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <h3 className="text-sm font-medium text-gray-900">Settings</h3>
+            <Settings className="h-4 w-4 text-gray-500" />
+          </div>
+          <div>
+            <div className="text-2xl font-bold text-gray-900">Ready</div>
+            <p className="text-xs text-gray-500">Configure your account</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">Quick Actions</h3>
+          <p className="text-sm text-gray-500">
+            Get started with your email alias system
+          </p>
+        </div>
+        <div className="space-y-4">
+          <div className="grid gap-2 md:grid-cols-3">
+            <button
+              onClick={handleAddDomain}
+              className="flex w-full items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
+            >
+              <Globe className="mr-2 h-4 w-4" />
+              Add Domain
+            </button>
+            <button
+              onClick={handleCreateAlias}
+              className="flex w-full items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-700 transition-colors hover:bg-gray-50"
+            >
+              <AtSign className="mr-2 h-4 w-4" />
+              Create Alias
+            </button>
+            <button
+              onClick={handleSettings}
+              className="flex w-full items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-700 transition-colors hover:bg-gray-50"
+            >
+              <Settings className="mr-2 h-4 w-4" />
+              Settings
+            </button>
+          </div>
         </div>
       </div>
     </div>
