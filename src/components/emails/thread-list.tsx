@@ -12,8 +12,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Loader2, Mail, Archive, Users, Clock } from 'lucide-react'
+import { Loader2, Mail, Archive, ArchiveRestore, Users, Clock, Tag, MoreHorizontal } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useToast } from '@/components/ui/use-toast'
 import { ComposeEmailDialog } from './compose-email-dialog'
+import { SearchFilter } from './search-filter'
 
 interface EmailThread {
   id: string
@@ -60,6 +69,17 @@ export function ThreadList({ onThreadSelect, selectedThreadId }: ThreadListProps
   const [showComposeDialog, setShowComposeDialog] = useState(false)
   const [archivedFilter, setArchivedFilter] = useState<string>('false')
   const [selectedAlias, setSelectedAlias] = useState<string>('all')
+  const [searchFilters, setSearchFilters] = useState<{
+    query?: string
+    alias_id?: string
+    sender?: string
+    subject?: string
+    date_from?: Date
+    date_to?: Date
+    archived?: boolean
+  }>({})
+  const { toast } = useToast()
+  const queryClient = useQueryClient()
 
   // Fetch domains for alias filter
   const { data: domainsData } = useQuery<DomainsResponse>({
@@ -85,7 +105,7 @@ export function ThreadList({ onThreadSelect, selectedThreadId }: ThreadListProps
 
   // Fetch threads
   const { data, isLoading, error } = useQuery<ThreadsResponse>({
-    queryKey: ['email-threads', archivedFilter, selectedAlias],
+    queryKey: ['email-threads', archivedFilter, selectedAlias, searchFilters],
     queryFn: async () => {
       const token = localStorage.getItem('auth_token')
       if (!token) throw new Error('No auth token')
@@ -112,6 +132,45 @@ export function ThreadList({ onThreadSelect, selectedThreadId }: ThreadListProps
       }
 
       return response.json()
+    }
+  })
+
+  // Archive/Unarchive thread mutation
+  const archiveMutation = useMutation({
+    mutationFn: async ({ threadId, isArchived }: { threadId: string; isArchived: boolean }) => {
+      const token = localStorage.getItem('auth_token')
+      if (!token) throw new Error('No auth token')
+
+      const response = await fetch(`/api/emails/threads/${threadId}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ is_archived: isArchived })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to update thread')
+      }
+
+      return response.json()
+    },
+    onSuccess: (data, variables) => {
+      toast({
+        title: variables.isArchived ? 'Thread Archived' : 'Thread Unarchived',
+        description: `Thread has been ${variables.isArchived ? 'archived' : 'unarchived'} successfully`,
+      })
+      // Refresh threads list
+      queryClient.invalidateQueries({ queryKey: ['email-threads'] })
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive'
+      })
     }
   })
 
@@ -164,12 +223,29 @@ export function ThreadList({ onThreadSelect, selectedThreadId }: ThreadListProps
   const threads = data?.threads || []
   const domains = domainsData?.domains || []
 
-  // Get all aliases from domains for filter
-  const allAliases = domains.flatMap(domain => 
-    // This would need to be fetched from aliases API in a real implementation
-    // For now, we'll just show domain-based filtering
-    []
-  )
+  // Fetch aliases for search filter
+  const { data: aliasesData } = useQuery<{ aliases: Alias[] }>({
+    queryKey: ['aliases'],
+    queryFn: async () => {
+      const token = localStorage.getItem('auth_token')
+      if (!token) throw new Error('No auth token')
+
+      const response = await fetch('/api/aliases?enabled=true', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch aliases')
+      }
+
+      return response.json()
+    }
+  })
+
+  const allAliases = aliasesData?.aliases || []
 
   return (
     <div className="space-y-4">
@@ -186,7 +262,15 @@ export function ThreadList({ onThreadSelect, selectedThreadId }: ThreadListProps
         </Button>
       </div>
 
-      {/* Filters */}
+      {/* Search and Filters */}
+      <SearchFilter
+        aliases={allAliases}
+        filters={searchFilters}
+        onFiltersChange={setSearchFilters}
+        onClearFilters={() => setSearchFilters({})}
+      />
+
+      {/* Legacy Filters - Keep for now but can be removed later */}
       <div className="flex gap-4">
         <div className="flex items-center gap-2">
           <label className="text-sm font-medium">Status:</label>
@@ -225,19 +309,29 @@ export function ThreadList({ onThreadSelect, selectedThreadId }: ThreadListProps
       ) : (
         <div className="space-y-2">
           {threads.map((thread) => (
-            <Card 
-              key={thread.id} 
-              className={`cursor-pointer transition-colors hover:bg-muted/50 ${
+            <Card
+              key={thread.id}
+              className={`transition-colors hover:bg-muted/50 ${
                 selectedThreadId === thread.id ? 'ring-2 ring-primary' : ''
-              }`}
-              onClick={() => onThreadSelect(thread)}
+              } ${thread.is_archived ? 'opacity-75' : ''}`}
             >
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <CardTitle className="text-base truncate">
-                      {thread.subject || '(No Subject)'}
-                    </CardTitle>
+                  <div
+                    className="flex-1 min-w-0 cursor-pointer"
+                    onClick={() => onThreadSelect(thread)}
+                  >
+                    <div className="flex items-center gap-2">
+                      <CardTitle className="text-base truncate">
+                        {thread.subject || '(No Subject)'}
+                      </CardTitle>
+                      {thread.is_archived && (
+                        <Badge variant="secondary" className="text-xs">
+                          <Archive className="h-3 w-3 mr-1" />
+                          Archived
+                        </Badge>
+                      )}
+                    </div>
                     <CardDescription className="flex items-center gap-2 mt-1">
                       <Users className="h-3 w-3" />
                       <span className="truncate">
@@ -246,21 +340,53 @@ export function ThreadList({ onThreadSelect, selectedThreadId }: ThreadListProps
                     </CardDescription>
                   </div>
                   <div className="flex items-center gap-2 ml-2">
-                    {thread.is_archived && (
-                      <Badge variant="secondary">
-                        <Archive className="h-3 w-3 mr-1" />
-                        Archived
-                      </Badge>
-                    )}
                     <div className="text-xs text-muted-foreground flex items-center gap-1">
                       <Clock className="h-3 w-3" />
                       {formatTimeAgo(thread.last_message_at)}
                     </div>
+
+                    {/* Thread Actions */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            archiveMutation.mutate({
+                              threadId: thread.id,
+                              isArchived: !thread.is_archived
+                            })
+                          }}
+                          disabled={archiveMutation.isPending}
+                        >
+                          {thread.is_archived ? (
+                            <>
+                              <ArchiveRestore className="h-4 w-4 mr-2" />
+                              Unarchive
+                            </>
+                          ) : (
+                            <>
+                              <Archive className="h-4 w-4 mr-2" />
+                              Archive
+                            </>
+                          )}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <span>via {thread.alias.full_address}</span>
                   </div>
@@ -268,6 +394,18 @@ export function ThreadList({ onThreadSelect, selectedThreadId }: ThreadListProps
                     {thread.message_count} message{thread.message_count !== 1 ? 's' : ''}
                   </Badge>
                 </div>
+
+                {/* Labels */}
+                {thread.labels && thread.labels.length > 0 && (
+                  <div className="flex items-center gap-1 flex-wrap">
+                    <Tag className="h-3 w-3 text-muted-foreground" />
+                    {thread.labels.map((label, index) => (
+                      <Badge key={index} variant="secondary" className="text-xs">
+                        {label}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}

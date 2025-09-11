@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import {
@@ -42,14 +42,40 @@ interface AliasesResponse {
   aliases: Alias[]
 }
 
+interface EmailMessage {
+  id: string
+  thread_id: string
+  alias_id: string
+  message_id: string
+  in_reply_to?: string
+  references: string[]
+  from_address: string
+  to_addresses: string[]
+  cc_addresses: string[]
+  subject: string
+  body_text?: string
+  body_html?: string
+  is_sent: boolean
+  received_at: string
+}
+
 interface ComposeEmailDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   domains: Domain[]
   onSuccess: () => void
+  replyToMessage?: EmailMessage // For reply functionality
+  replyToAlias?: Alias // Auto-select alias for reply
 }
 
-export function ComposeEmailDialog({ open, onOpenChange, domains, onSuccess }: ComposeEmailDialogProps) {
+export function ComposeEmailDialog({
+  open,
+  onOpenChange,
+  domains,
+  onSuccess,
+  replyToMessage,
+  replyToAlias
+}: ComposeEmailDialogProps) {
   const [selectedAlias, setSelectedAlias] = useState('')
   const [toAddresses, setToAddresses] = useState('')
   const [ccAddresses, setCcAddresses] = useState('')
@@ -57,6 +83,38 @@ export function ComposeEmailDialog({ open, onOpenChange, domains, onSuccess }: C
   const [bodyText, setBodyText] = useState('')
   const [bodyHtml, setBodyHtml] = useState('')
   const { toast } = useToast()
+
+  // Auto-populate fields for reply
+  const isReply = !!replyToMessage
+
+  // Initialize form with reply data when dialog opens
+  React.useEffect(() => {
+    if (open && replyToMessage && replyToAlias) {
+      // Auto-select the alias for reply
+      setSelectedAlias(replyToAlias.id)
+
+      // Set reply-to address (original sender)
+      setToAddresses(replyToMessage.from_address)
+
+      // Set subject with "Re:" prefix if not already present
+      const originalSubject = replyToMessage.subject || ''
+      const replySubject = originalSubject.startsWith('Re:')
+        ? originalSubject
+        : `Re: ${originalSubject}`
+      setSubject(replySubject)
+
+      // Add quoted original message to body
+      const quotedText = replyToMessage.body_text
+        ? `\n\n--- Original Message ---\nFrom: ${replyToMessage.from_address}\nDate: ${new Date(replyToMessage.received_at).toLocaleString()}\nSubject: ${replyToMessage.subject}\n\n${replyToMessage.body_text.split('\n').map(line => `> ${line}`).join('\n')}`
+        : ''
+      setBodyText(quotedText)
+
+      const quotedHtml = replyToMessage.body_html
+        ? `<br><br><div style="border-left: 2px solid #ccc; padding-left: 10px; margin-left: 10px;"><strong>--- Original Message ---</strong><br><strong>From:</strong> ${replyToMessage.from_address}<br><strong>Date:</strong> ${new Date(replyToMessage.received_at).toLocaleString()}<br><strong>Subject:</strong> ${replyToMessage.subject}<br><br>${replyToMessage.body_html}</div>`
+        : ''
+      setBodyHtml(quotedHtml)
+    }
+  }, [open, replyToMessage, replyToAlias])
 
   // Fetch aliases for the from field
   const { data: aliasesData } = useQuery<AliasesResponse>({
@@ -89,6 +147,8 @@ export function ComposeEmailDialog({ open, onOpenChange, domains, onSuccess }: C
       subject: string
       body_text?: string
       body_html?: string
+      in_reply_to?: string
+      references?: string[]
     }) => {
       const token = localStorage.getItem('auth_token')
       if (!token) throw new Error('No auth token')
@@ -203,13 +263,24 @@ export function ComposeEmailDialog({ open, onOpenChange, domains, onSuccess }: C
       }
     }
 
+    // Prepare reply headers if this is a reply
+    const replyHeaders: { in_reply_to?: string; references?: string[] } = {}
+    if (replyToMessage) {
+      replyHeaders.in_reply_to = replyToMessage.message_id
+      replyHeaders.references = [
+        ...replyToMessage.references,
+        replyToMessage.message_id
+      ].filter(Boolean)
+    }
+
     sendEmailMutation.mutate({
       alias_id: selectedAlias,
       to_addresses: toParsed,
       cc_addresses: ccParsed.length > 0 ? ccParsed : undefined,
       subject: subject.trim(),
       body_text: bodyText.trim() || undefined,
-      body_html: bodyHtml.trim() || undefined
+      body_html: bodyHtml.trim() || undefined,
+      ...replyHeaders
     })
   }
 
@@ -228,9 +299,12 @@ export function ComposeEmailDialog({ open, onOpenChange, domains, onSuccess }: C
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Compose Email</DialogTitle>
+          <DialogTitle>{isReply ? 'Reply to Email' : 'Compose Email'}</DialogTitle>
           <DialogDescription>
-            Send an email using one of your verified aliases
+            {isReply
+              ? `Replying to ${replyToMessage?.from_address}`
+              : 'Send an email using one of your verified aliases'
+            }
           </DialogDescription>
         </DialogHeader>
         

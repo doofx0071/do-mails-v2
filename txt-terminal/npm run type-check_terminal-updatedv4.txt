@@ -1,0 +1,197 @@
+PS C:\Users\crist\Documents\coding with auggie\do-mails-v2> npm run type-check
+
+> do-mails@1.0.0 type-check
+> tsc --noEmit
+
+src/app/api/domains/[id]/verify/route.ts:160:44 - error TS2339: Property 'getVerificationInstructions' does not exist on type 'DomainVerification'.
+
+160               instructions: domainVerifier.getVerificationInstructions(
+                                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+src/app/api/domains/[id]/verify/route.ts:201:42 - error TS2339: Property 'getVerificationInstructions' does not exist on type 'DomainVerification'.
+
+201             instructions: domainVerifier.getVerificationInstructions(
+                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+src/app/api/emails/attachments/[id]/route.ts:72:35 - error TS2339: Property 'email_aliases' does not exist on type '{ id: any; subject: any; email_aliases: any[]; }[]'.
+
+72     if (attachment.email_messages.email_aliases.domains.user_id !== user.id) {
+                                     ~~~~~~~~~~~~~
+
+src/app/api/emails/attachments/[id]/route.ts:92:43 - error TS2339: Property 'id' does not exist on type '{ id: any; subject: any; email_aliases: any[]; }[]'.
+
+92             id: attachment.email_messages.id,
+                                             ~~
+
+src/app/api/emails/attachments/[id]/route.ts:93:48 - error TS2339: Property 'subject' does not exist on type '{ id: any; subject: any; email_aliases: any[]; }[]'.
+
+93             subject: attachment.email_messages.subject
+                                                  ~~~~~~~
+
+src/app/api/emails/attachments/[id]/route.ts:96:43 - error TS2339: Property 'email_aliases' does not exist on type '{ id: any; subject: any; email_aliases: any[]; }[]'.
+
+96             id: attachment.email_messages.email_aliases.id,    
+                                             ~~~~~~~~~~~~~        
+
+src/app/api/emails/attachments/[id]/route.ts:97:51 - error TS2339: Property 'email_aliases' does not exist on type '{ id: any; subject: any; email_aliases: any[]; }[]'.
+
+97             alias_name: attachment.email_messages.email_aliases.alias_name,
+                                                     ~~~~~~~~~~~~~
+
+src/app/api/emails/attachments/[id]/route.ts:98:56 - error TS2339: Property 'email_aliases' does not exist on type '{ id: any; subject: any; email_aliases: any[]; }[]'.
+
+98             full_address: `${attachment.email_messages.email_aliases.alias_name}@${attachment.email_messages.email_aliases.domains.domain_name}`
+                                                          ~~~~~~~~~~~~~
+
+src/app/api/emails/attachments/[id]/route.ts:98:110 - error TS2339: Property 'email_aliases' does not exist on type '{ id: any; subject: any; email_aliases: any[]; }[]'.
+
+98             full_address: `${attachment.email_messages.email_aliases.alias_name}@${attachment.email_messages.email_aliases.domains.domain_name}`
+                                                                  
+                                              ~~~~~~~~~~~~~       
+
+src/app/api/emails/attachments/[id]/route.ts:215:35 - error TS2339: Property 'email_aliases' does not exist on type '{ email_aliases: { domains: { user_id: any; }[]; }[]; }[]'.
+
+215     if (attachment.email_messages.email_aliases.domains.user_id !== user.id) {
+                                      ~~~~~~~~~~~~~
+
+src/app/api/emails/forwarding/[id]/route.ts:197:62 - error TS2339: Property 'alias_name' does not exist on type '{ alias_name: any; domains: { domain_name: any; }[]; }[]'.
+
+197       const aliasFullAddress = `${existingRule.email_aliases.alias_name}@${existingRule.email_aliases.domains.domain_name}`     
+                                                                 ~~~~~~~~~~
+
+src/app/api/emails/forwarding/[id]/route.ts:197:103 - error TS2339: Property 'domains' does not exist on type '{ alias_name: any; domains: { domain_name: any; }[]; }[]'.
+
+197       const aliasFullAddress = `${existingRule.email_aliases.alias_name}@${existingRule.email_aliases.domains.domain_name}`     
+                                                                  
+                                        ~~~~~~~
+
+src/app/api/emails/forwarding/route.ts:225:67 - error TS2339: Property 'domain_name' does not exist on type '{ id: any; domain_name: any; user_id: any; }[]'.
+
+225     const aliasFullAddress = `${alias.alias_name}@${alias.domains.domain_name}`
+                                                                  
+    ~~~~~~~~~~~
+
+src/app/api/webhooks/mailgun/route.ts:62:51 - error TS2339: Property 'verifyWebhookSignature' does not exist on type 'EmailProcessing'.
+
+62     const isValidSignature = await emailProcessor.verifyWebhookSignature({
+                                                     ~~~~~~~~~~~~~~~~~~~~~~
+
+src/components/ui/avatar.tsx:2:34 - error TS2307: Cannot find module '@radix-ui/react-avatar' or its corresponding type declarations.
+
+2 import * as AvatarPrimitive from "@radix-ui/react-avatar"       
+                                   ~~~~~~~~~~~~~~~~~~~~~~~~       
+
+tests/integration/libs/alias-management-cli.test.ts:127:9 - error TS1345: An expression of type 'void' cannot be tested for truthiness.
+
+127         expect(result.stdout).toContain('error') || expect(result.stdout).toContain('reason')
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+tests/integration/libs/alias-management-cli.test.ts:205:9 - error TS1345: An expression of type 'void' cannot be tested for truthiness.
+
+205         expect(result.stdout).toContain('available') || expect(result.stdout).toContain('taken')
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+tests/integration/libs/alias-management-cli.test.ts:325:9 - error TS1345: An expression of type 'void' cannot be tested for truthiness.
+
+325         expect(result.stdout).toContain('reserved') || expect(result.stdout).toContain('restricted')
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+tests/integration/libs/alias-management-cli.test.ts:338:5 - error TS1345: An expression of type 'void' cannot be tested for truthiness.
+
+338     expect(invalidResult.stderr).toContain('Unknown command') || expect(invalidResult.stdout).toContain('Unknown command')      
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+
+tests/integration/libs/alias-management-cli.test.ts:343:5 - error TS1345: An expression of type 'void' cannot be tested for truthiness.
+
+343     expect(missingArgsResult.stderr).toContain('required') || expect(missingArgsResult.stdout).toContain('required')
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~    
+
+tests/integration/libs/alias-management-cli.test.ts:348:5 - error TS1345: An expression of type 'void' cannot be tested for truthiness.
+
+348     expect(invalidJsonResult.stderr).toContain('JSON') || expect(invalidJsonResult.stdout).toContain('JSON')
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~        
+
+tests/integration/libs/alias-management-cli.test.ts:373:7 - error TS1345: An expression of type 'void' cannot be tested for truthiness.
+
+373       expect(tableResult.stdout).toContain('│') || expect(tableResult.stdout).toContain('|')
+          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+tests/integration/libs/alias-management-cli.test.ts:399:7 - error TS1345: An expression of type 'void' cannot be tested for truthiness.
+
+399       expect(debugResult.stdout).toContain('debug') || expect(debugResult.stderr).toContain('debug')
+          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+tests/integration/libs/domain-verification-cli.test.ts:168:7 - error TS1345: An expression of type 'void' cannot be tested for truthiness.
+
+168       expect(result.stdout).toContain('found') || expect(result.stdout).toContain('not_found')
+          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+tests/integration/libs/domain-verification-cli.test.ts:192:7 - error TS1345: An expression of type 'void' cannot be tested for truthiness.
+
+192       expect(result.stdout).toContain('verified') || expect(result.stdout).toContain('failed')
+          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+tests/integration/libs/domain-verification-cli.test.ts:222:7 - error TS1345: An expression of type 'void' cannot be tested for truthiness.
+
+222       expect(result.stdout).toContain('record') || expect(result.stdout).toContain('DNS')
+          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+tests/integration/libs/domain-verification-cli.test.ts:307:5 - error TS1345: An expression of type 'void' cannot be tested for truthiness.
+
+307     expect(invalidResult.stderr).toContain('Unknown command') || expect(invalidResult.stdout).toContain('Unknown command')      
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+
+tests/integration/libs/domain-verification-cli.test.ts:312:5 - error TS1345: An expression of type 'void' cannot be tested for truthiness.
+
+312     expect(missingArgsResult.stderr).toContain('required') || expect(missingArgsResult.stdout).toContain('required')
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~    
+
+tests/integration/libs/domain-verification-cli.test.ts:317:5 - error TS1345: An expression of type 'void' cannot be tested for truthiness.
+
+317     expect(invalidDomainResult.stderr).toContain('invalid') || expect(invalidDomainResult.stdout).toContain('invalid')
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~   
+
+tests/integration/libs/domain-verification-cli.test.ts:342:7 - error TS1345: An expression of type 'void' cannot be tested for truthiness.
+
+342       expect(tableResult.stdout).toContain('│') || expect(tableResult.stdout).toContain('|')
+          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+tests/integration/libs/domain-verification-cli.test.ts:362:7 - error TS1345: An expression of type 'void' cannot be tested for truthiness.
+
+362       expect(debugResult.stdout).toContain('debug') || expect(debugResult.stderr).toContain('debug')
+          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+tests/integration/libs/email-processing-cli.test.ts:268:5 - error TS1345: An expression of type 'void' cannot be tested for truthiness.
+
+268     expect(invalidResult.stderr).toContain('Unknown command') || expect(invalidResult.stdout).toContain('Unknown command')      
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+
+tests/integration/libs/email-processing-cli.test.ts:273:5 - error TS1345: An expression of type 'void' cannot be tested for truthiness.
+
+273     expect(missingArgsResult.stderr).toContain('required') || expect(missingArgsResult.stdout).toContain('required')
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~    
+
+tests/integration/libs/email-processing-cli.test.ts:278:5 - error TS1345: An expression of type 'void' cannot be tested for truthiness.
+
+278     expect(invalidJsonResult.stderr).toContain('JSON') || expect(invalidJsonResult.stdout).toContain('JSON')
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~        
+
+tests/integration/libs/email-processing-cli.test.ts:307:7 - error TS1345: An expression of type 'void' cannot be tested for truthiness.
+
+307       expect(tableResult.stdout).toContain('│') || expect(tableResult.stdout).toContain('|')
+          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+Found 35 errors in 9 files.
+
+Errors  Files
+     2  src/app/api/domains/[id]/verify/route.ts:160
+     8  src/app/api/emails/attachments/[id]/route.ts:72
+     2  src/app/api/emails/forwarding/[id]/route.ts:197
+     1  src/app/api/emails/forwarding/route.ts:225
+     1  src/app/api/webhooks/mailgun/route.ts:62
+     1  src/components/ui/avatar.tsx:2
+     8  tests/integration/libs/alias-management-cli.test.ts:127   
+     8  tests/integration/libs/domain-verification-cli.test.ts:168
+     4  tests/integration/libs/email-processing-cli.test.ts:268   
+PS C:\Users\crist\Documents\coding with auggie\do-mails-v2> 

@@ -1,5 +1,6 @@
 import { supabase } from './client'
-import type { User, Session, AuthError } from '@supabase/supabase-js'
+import type { User, Session } from '@supabase/supabase-js'
+import { AuthError as SupabaseAuthError } from '@supabase/supabase-js'
 
 export interface AuthState {
   user: User | null
@@ -33,7 +34,7 @@ export class AuthService {
     })
 
     if (error) {
-      throw new AuthError(error.message)
+      throw new SupabaseAuthError(error.message)
     }
 
     return data
@@ -44,11 +45,11 @@ export class AuthService {
    */
   static async signUp({ email, password, confirmPassword }: SignUpCredentials) {
     if (password !== confirmPassword) {
-      throw new AuthError('Passwords do not match')
+      throw new SupabaseAuthError('Passwords do not match')
     }
 
     if (password.length < 6) {
-      throw new AuthError('Password must be at least 6 characters long')
+      throw new SupabaseAuthError('Password must be at least 6 characters long')
     }
 
     const { data, error } = await supabase.auth.signUp({
@@ -60,7 +61,7 @@ export class AuthService {
     })
 
     if (error) {
-      throw new AuthError(error.message)
+      throw new SupabaseAuthError(error.message)
     }
 
     return data
@@ -73,7 +74,7 @@ export class AuthService {
     const { error } = await supabase.auth.signOut()
     
     if (error) {
-      throw new AuthError(error.message)
+      throw new SupabaseAuthError(error.message)
     }
 
     // Clear any cached tokens
@@ -91,7 +92,7 @@ export class AuthService {
     })
 
     if (error) {
-      throw new AuthError(error.message)
+      throw new SupabaseAuthError(error.message)
     }
   }
 
@@ -100,7 +101,7 @@ export class AuthService {
    */
   static async updatePassword(newPassword: string) {
     if (newPassword.length < 6) {
-      throw new AuthError('Password must be at least 6 characters long')
+      throw new SupabaseAuthError('Password must be at least 6 characters long')
     }
 
     const { error } = await supabase.auth.updateUser({
@@ -108,7 +109,7 @@ export class AuthService {
     })
 
     if (error) {
-      throw new AuthError(error.message)
+      throw new SupabaseAuthError(error.message)
     }
   }
 
@@ -117,9 +118,9 @@ export class AuthService {
    */
   static async getSession() {
     const { data: { session }, error } = await supabase.auth.getSession()
-    
+
     if (error) {
-      throw new AuthError(error.message)
+      throw new SupabaseAuthError(error.message)
     }
 
     return session
@@ -130,9 +131,9 @@ export class AuthService {
    */
   static async getUser() {
     const { data: { user }, error } = await supabase.auth.getUser()
-    
+
     if (error) {
-      throw new AuthError(error.message)
+      throw new SupabaseAuthError(error.message)
     }
 
     return user
@@ -143,9 +144,9 @@ export class AuthService {
    */
   static async refreshSession() {
     const { data, error } = await supabase.auth.refreshSession()
-    
+
     if (error) {
-      throw new AuthError(error.message)
+      throw new SupabaseAuthError(error.message)
     }
 
     return data

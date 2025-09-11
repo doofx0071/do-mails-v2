@@ -255,9 +255,19 @@ async function getConfig(globalOpts: any, commandOpts: any): Promise<EmailProces
   
   return {
     mailgun: mailgunConfig,
-    threading: config.threading || {},
+    threading: config.threading || {
+      subjectNormalization: true,
+      referencesTracking: true,
+      participantGrouping: true,
+      timeWindowHours: 24
+    },
     maxAttachmentSize: config.maxAttachmentSize || 25 * 1024 * 1024,
-    allowedAttachmentTypes: config.allowedAttachmentTypes || []
+    allowedAttachmentTypes: config.allowedAttachmentTypes || [
+      'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+      'application/pdf', 'text/plain', 'text/csv',
+      'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ]
   }
 }
 

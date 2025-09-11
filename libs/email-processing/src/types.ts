@@ -107,11 +107,11 @@ export const SendEmailResponseSchema = z.object({
 
 // Threading schemas
 export const ThreadingOptionsSchema = z.object({
-  subjectNormalization: z.boolean().default(true),
-  referencesTracking: z.boolean().default(true),
-  participantGrouping: z.boolean().default(true),
-  timeWindowHours: z.number().int().min(1).max(168).default(24) // 1 hour to 1 week
-})
+  subjectNormalization: z.boolean().optional(),
+  referencesTracking: z.boolean().optional(),
+  participantGrouping: z.boolean().optional(),
+  timeWindowHours: z.number().int().min(1).max(168).optional()
+}).default({})
 
 // Configuration schemas
 export const MailgunConfigSchema = z.object({
@@ -123,14 +123,9 @@ export const MailgunConfigSchema = z.object({
 
 export const EmailProcessingConfigSchema = z.object({
   mailgun: MailgunConfigSchema,
-  threading: ThreadingOptionsSchema.default({}),
-  maxAttachmentSize: z.number().int().min(1).default(25 * 1024 * 1024), // 25MB
-  allowedAttachmentTypes: z.array(z.string()).default([
-    'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-    'application/pdf', 'text/plain', 'text/csv',
-    'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-  ])
+  threading: ThreadingOptionsSchema.optional(),
+  maxAttachmentSize: z.number().int().min(1).optional(),
+  allowedAttachmentTypes: z.array(z.string()).optional()
 })
 
 // Type exports

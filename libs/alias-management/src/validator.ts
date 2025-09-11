@@ -15,16 +15,15 @@ export class AliasValidator {
 
   constructor(config: AliasManagementConfig = {}) {
     this.config = {
-      maxAliasesPerDomain: 1000,
-      maxAliasLength: 64,
-      minAliasLength: 1,
-      allowedCharacters: 'abcdefghijklmnopqrstuvwxyz0123456789._-',
-      reservedAliases: RESERVED_ALIASES,
-      blockedPatterns: BLOCKED_PATTERNS,
-      enableProfanityFilter: true,
-      enableSimilarityCheck: true,
-      similarityThreshold: 0.8,
-      ...config
+      maxAliasesPerDomain: config.maxAliasesPerDomain ?? 1000,
+      maxAliasLength: config.maxAliasLength ?? 64,
+      minAliasLength: config.minAliasLength ?? 1,
+      allowedCharacters: config.allowedCharacters ?? 'abcdefghijklmnopqrstuvwxyz0123456789._-',
+      reservedAliases: config.reservedAliases ?? RESERVED_ALIASES,
+      blockedPatterns: config.blockedPatterns ?? BLOCKED_PATTERNS,
+      enableProfanityFilter: config.enableProfanityFilter ?? true,
+      enableSimilarityCheck: config.enableSimilarityCheck ?? true,
+      similarityThreshold: config.similarityThreshold ?? 0.8
     }
   }
 
@@ -136,11 +135,11 @@ export class AliasValidator {
    * Validate alias length
    */
   private validateLength(aliasName: string, result: AliasValidationResult): void {
-    if (aliasName.length < this.config.minAliasLength) {
+    if (aliasName.length < this.config.minAliasLength!) {
       result.errors.push(`Alias name too short (minimum ${this.config.minAliasLength} characters)`)
     }
-    
-    if (aliasName.length > this.config.maxAliasLength) {
+
+    if (aliasName.length > this.config.maxAliasLength!) {
       result.errors.push(`Alias name too long (maximum ${this.config.maxAliasLength} characters)`)
     }
     
@@ -189,13 +188,13 @@ export class AliasValidator {
   private validateReservedAliases(aliasName: string, result: AliasValidationResult): void {
     const lowerAlias = aliasName.toLowerCase()
     
-    if (this.config.reservedAliases.includes(lowerAlias)) {
+    if (this.config.reservedAliases!.includes(lowerAlias)) {
       result.errors.push(`Alias name is reserved: ${lowerAlias}`)
       result.suggestions.push(`Try: ${lowerAlias}1, ${lowerAlias}-mail, my-${lowerAlias}`)
     }
-    
+
     // Check for variations of reserved aliases
-    for (const reserved of this.config.reservedAliases) {
+    for (const reserved of this.config.reservedAliases!) {
       if (lowerAlias.includes(reserved) && lowerAlias !== reserved) {
         result.warnings.push(`Alias name contains reserved word: ${reserved}`)
       }
@@ -208,7 +207,7 @@ export class AliasValidator {
   private validateBlockedPatterns(aliasName: string, result: AliasValidationResult): void {
     const lowerAlias = aliasName.toLowerCase()
     
-    for (const pattern of this.config.blockedPatterns) {
+    for (const pattern of this.config.blockedPatterns!) {
       if (lowerAlias.includes(pattern)) {
         result.errors.push(`Alias name contains blocked pattern: ${pattern}`)
         result.suggestions.push(`Avoid using: ${pattern}`)
@@ -359,7 +358,7 @@ export class AliasValidator {
     
     for (const existing of existingAliases) {
       const similarity = this.calculateSimilarity(lowerAlias, existing.toLowerCase())
-      if (similarity >= this.config.similarityThreshold) {
+      if (similarity >= this.config.similarityThreshold!) {
         similar.push(existing)
       }
     }

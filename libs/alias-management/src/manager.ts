@@ -24,22 +24,21 @@ export class AliasManager {
 
   constructor(config: AliasManagementConfig = {}) {
     this.config = {
-      maxAliasesPerDomain: 1000,
-      maxAliasLength: 64,
-      minAliasLength: 1,
-      allowedCharacters: 'abcdefghijklmnopqrstuvwxyz0123456789._-',
-      reservedAliases: [
+      maxAliasesPerDomain: config.maxAliasesPerDomain ?? 1000,
+      maxAliasLength: config.maxAliasLength ?? 64,
+      minAliasLength: config.minAliasLength ?? 1,
+      allowedCharacters: config.allowedCharacters ?? 'abcdefghijklmnopqrstuvwxyz0123456789._-',
+      reservedAliases: config.reservedAliases ?? [
         'admin', 'administrator', 'root', 'postmaster', 'webmaster',
         'hostmaster', 'abuse', 'security', 'noreply', 'no-reply',
         'support', 'help', 'info', 'contact', 'sales', 'billing'
       ],
-      blockedPatterns: [
+      blockedPatterns: config.blockedPatterns ?? [
         'test', 'temp', 'temporary', 'delete', 'remove', 'spam'
       ],
-      enableProfanityFilter: true,
-      enableSimilarityCheck: true,
-      similarityThreshold: 0.8,
-      ...config
+      enableProfanityFilter: config.enableProfanityFilter ?? true,
+      enableSimilarityCheck: config.enableSimilarityCheck ?? true,
+      similarityThreshold: config.similarityThreshold ?? 0.8
     }
 
     this.validator = new AliasValidator(this.config)
@@ -64,7 +63,7 @@ export class AliasManager {
 
     // Check quota
     const currentCount = this.domainAliasCount.get(request.domainId) || 0
-    if (currentCount >= this.config.maxAliasesPerDomain) {
+    if (currentCount >= this.config.maxAliasesPerDomain!) {
       throw new QuotaExceededError(
         `Maximum aliases per domain exceeded (${this.config.maxAliasesPerDomain})`,
         { domainId: request.domainId, currentCount, limit: this.config.maxAliasesPerDomain }

@@ -1,0 +1,715 @@
+      8 |  * It MUST FAIL initially until the API endpoint is implemented.                                                          
+                                                                  
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109) 
+      at Object.<anonymous> (tests/contract/emails-thread-patch.test.ts:5:17)                                                       
+
+ FAIL  tests/contract/emails-read.test.ts
+  ● Test suite failed to run
+                                                                  
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.                                    
+                                                                  
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.                                                  
+                                                                  
+      3 |                                                         
+      4 | /**                                                     
+    > 5 |  * Contract Test: POST /api/emails/messages/{id}/read   
+        |                 ^                                       
+      6 |  *                                                      
+      7 |  * This test validates the API contract for marking messages as read.                                                     
+      8 |  * It MUST FAIL initially until the API endpoint is implemented.                                                          
+                                                                  
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109) 
+      at Object.<anonymous> (tests/contract/emails-read.test.ts:5:17)                                                               
+
+ FAIL  tests/integration/libs/domain-verification-cli.test.ts
+  ● Test suite failed to run                                      
+                                                                  
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.                                    
+                                                                  
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.                                                  
+                                                                  
+      3 |                                                         
+      4 | /**                                                     
+    > 5 |  * Library Test: Domain Verification CLI                
+        |                 ^                                       
+      6 |  *                                                      
+      7 |  * This test validates the CLI interface for the domain-verification library.                                             
+      8 |  * It MUST FAIL initially until the library and CLI are implemented.                                                      
+                                                                  
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109) 
+      at Object.<anonymous> (tests/integration/libs/domain-verification-cli.test.ts:5:17)                                           
+
+ FAIL  tests/integration/libs/email-processing-cli.test.ts
+  ● Test suite failed to run                                      
+
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.
+
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.
+
+      3 | import { promisify } from 'util'
+      4 |
+    > 5 | /**
+        |              ^
+      6 |  * Library Test: Email Processing CLI
+      7 |  *
+      8 |  * This test validates the CLI interface for the email-processing library.
+
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109) 
+      at Object.<anonymous> (tests/integration/libs/email-processing-cli.test.ts:5:17)
+
+ FAIL  tests/integration/email-signatures.test.ts
+  ● Test suite failed to run                                      
+                                                                  
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.                                    
+                                                                  
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.                                                  
+                                                                  
+      3 |                                                         
+      4 | /**                                                     
+    > 5 |  * Integration Test: Email Signatures                   
+        |                 ^                                       
+      6 |  *                                                      
+      7 |  * This test validates the complete user workflow for email signature management.                                         
+      8 |  * It MUST FAIL initially until the full email signature system is implemented.                                           
+                                                                  
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109) 
+      at Object.<anonymous> (tests/integration/email-signatures.test.ts:5:17)                                                       
+
+ FAIL  tests/integration/email-composition.test.ts
+  ● Test suite failed to run
+                                                                  
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.                                    
+                                                                  
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.                                                  
+                                                                  
+      3 |                                                         
+      4 | /**                                                     
+    > 5 |  * Integration Test: Email Composition and Privacy      
+        |                 ^                                       
+      6 |  *                                                      
+      7 |  * This test validates the complete user workflow for email composition and privacy.                                      
+      8 |  * It MUST FAIL initially until the full email composition system is implemented.                                         
+                                                                  
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109) 
+      at Object.<anonymous> (tests/integration/email-composition.test.ts:5:17)                                                      
+
+ FAIL  tests/contract/emails-thread-get.test.ts
+  ● Test suite failed to run                                      
+                                                                  
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.                                    
+                                                                  
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.                                                  
+                                                                  
+      3 |                                                         
+      4 | /**                                                     
+    > 5 |  * Contract Test: GET /api/emails/threads/{id}          
+        |                 ^                                       
+      6 |  *                                                      
+      7 |  * This test validates the API contract for getting a specific email thread with messages.                                
+      8 |  * It MUST FAIL initially until the API endpoint is implemented.                                                          
+                                                                  
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109) 
+      at Object.<anonymous> (tests/contract/emails-thread-get.test.ts:5:17)
+
+ FAIL  tests/contract/domains-verify.test.ts
+  ● Test suite failed to run                                      
+                                                                  
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.                                    
+                                                                  
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.                                                  
+                                                                  
+      3 |                                                         
+      4 | /**                                                     
+    > 5 |  * Contract Test: POST /api/domains/{id}/verify         
+        |                 ^                                       
+      6 |  *                                                      
+      7 |  * This test validates the API contract for domain verification.
+      8 |  * It MUST FAIL initially until the API endpoint is implemented.
+
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109) 
+      at Object.<anonymous> (tests/contract/domains-verify.test.ts:5:17)
+
+ FAIL  tests/integration/libs/alias-management-cli.test.ts
+  ● Test suite failed to run                                      
+                                                                  
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.                                    
+                                                                  
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.                                                  
+                                                                  
+      3 |                                                         
+      4 | /**                                                     
+    > 5 |  * Library Test: Alias Management CLI                   
+        |                 ^                                       
+      6 |  *                                                      
+      7 |  * This test validates the CLI interface for the alias-management library.
+      8 |  * It MUST FAIL initially until the library and CLI are implemented.
+
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109) 
+      at Object.<anonymous> (tests/integration/libs/alias-management-cli.test.ts:5:17)
+
+ FAIL  tests/contract/emails-send.test.ts
+  ● Test suite failed to run
+                                                                  
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.                                    
+                                                                  
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.                                                  
+                                                                  
+      3 |                                                         
+      4 | /**                                                     
+    > 5 |  * Contract Test: POST /api/emails/send                 
+        |                 ^                                       
+      6 |  *                                                      
+      7 |  * This test validates the API contract for sending emails.
+      8 |  * It MUST FAIL initially until the API endpoint is implemented.
+
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109) 
+      at Object.<anonymous> (tests/contract/emails-send.test.ts:5:17)
+
+ FAIL  tests/contract/domains-post.test.ts
+  ● Test suite failed to run                                      
+                                                                  
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.                                    
+                                                                  
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.                                                  
+                                                                  
+      3 |                                                         
+      4 | /**                                                     
+    > 5 |  * Contract Test: POST /api/domains                     
+        |                 ^                                       
+      6 |  *                                                      
+      7 |  * This test validates the API contract for adding new domains.
+      8 |  * It MUST FAIL initially until the API endpoint is implemented.
+
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109) 
+      at Object.<anonymous> (tests/contract/domains-post.test.ts:5:17)
+
+ FAIL  tests/integration/alias-management.test.ts
+  ● Test suite failed to run                                      
+                                                                  
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.                                    
+                                                                  
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.                                                  
+                                                                  
+      3 |                                                         
+      4 | /**                                                     
+    > 5 |  * Integration Test: Email Alias Creation and Management
+        |                 ^                                       
+      6 |  *                                                      
+      7 |  * This test validates the complete user workflow for email alias management.
+      8 |  * It MUST FAIL initially until the full alias management system is implemented.
+
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109) 
+      at Object.<anonymous> (tests/integration/alias-management.test.ts:5:17)
+
+ FAIL  tests/contract/aliases-post.test.ts
+  ● Test suite failed to run
+                                                                  
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.                                    
+                                                                  
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.                                                  
+                                                                  
+      3 |                                                         
+      4 | /**                                                     
+    > 5 |  * Contract Test: POST /api/aliases                     
+        |                 ^                                       
+      6 |  *                                                      
+      7 |  * This test validates the API contract for creating email aliases.
+      8 |  * It MUST FAIL initially until the API endpoint is implemented.
+
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109) 
+      at Object.<anonymous> (tests/contract/aliases-post.test.ts:5:17)
+
+ FAIL  tests/integration/email-organization.test.ts
+  ● Test suite failed to run
+                                                                  
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.                                    
+                                                                  
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.                                                  
+                                                                  
+      3 |                                                         
+      4 | /**                                                     
+    > 5 |  * Integration Test: Email Organization (Labels, Archive)                                                                 
+        |                 ^                                       
+      6 |  *
+      7 |  * This test validates the complete user workflow for email organization.
+      8 |  * It MUST FAIL initially until the full email organization system is implemented.
+
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109) 
+      at Object.<anonymous> (tests/integration/email-organization.test.ts:5:17)
+
+ FAIL  tests/contract/domains-get.test.ts
+  ● Test suite failed to run                                      
+                                                                  
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.                                    
+                                                                  
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.                                                  
+                                                                  
+      3 |                                                         
+      4 | /**                                                     
+    > 5 |  * Contract Test: GET /api/domains                      
+        |                 ^                                       
+      6 |  *                                                      
+      7 |  * This test validates the API contract for listing user domains.
+      8 |  * It MUST FAIL initially until the API endpoint is implemented.
+
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109) 
+      at Object.<anonymous> (tests/contract/domains-get.test.ts:5:17)
+
+ FAIL  tests/contract/aliases-get.test.ts
+  ● Test suite failed to run
+                                                                  
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.                                    
+                                                                  
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.                                                  
+                                                                  
+      3 |                                                         
+      4 | /**                                                     
+    > 5 |  * Contract Test: GET /api/aliases                      
+        |                 ^                                       
+      6 |  *                                                      
+      7 |  * This test validates the API contract for listing email aliases.
+      8 |  * It MUST FAIL initially until the API endpoint is implemented.
+
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109) 
+      at Object.<anonymous> (tests/contract/aliases-get.test.ts:5:17)
+
+ FAIL  tests/contract/aliases-patch.test.ts
+  ● Test suite failed to run
+                                                                  
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.                                    
+                                                                  
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.                                                  
+                                                                  
+      3 |                                                         
+      4 | /**                                                     
+    > 5 |  * Contract Test: PATCH /api/aliases/{id}               
+        |                 ^                                       
+      6 |  *                                                      
+      7 |  * This test validates the API contract for updating email aliases.
+      8 |  * It MUST FAIL initially until the API endpoint is implemented.
+
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109) 
+      at Object.<anonymous> (tests/contract/aliases-patch.test.ts:5:17)
+
+Summary of all failing tests
+ FAIL  tests/integration/inbox-experience.test.ts
+  ● Test suite failed to run
+
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.
+                                                                  
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.                                                  
+                                                                  
+      3 |                                                         
+      4 | /**                                                     
+    > 5 |  * Integration Test: Unified Inbox Experience           
+        |                 ^
+      6 |  *
+      7 |  * This test validates the complete user workflow for unified inbox management.
+      8 |  * It MUST FAIL initially until the full inbox system is implemented.
+
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109) 
+      at Object.<anonymous> (tests/integration/inbox-experience.test.ts:5:17)
+
+ FAIL  tests/integration/domain-verification.test.ts
+  ● Test suite failed to run
+
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.
+
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.
+
+      3 |
+      4 | /**
+    > 5 |  * Integration Test: Domain Verification Flow
+        |                 ^
+      6 |  *
+      7 |  * This test validates the complete user workflow for domain verification.
+      8 |  * It MUST FAIL initially until the full domain verification system is implemented.
+
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109) 
+      at Object.<anonymous> (tests/integration/domain-verification.test.ts:5:17)
+
+ FAIL  tests/contract/emails-threads-get.test.ts
+  ● Test suite failed to run
+
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.
+
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.
+
+      3 |
+      4 | /**
+    > 5 |  * Contract Test: GET /api/emails/threads
+        |                 ^
+      6 |  *
+      7 |  * This test validates the API contract for listing email threads.
+      8 |  * It MUST FAIL initially until the API endpoint is implemented.
+
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109)
+      at Object.<anonymous> (tests/contract/emails-threads-get.test.ts:5:17)
+
+ FAIL  tests/integration/email-threading.test.ts
+  ● Test suite failed to run
+
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.
+
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.
+
+      3 |
+      4 | /**
+    > 5 |  * Integration Test: Email Threading and Conversations  
+        |                 ^
+      6 |  *
+      7 |  * This test validates the complete user workflow for email threading.
+      8 |  * It MUST FAIL initially until the full email threading system is implemented.
+
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109) 
+      at Object.<anonymous> (tests/integration/email-threading.test.ts:5:17)
+
+ FAIL  tests/contract/webhooks-mailgun.test.ts
+  ● Test suite failed to run
+
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.
+
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.
+
+      3 | /**
+      4 |  * Contract Test: POST /api/webhooks/mailgun
+    > 5 |  *
+        |              ^
+      6 |  * This test validates the API contract for Mailgun webhook processing.
+      7 |  * It MUST FAIL initially until the API endpoint is implemented.
+      8 |  *
+
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109)
+      at Object.<anonymous> (tests/contract/webhooks-mailgun.test.ts:5:17)
+
+ FAIL  tests/integration/email-search.test.ts
+  ● Test suite failed to run
+
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.
+
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.
+
+      3 |
+      4 | /**
+    > 5 |  * Integration Test: Email Search Functionality
+        |                 ^
+      6 |  *
+      7 |  * This test validates the complete user workflow for email search.
+      8 |  * It MUST FAIL initially until the full email search system is implemented.
+
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109) 
+      at Object.<anonymous> (tests/integration/email-search.test.ts:5:17)
+
+ FAIL  tests/contract/emails-thread-patch.test.ts
+  ● Test suite failed to run
+
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.
+
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.
+
+      3 |
+      4 | /**
+    > 5 |  * Contract Test: PATCH /api/emails/threads/{id}        
+        |                 ^
+      6 |  *
+      7 |  * This test validates the API contract for updating email threads.
+      8 |  * It MUST FAIL initially until the API endpoint is implemented.
+
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109) 
+      at Object.<anonymous> (tests/contract/emails-thread-patch.test.ts:5:17)
+
+ FAIL  tests/contract/emails-read.test.ts
+  ● Test suite failed to run
+
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.
+
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.
+
+      3 |
+      4 | /**
+    > 5 |  * Contract Test: POST /api/emails/messages/{id}/read   
+        |                 ^
+      6 |  *
+      7 |  * This test validates the API contract for marking messages as read.
+      8 |  * It MUST FAIL initially until the API endpoint is implemented.
+
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109) 
+      at Object.<anonymous> (tests/contract/emails-read.test.ts:5:17)
+
+ FAIL  tests/integration/libs/domain-verification-cli.test.ts     
+  ● Test suite failed to run
+
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.
+
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.
+
+      3 |
+      4 | /**
+    > 5 |  * Library Test: Domain Verification CLI
+        |                 ^
+      6 |  *
+      7 |  * This test validates the CLI interface for the domain-verification library.
+      8 |  * It MUST FAIL initially until the library and CLI are implemented.
+
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109)
+      at Object.<anonymous> (tests/integration/libs/domain-verification-cli.test.ts:5:17)
+
+ FAIL  tests/integration/libs/email-processing-cli.test.ts        
+  ● Test suite failed to run
+
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.
+
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.
+
+      3 | import { promisify } from 'util'
+      4 |
+    > 5 | /**
+        |              ^
+      6 |  * Library Test: Email Processing CLI
+      7 |  *
+      8 |  * This test validates the CLI interface for the email-processing library.
+
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109) 
+      at Object.<anonymous> (tests/integration/libs/email-processing-cli.test.ts:5:17)
+
+ FAIL  tests/integration/email-signatures.test.ts
+  ● Test suite failed to run
+
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.
+
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.
+
+      3 |
+      4 | /**
+    > 5 |  * Integration Test: Email Signatures
+        |                 ^
+      6 |  *
+      7 |  * This test validates the complete user workflow for email signature management.
+      8 |  * It MUST FAIL initially until the full email signature system is implemented.
+
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109) 
+      at Object.<anonymous> (tests/integration/email-signatures.test.ts:5:17)
+
+ FAIL  tests/integration/email-composition.test.ts
+  ● Test suite failed to run
+
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.
+
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.
+
+      3 |
+      4 | /**
+    > 5 |  * Integration Test: Email Composition and Privacy      
+        |                 ^
+      6 |  * 
+      7 |  * This test validates the complete user workflow for email composition and privacy.
+      8 |  * It MUST FAIL initially until the full email composition system is implemented.
+
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109) 
+      at Object.<anonymous> (tests/integration/email-composition.test.ts:5:17)
+
+ FAIL  tests/contract/emails-thread-get.test.ts
+  ● Test suite failed to run
+
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.
+
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.
+
+      3 |
+      4 | /**
+    > 5 |  * Contract Test: GET /api/emails/threads/{id}
+        |                 ^
+      6 |  *
+      7 |  * This test validates the API contract for getting a specific email thread with messages.
+      8 |  * It MUST FAIL initially until the API endpoint is implemented.
+
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109) 
+      at Object.<anonymous> (tests/contract/emails-thread-get.test.ts:5:17)
+
+ FAIL  tests/contract/domains-verify.test.ts
+  ● Test suite failed to run
+
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.
+
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.
+
+      3 |
+      4 | /**
+    > 5 |  * Contract Test: POST /api/domains/{id}/verify
+        |                 ^
+      6 |  *
+      7 |  * This test validates the API contract for domain verification.
+      8 |  * It MUST FAIL initially until the API endpoint is implemented.
+
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109)
+      at Object.<anonymous> (tests/contract/domains-verify.test.ts:5:17)
+
+ FAIL  tests/integration/libs/alias-management-cli.test.ts        
+  ● Test suite failed to run
+
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.
+
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.
+
+      3 |
+      4 | /**
+    > 5 |  * Library Test: Alias Management CLI
+        |                 ^
+      6 |  *
+      7 |  * This test validates the CLI interface for the alias-management library.
+      8 |  * It MUST FAIL initially until the library and CLI are implemented.
+
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109) 
+      at Object.<anonymous> (tests/integration/libs/alias-management-cli.test.ts:5:17)
+
+ FAIL  tests/contract/emails-send.test.ts
+  ● Test suite failed to run
+
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.
+
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.
+
+      3 |
+      4 | /**
+    > 5 |  * Contract Test: POST /api/emails/send
+        |                 ^
+      6 |  *
+      7 |  * This test validates the API contract for sending emails.
+      8 |  * It MUST FAIL initially until the API endpoint is implemented.
+
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109) 
+      at Object.<anonymous> (tests/contract/emails-send.test.ts:5:17)
+
+ FAIL  tests/contract/domains-post.test.ts
+  ● Test suite failed to run
+
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.
+
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.
+
+      3 |
+      4 | /**
+    > 5 |  * Contract Test: POST /api/domains
+        |                 ^
+      6 |  *
+      7 |  * This test validates the API contract for adding new domains.
+      8 |  * It MUST FAIL initially until the API endpoint is implemented.
+
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109) 
+      at Object.<anonymous> (tests/contract/domains-post.test.ts:5:17)
+
+ FAIL  tests/integration/alias-management.test.ts
+  ● Test suite failed to run
+
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.
+
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.
+
+      3 |
+      4 | /**
+    > 5 |  * Integration Test: Email Alias Creation and Management
+        |                 ^
+      6 |  *
+      7 |  * This test validates the complete user workflow for email alias management.
+      8 |  * It MUST FAIL initially until the full alias management system is implemented.
+
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109) 
+      at Object.<anonymous> (tests/integration/alias-management.test.ts:5:17)
+
+ FAIL  tests/contract/aliases-post.test.ts
+  ● Test suite failed to run
+
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.
+
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.
+
+      3 |
+      4 | /**
+    > 5 |  * Contract Test: POST /api/aliases
+        |                 ^
+      6 |  *
+      7 |  * This test validates the API contract for creating email aliases.
+      8 |  * It MUST FAIL initially until the API endpoint is implemented.
+
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109) 
+      at Object.<anonymous> (tests/contract/aliases-post.test.ts:5:17)
+
+ FAIL  tests/integration/email-organization.test.ts
+  ● Test suite failed to run
+
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.
+
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.
+
+      3 |
+      4 | /**
+    > 5 |  * Integration Test: Email Organization (Labels, Archive)
+        |                 ^
+      6 |  *
+      7 |  * This test validates the complete user workflow for email organization.
+      8 |  * It MUST FAIL initially until the full email organization system is implemented.
+
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109) 
+      at Object.<anonymous> (tests/integration/email-organization.test.ts:5:17)
+
+ FAIL  tests/contract/domains-get.test.ts
+  ● Test suite failed to run
+
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.
+
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.
+
+      3 |
+      4 | /**
+    > 5 |  * Contract Test: GET /api/domains
+        |                 ^
+      6 |  *
+      7 |  * This test validates the API contract for listing user domains.
+      8 |  * It MUST FAIL initially until the API endpoint is implemented.
+
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109) 
+      at Object.<anonymous> (tests/contract/domains-get.test.ts:5:17)
+
+ FAIL  tests/contract/aliases-get.test.ts
+  ● Test suite failed to run
+
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.
+
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.
+
+      3 |
+      4 | /**
+    > 5 |  * Contract Test: GET /api/aliases
+        |                 ^
+      6 |  * 
+      7 |  * This test validates the API contract for listing email aliases.
+      8 |  * It MUST FAIL initially until the API endpoint is implemented.
+
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109) 
+      at Object.<anonymous> (tests/contract/aliases-get.test.ts:5:17)
+
+ FAIL  tests/contract/aliases-patch.test.ts
+  ● Test suite failed to run
+
+    Vitest cannot be imported in a CommonJS module using require(). Please use "import" instead.
+
+    If you are using "import" in your source code, then it's possible it was bundled into require() automatically by your bundler. In that case, do not bundle CommonJS output since it will never work with Vitest, or use dynamic import() which is available in all CommonJS modules.
+
+      3 |
+      4 | /**
+    > 5 |  * Contract Test: PATCH /api/aliases/{id}
+        |                 ^
+      6 |  *
+      7 |  * This test validates the API contract for updating email aliases.
+      8 |  * It MUST FAIL initially until the API endpoint is implemented.
+
+      at Object.<anonymous> (node_modules/vitest/index.cjs:1:109) 
+      at Object.<anonymous> (tests/contract/aliases-patch.test.ts:5:17)
+
+
+Test Suites: 23 failed, 23 total
+Tests:       0 total
+Snapshots:   0 total
+Time:        3.058 s
+Ran all test suites.
+PS C:\Users\crist\Documents\coding with auggie\do-mails-v2> 

@@ -140,7 +140,7 @@ export class EmailProcessor {
     // Check attachment size limits
     if (message.attachments) {
       const totalSize = message.attachments.reduce((sum, att) => sum + att.size, 0)
-      if (totalSize > this.config.maxAttachmentSize) {
+      if (totalSize > this.config.maxAttachmentSize!) {
         throw new EmailProcessingError(
           `Total attachment size exceeds limit: ${totalSize} > ${this.config.maxAttachmentSize}`,
           'ATTACHMENT_SIZE_ERROR'

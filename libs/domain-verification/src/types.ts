@@ -53,21 +53,14 @@ export const DNSQueryResultSchema = z.object({
 
 // Configuration schemas
 export const DomainVerificationConfigSchema = z.object({
-  defaultTimeout: z.number().int().min(1000).max(30000).default(10000),
-  defaultRetries: z.number().int().min(0).max(5).default(3),
-  recordPrefix: z.string().default('_domails-verify'),
+  defaultTimeout: z.number().int().min(1000).max(30000).optional(),
+  defaultRetries: z.number().int().min(0).max(5).optional(),
+  recordPrefix: z.string().optional(),
   allowedDomains: z.array(DomainNameSchema).optional(),
-  blockedDomains: z.array(DomainNameSchema).default([
-    'localhost',
-    'example.com',
-    'example.org',
-    'example.net',
-    'test.com',
-    'invalid'
-  ]),
+  blockedDomains: z.array(DomainNameSchema).optional(),
   dnsServers: z.array(z.string().ip()).optional(),
-  cacheTimeout: z.number().int().min(0).default(300000) // 5 minutes
-})
+  cacheTimeout: z.number().int().min(0).optional()
+}).default({})
 
 // Validation result schemas
 export const DomainValidationResultSchema = z.object({

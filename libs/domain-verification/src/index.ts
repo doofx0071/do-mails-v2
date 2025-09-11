@@ -16,11 +16,35 @@ export class DomainVerification {
   private verifier: DomainVerifier
   private validator: DomainValidator
   private dnsService: DNSService
+  private config: DomainVerificationConfig & {
+    defaultTimeout: number
+    defaultRetries: number
+    recordPrefix: string
+    blockedDomains: string[]
+    cacheTimeout: number
+  }
 
   constructor(config: DomainVerificationConfig = {}) {
-    this.verifier = new DomainVerifier(config)
-    this.validator = new DomainValidator(config.allowedDomains, config.blockedDomains)
-    this.dnsService = new DNSService(config.dnsServers, config.defaultTimeout)
+    this.config = {
+      defaultTimeout: config.defaultTimeout ?? 10000,
+      defaultRetries: config.defaultRetries ?? 3,
+      recordPrefix: config.recordPrefix ?? '_domails-verify',
+      allowedDomains: config.allowedDomains ?? undefined,
+      blockedDomains: config.blockedDomains ?? [
+        'localhost',
+        'example.com',
+        'example.org',
+        'example.net',
+        'test.com',
+        'invalid'
+      ],
+      dnsServers: config.dnsServers ?? undefined,
+      cacheTimeout: config.cacheTimeout ?? 300000
+    }
+
+    this.verifier = new DomainVerifier(this.config)
+    this.validator = new DomainValidator(this.config.allowedDomains, this.config.blockedDomains)
+    this.dnsService = new DNSService(this.config.dnsServers, this.config.defaultTimeout)
   }
 
   /**
@@ -51,7 +75,9 @@ export class DomainVerification {
     return this.verifier.verifyDomain({
       domain,
       token,
-      recordName: '_domails-verify'
+      recordName: '_domails-verify',
+      timeout: this.config.defaultTimeout,
+      retries: this.config.defaultRetries
     })
   }
 

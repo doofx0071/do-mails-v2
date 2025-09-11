@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
-import { EmailProcessing } from '@/lib/email-processing'
+import { EmailProcessing } from '@do-mails/email-processing'
 
 // Initialize Supabase client with service role for webhook processing
 // Note: Service role is appropriate here since webhooks are system events,
@@ -20,7 +20,14 @@ const emailProcessor = new EmailProcessing({
     referencesTracking: true,
     participantGrouping: true,
     timeWindowHours: 24
-  }
+  },
+  maxAttachmentSize: 25 * 1024 * 1024, // 25MB
+  allowedAttachmentTypes: [
+    'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+    'application/pdf', 'text/plain', 'text/csv',
+    'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  ]
 })
 
 /**
@@ -29,16 +36,45 @@ const emailProcessor = new EmailProcessing({
  */
 export async function POST(request: NextRequest) {
   try {
+    // Verify webhook signature first
+    const signature = request.headers.get('x-mailgun-signature-256')
+    const timestamp = request.headers.get('x-mailgun-timestamp')
+    const token = request.headers.get('x-mailgun-token')
+
+    if (!signature || !timestamp || !token) {
+      console.error('Missing Mailgun signature headers')
+      return NextResponse.json(
+        { error: 'Missing signature headers' },
+        { status: 401 }
+      )
+    }
+
     // Parse the webhook data
     const formData = await request.formData()
     const webhookData: any = {}
-    
+
     // Convert FormData to object
     for (const [key, value] of formData.entries()) {
       webhookData[key] = value
     }
 
-    console.log('Received Mailgun webhook:', Object.keys(webhookData))
+    // Verify webhook signature using email processing library
+    const isValidSignature = await emailProcessor.verifyWebhookSignature({
+      signature,
+      timestamp,
+      token,
+      body: webhookData
+    })
+
+    if (!isValidSignature) {
+      console.error('Invalid Mailgun webhook signature')
+      return NextResponse.json(
+        { error: 'Invalid signature' },
+        { status: 401 }
+      )
+    }
+
+    console.log('Received verified Mailgun webhook:', Object.keys(webhookData))
 
     // Process the inbound email using email processing library
     let emailMessage
@@ -250,10 +286,70 @@ export async function POST(request: NextRequest) {
 
     // Handle attachments if present
     const attachmentCount = parseInt(webhookData['attachment-count'] || '0')
+    const attachmentIds: string[] = []
+
     if (attachmentCount > 0) {
       console.log(`Processing ${attachmentCount} attachments`)
-      // Note: In a full implementation, you would process and store attachments
-      // For now, we'll just log that they exist
+
+      for (let i = 1; i <= attachmentCount; i++) {
+        const attachmentFile = formData.get(`attachment-${i}`) as File
+        const attachmentName = webhookData[`attachment-${i}`] as string
+
+        if (attachmentFile && attachmentName) {
+          try {
+            // Generate unique filename
+            const timestamp = Date.now()
+            const randomId = Math.random().toString(36).substr(2, 9)
+            const fileExtension = attachmentName.split('.').pop() || 'bin'
+            const uniqueFilename = `${timestamp}-${randomId}.${fileExtension}`
+            const storagePath = `attachments/${alias.domains.user_id}/${uniqueFilename}`
+
+            // Upload to Supabase Storage
+            const { data: uploadData, error: uploadError } = await supabase.storage
+              .from('email-attachments')
+              .upload(storagePath, attachmentFile, {
+                contentType: attachmentFile.type || 'application/octet-stream',
+                upsert: false
+              })
+
+            if (uploadError) {
+              console.error(`Failed to upload attachment ${i}:`, uploadError)
+              continue
+            }
+
+            // Store attachment metadata in database
+            const { data: attachmentRecord, error: attachmentError } = await supabase
+              .from('email_attachments')
+              .insert({
+                message_id: storedMessage.id,
+                filename: attachmentName,
+                content_type: attachmentFile.type || 'application/octet-stream',
+                size: attachmentFile.size,
+                storage_path: storagePath,
+                storage_bucket: 'email-attachments'
+              })
+              .select('id')
+              .single()
+
+            if (attachmentError) {
+              console.error(`Failed to store attachment metadata ${i}:`, attachmentError)
+              // Clean up uploaded file
+              await supabase.storage
+                .from('email-attachments')
+                .remove([storagePath])
+              continue
+            }
+
+            attachmentIds.push(attachmentRecord.id)
+            console.log(`Successfully stored attachment ${i}: ${attachmentName}`)
+
+          } catch (error) {
+            console.error(`Error processing attachment ${i}:`, error)
+          }
+        }
+      }
+
+      console.log(`Successfully processed ${attachmentIds.length}/${attachmentCount} attachments`)
     }
 
     // Update alias last_email_received_at
@@ -282,7 +378,9 @@ export async function POST(request: NextRequest) {
         alias_id: alias.id,
         from: emailMessage.from,
         subject: emailMessage.subject,
-        received_at: emailMessage.receivedAt
+        received_at: emailMessage.receivedAt,
+        attachments_processed: attachmentIds.length,
+        attachment_ids: attachmentIds
       },
       { status: 200 }
     )

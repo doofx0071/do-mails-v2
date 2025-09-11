@@ -23,16 +23,15 @@ export class AliasGenerator {
    * Generate alias names based on options
    */
   generateAliases(options: AliasGenerationOptions = {}): string[] {
-    const opts: Required<AliasGenerationOptions> = {
-      length: 8,
-      includeNumbers: true,
-      includeSpecialChars: false,
-      prefix: '',
-      suffix: '',
-      excludeWords: [],
-      pattern: GenerationPattern.RANDOM,
-      count: 1,
-      ...options
+    const opts = {
+      length: options.length ?? 8,
+      includeNumbers: options.includeNumbers ?? true,
+      includeSpecialChars: options.includeSpecialChars ?? false,
+      prefix: options.prefix ?? '',
+      suffix: options.suffix ?? '',
+      excludeWords: options.excludeWords ?? [],
+      pattern: options.pattern ?? GenerationPattern.RANDOM,
+      count: options.count ?? 1
     }
 
     const aliases: string[] = []
@@ -261,7 +260,16 @@ export class AliasGenerator {
     existingAliases: string[],
     options: AliasGenerationOptions = {}
   ): string[] {
-    const opts = { ...options, count }
+    const opts = {
+      length: options.length ?? 8,
+      includeNumbers: options.includeNumbers ?? true,
+      includeSpecialChars: options.includeSpecialChars ?? false,
+      prefix: options.prefix ?? '',
+      suffix: options.suffix ?? '',
+      excludeWords: options.excludeWords ?? [],
+      pattern: options.pattern ?? GenerationPattern.RANDOM,
+      count
+    }
     const maxAttempts = count * 20
     const generated: string[] = []
     const allExisting = [...existingAliases, ...generated]

@@ -6,11 +6,18 @@ import { createAuthenticatedClient } from '@/lib/supabase/server'
 const aliasManager = new AliasManagement({
   maxAliasesPerDomain: 1000,
   maxAliasLength: 64,
+  minAliasLength: 1,
+  allowedCharacters: 'abcdefghijklmnopqrstuvwxyz0123456789._-',
   enableProfanityFilter: true,
+  enableSimilarityCheck: true,
+  similarityThreshold: 0.8,
   reservedAliases: [
     'admin', 'administrator', 'root', 'postmaster', 'webmaster',
     'hostmaster', 'abuse', 'security', 'noreply', 'no-reply',
     'support', 'help', 'info', 'contact', 'sales', 'billing'
+  ],
+  blockedPatterns: [
+    'test', 'temp', 'temporary', 'delete', 'remove', 'spam'
   ]
 })
 

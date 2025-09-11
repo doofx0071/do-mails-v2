@@ -24,6 +24,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useToast } from '@/components/ui/use-toast'
+import { ComposeEmailDialog } from './compose-email-dialog'
 
 interface EmailMessage {
   id: string
@@ -72,6 +73,8 @@ interface ThreadViewProps {
 
 export function ThreadView({ threadId }: ThreadViewProps) {
   const [expandedMessages, setExpandedMessages] = useState<Set<string>>(new Set())
+  const [showReplyDialog, setShowReplyDialog] = useState(false)
+  const [replyToMessage, setReplyToMessage] = useState<EmailMessage | null>(null)
   const { toast } = useToast()
   const queryClient = useQueryClient()
 
@@ -369,7 +372,13 @@ export function ThreadView({ threadId }: ThreadViewProps) {
                   
                   {isLastMessage && (
                     <div className="mt-4 pt-4 border-t">
-                      <Button size="sm">
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          setReplyToMessage(message)
+                          setShowReplyDialog(true)
+                        }}
+                      >
                         <Reply className="h-4 w-4 mr-2" />
                         Reply
                       </Button>
@@ -381,6 +390,27 @@ export function ThreadView({ threadId }: ThreadViewProps) {
           )
         })}
       </div>
+
+      {/* Reply Dialog */}
+      <ComposeEmailDialog
+        open={showReplyDialog}
+        onOpenChange={setShowReplyDialog}
+        domains={[]} // We'll get this from the thread's alias domain
+        replyToMessage={replyToMessage || undefined}
+        replyToAlias={thread?.alias ? {
+          id: thread.alias.id,
+          domain_id: '', // Not needed for reply
+          alias_name: thread.alias.alias_name,
+          full_address: thread.alias.full_address,
+          is_enabled: true
+        } : undefined}
+        onSuccess={() => {
+          setShowReplyDialog(false)
+          setReplyToMessage(null)
+          // Refresh thread to show new message
+          queryClient.invalidateQueries({ queryKey: ['email-thread', threadId] })
+        }}
+      />
     </div>
   )
 }

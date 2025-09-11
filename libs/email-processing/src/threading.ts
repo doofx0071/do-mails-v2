@@ -19,11 +19,10 @@ export class EmailThreadingService {
 
   constructor(options: ThreadingOptions = {}) {
     this.options = {
-      subjectNormalization: true,
-      referencesTracking: true,
-      participantGrouping: true,
-      timeWindowHours: 24,
-      ...options
+      subjectNormalization: options.subjectNormalization ?? true,
+      referencesTracking: options.referencesTracking ?? true,
+      participantGrouping: options.participantGrouping ?? true,
+      timeWindowHours: options.timeWindowHours ?? 24
     }
   }
 
@@ -111,7 +110,7 @@ export class EmailThreadingService {
           if (overlap) {
             // Check time window
             const timeDiff = Math.abs(msg1.receivedAt.getTime() - msg2.receivedAt.getTime())
-            const maxTimeDiff = this.options.timeWindowHours * 60 * 60 * 1000
+            const maxTimeDiff = this.options.timeWindowHours! * 60 * 60 * 1000
             
             return timeDiff <= maxTimeDiff
           }

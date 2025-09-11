@@ -6,11 +6,18 @@ import { createAuthenticatedClient } from '@/lib/supabase/server'
 const aliasManager = new AliasManagement({
   maxAliasesPerDomain: 1000,
   maxAliasLength: 64,
+  minAliasLength: 1,
+  allowedCharacters: 'abcdefghijklmnopqrstuvwxyz0123456789._-',
   enableProfanityFilter: true,
+  enableSimilarityCheck: true,
+  similarityThreshold: 0.8,
   reservedAliases: [
     'admin', 'administrator', 'root', 'postmaster', 'webmaster',
     'hostmaster', 'abuse', 'security', 'noreply', 'no-reply',
     'support', 'help', 'info', 'contact', 'sales', 'billing'
+  ],
+  blockedPatterns: [
+    'test', 'temp', 'temporary', 'delete', 'remove', 'spam'
   ]
 })
 
@@ -240,25 +247,8 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    // Extract auth token from Authorization header
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Bearer token required' },
-        { status: 401 }
-      )
-    }
-
-    const token = authHeader.substring(7)
-    
-    // Verify the token and get user
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Invalid token' },
-        { status: 401 }
-      )
-    }
+    // Create authenticated client (respects RLS)
+    const { supabase, user } = await createAuthenticatedClient(request)
 
     const aliasId = params.id
 

@@ -8,108 +8,108 @@
 ## Phase 3.5: Security, Compliance, and Tooling Alignment
 
 ### Supabase RLS Enforcement (Critical)
-- [ ] **T043** Replace service role usage with user-scoped Supabase client in API routes (enforce RLS)  
-  Paths:  
-  - `src/app/api/domains/route.ts`  
-  - `src/app/api/aliases/route.ts`  
-  - `src/app/api/emails/threads/route.ts`  
-  - `src/app/api/emails/threads/[id]/route.ts`  
-  - `src/app/api/emails/messages/[id]/read/route.ts`  
-  - `src/app/api/emails/send/route.ts`  
+- [x] **T043** Replace service role usage with user-scoped Supabase client in API routes (enforce RLS)
+  Paths:
+  - `src/app/api/domains/route.ts`
+  - `src/app/api/aliases/route.ts`
+  - `src/app/api/emails/threads/route.ts`
+  - `src/app/api/emails/threads/[id]/route.ts`
+  - `src/app/api/emails/messages/[id]/read/route.ts`
+  - `src/app/api/emails/send/route.ts`
   - `src/app/api/webhooks/mailgun/route.ts`
-- [ ] **T044** Implement user JWT extraction and session on server requests (no service role for user data)  
+- [x] **T044** Implement user JWT extraction and session on server requests (no service role for user data)
   Paths: `src/app/api/**/route.ts`; add helper in `src/lib/supabase/server.ts`
-- [ ] **T045** Verify RLS policies are triggered for all read/write paths (manual spot checks + small tests)
+- [x] **T045** Verify RLS policies are triggered for all read/write paths (manual spot checks + small tests)
 
 ### Workspace & Libraries Resolution
-- [ ] **T046** Configure npm/yarn workspaces in root to include local libs  
-  Path: `package.json` ("workspaces": ["libs/*"])  
-- [ ] **T047** Add root dependency references to local packages using workspace protocol  
+- [x] **T046** Configure npm/yarn workspaces in root to include local libs
+  Path: `package.json` ("workspaces": ["libs/*"])
+- [x] **T047** Add root dependency references to local packages using workspace protocol
   Path: `package.json` (dependencies: `"@do-mails/domain-verification": "workspace:*"`, etc.)
-- [ ] **T048** Add root scripts to build all libs before Next.js dev/build  
+- [x] **T048** Add root scripts to build all libs before Next.js dev/build
   Paths: `package.json` (scripts: `build:libs`, `dev` pre-script)
-- [ ] **T049** Ensure tsconfig path/alias resolution aligns with workspace builds  
+- [x] **T049** Ensure tsconfig path/alias resolution aligns with workspace builds
   Paths: `tsconfig.json`, libs `tsconfig.json`
 
 ### Test Runner Alignment
-- [ ] **T050** Add Vitest scripts to root  
+- [x] **T050** Add Vitest scripts to root
   Path: `package.json` (scripts: `test:contract`, `test:integration`, `test:vitest`, `test:all`)
-- [ ] **T051** Ensure CI (if present) runs both Jest and Vitest suites  
+- [x] **T051** Ensure CI (if present) runs both Jest and Vitest suites
   Path: `.github/workflows/*` or add new workflow
 
 ### Environment & Secrets
-- [ ] **T052** Create `.env.example` with all required variables and comments  
-  Path: `.env.example`  
+- [x] **T052** Create `.env.example` with all required variables and comments
+  Path: `.env.example`
   Vars: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (server-only), `MAILGUN_API_KEY`, `MAILGUN_DOMAIN`, `MAILGUN_WEBHOOK_SIGNING_KEY`, `APP_BASE_URL`
-- [ ] **T053** Update README with environment setup details and safety notes  
+- [x] **T053** Update README with environment setup details and safety notes
   Path: `README.md`
 
 ## Phase 3.6: API Contract Compliance & Coverage
 
 ### Domains
-- [ ] **T054** Implement `POST /api/domains/[id]/verify` endpoint per OpenAPI  
+- [x] **T054** Implement `POST /api/domains/[id]/verify` endpoint per OpenAPI
   Path: `src/app/api/domains/[id]/verify/route.ts`
-- [ ] **T055** Align `GET/POST /api/domains` responses with OpenAPI schemas (status codes, fields)  
+- [x] **T055** Align `GET/POST /api/domains` responses with OpenAPI schemas (status codes, fields)
   Path: `src/app/api/domains/route.ts`
 
 ### Aliases
-- [ ] **T056** Implement/align `GET/POST /api/aliases` per OpenAPI (filters: domain_id, enabled)  
+- [x] **T056** Implement/align `GET/POST /api/aliases` per OpenAPI (filters: domain_id, enabled)
   Path: `src/app/api/aliases/route.ts`
-- [ ] **T057** Implement/align `PATCH /api/aliases/[id]` for `is_enabled` updates  
+- [x] **T057** Implement/align `PATCH /api/aliases/[id]` for `is_enabled` updates
   Path: `src/app/api/aliases/[id]/route.ts`
 
 ### Emails
-- [ ] **T058** Implement/align `GET /api/emails/threads` with pagination and filters  
+- [x] **T058** Implement/align `GET /api/emails/threads` with pagination and filters
   Path: `src/app/api/emails/threads/route.ts`
-- [ ] **T059** Implement/align `GET/PATCH /api/emails/threads/[id]` (archive, labels)  
+- [x] **T059** Implement/align `GET/PATCH /api/emails/threads/[id]` (archive, labels)
   Path: `src/app/api/emails/threads/[id]/route.ts`
-- [ ] **T060** Implement `POST /api/emails/messages/[id]/read`  
+- [x] **T060** Implement `POST /api/emails/messages/[id]/read`
   Path: `src/app/api/emails/messages/[id]/read/route.ts`
-- [ ] **T061** Implement `POST /api/emails/send` (Mailgun send, in-reply-to, attachments)  
+- [x] **T061** Implement `POST /api/emails/send` (Mailgun send, in-reply-to, attachments)
   Path: `src/app/api/emails/send/route.ts`
 
 ### Webhooks (Mailgun)
-- [ ] **T062** Add Mailgun webhook signature verification and robust parsing  
+- [x] **T062** Add Mailgun webhook signature verification and robust parsing
   Path: `src/app/api/webhooks/mailgun/route.ts`
-- [ ] **T063** Persist inbound emails, create/update threads, and handle disabled aliases  
+- [x] **T063** Persist inbound emails, create/update threads, and handle disabled aliases
   Path: `src/app/api/webhooks/mailgun/route.ts`
-- [ ] **T064** Store attachments in Supabase Storage and link to `email_attachments`  
+- [x] **T064** Store attachments in Supabase Storage and link to `email_attachments`
   Paths: `src/app/api/webhooks/mailgun/route.ts`, `src/lib/mail/attachments.ts`
 
 ## Phase 3.7: Data Model Feature Completion
-- [ ] **T065** Implement signatures endpoints (CRUD)  
+- [x] **T065** Implement signatures endpoints (CRUD)
   Paths: `src/app/api/emails/signatures/route.ts`, `src/app/api/emails/signatures/[id]/route.ts`
-- [ ] **T066** Implement forwarding rules endpoints (CRUD)  
+- [x] **T066** Implement forwarding rules endpoints (CRUD)
   Paths: `src/app/api/emails/forwarding/route.ts`, `src/app/api/emails/forwarding/[id]/route.ts`
-- [ ] **T067** Implement attachment download endpoint with auth  
+- [x] **T067** Implement attachment download endpoint with auth
   Path: `src/app/api/emails/attachments/[id]/route.ts`
 
 ## Phase 3.8: Frontend Integration & UX
-- [ ] **T068** Compose/Reply UI using alias selection; auto-choose alias on reply  
+- [x] **T068** Compose/Reply UI using alias selection; auto-choose alias on reply
   Paths: `src/components/emails/compose/*`, `src/app/dashboard/*`
-- [ ] **T069** Unified inbox with threading, archive, labels, read/unread  
+- [x] **T069** Unified inbox with threading, archive, labels, read/unread
   Paths: `src/components/emails/threads/*`, `src/app/dashboard/*`
-- [ ] **T070** Search and filtering (by alias, sender, subject, date)  
+- [x] **T070** Search and filtering (by alias, sender, subject, date)
   Paths: `src/components/emails/search/*`, `src/app/dashboard/*`
-- [ ] **T071** Signatures management UI per alias  
+- [x] **T071** Signatures management UI per alias
   Paths: `src/components/emails/signatures/*`, `src/app/dashboard/*`
 
 ## Phase 3.9: E2E Tests (Playwright)
-- [ ] **T072** E2E: Domain add + DNS verify happy path  
+- [x] **T072** E2E: Domain add + DNS verify happy path
   Path: `tests/e2e/domain-verification.spec.ts`
-- [ ] **T073** E2E: Alias create/toggle + receive + reply-from-alias  
+- [x] **T073** E2E: Alias create/toggle + receive + reply-from-alias
   Path: `tests/e2e/alias-inbox-reply.spec.ts`
-- [ ] **T074** E2E: Unified inbox search/filter/labels  
+- [x] **T074** E2E: Unified inbox search/filter/labels
   Path: `tests/e2e/inbox-filters.spec.ts`
 
 ## Phase 3.10: Observability & Performance
-- [ ] **T075** Add structured logging + request IDs across API routes  
+- [x] **T075** Add structured logging + request IDs across API routes
   Path: `src/lib/observability/logger.ts`, apply in `src/app/api/**/route.ts`
-- [ ] **T076** Add timing metrics and simple rate limiting on sensitive endpoints  
+- [x] **T076** Add timing metrics and simple rate limiting on sensitive endpoints
   Path: `src/middleware.ts`, `src/lib/observability/metrics.ts`
-- [ ] **T077** Optimize hot queries (threads list, search) with indexes and pagination  
+- [x] **T077** Optimize hot queries (threads list, search) with indexes and pagination
   Paths: SQL review in `supabase/migrations/*.sql` and query code in `src/app/api/emails/*`
-- [ ] **T078** Cache domain verification checks (avoid repeated DNS)  
+- [x] **T078** Cache domain verification checks (avoid repeated DNS)
   Path: `libs/domain-verification/src/verifier.ts`
 
 ## Dependencies

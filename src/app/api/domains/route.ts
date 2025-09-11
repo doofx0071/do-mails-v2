@@ -5,6 +5,7 @@ import {
   extractAuthToken,
   verifyAuth,
 } from '@/lib/supabase/server'
+import { createAPILogger, createTimer } from '@/lib/observability/logger'
 
 // Initialize domain verification service
 const domainVerifier = new DomainVerification({
@@ -20,10 +21,16 @@ const domainVerifier = new DomainVerification({
  * List user's domains with optional status filter
  */
 export async function GET(request: NextRequest) {
+  const logger = createAPILogger(request)
+  const timer = createTimer(logger)
+
+  logger.logRequestStart()
+
   try {
     // Extract and validate auth token
     const token = extractAuthToken(request)
     if (!token) {
+      logger.warn('Missing authorization token')
       return NextResponse.json(
         { error: 'Unauthorized - Bearer token required' },
         { status: 401 }
@@ -31,10 +38,23 @@ export async function GET(request: NextRequest) {
     }
 
     // Verify authentication
-    await verifyAuth(token)
+    logger.debug('Verifying authentication')
+    try {
+      await verifyAuth(token)
+    } catch (error) {
+      logger.warn('Authentication failed', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+      })
+      return NextResponse.json(
+        { error: 'Unauthorized - Invalid token' },
+        { status: 401 }
+      )
+    }
 
     // Create user-context client (respects RLS)
+    logger.debug('Creating user-context client')
     const supabase = createUserClient(token)
+    logger.debug('User-context client created')
 
     // Parse query parameters
     const { searchParams } = new URL(request.url)
@@ -108,7 +128,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify authentication
-    await verifyAuth(token)
+    try {
+      await verifyAuth(token)
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Invalid token' },
+        { status: 401 }
+      )
+    }
 
     // Create user-context client (respects RLS)
     const supabase = createUserClient(token)
@@ -144,7 +171,7 @@ export async function POST(request: NextRequest) {
     const domainName = body.domain_name.toLowerCase().trim()
 
     // Validate domain format using domain verification library
-    const validation = domainVerifier.validate.validateDomain(domainName)
+    const validation = domainVerifier.validateDomain(domainName)
     if (!validation.valid) {
       return NextResponse.json(
         {

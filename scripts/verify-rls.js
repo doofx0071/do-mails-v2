@@ -101,8 +101,7 @@ async function testRLSEnforcement() {
 }
 
 // Run the verification
-if (require.main === module) {
-  testRLSEnforcement().catch(console.error)
-}
+// Run the test if this file is executed directly
+testRLSEnforcement().catch(console.error)
 
-module.exports = { testRLSEnforcement }
+export { testRLSEnforcement }

@@ -257,8 +257,6 @@ async function main() {
 }
 
 // Handle command line execution
-if (require.main === module) {
-  main().catch(console.error)
-}
+main().catch(console.error)
 
-module.exports = { APITester, TEST_CONFIG }
+export { APITester, TEST_CONFIG }

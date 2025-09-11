@@ -1,0 +1,34 @@
+PS C:\Users\crist\Documents\coding with auggie\do-mails-v2> npm run test:vitest
+
+> do-mails@1.0.0 test:vitest
+> vitest run --config vitest.config.mjs
+
+
+ RUN  v1.6.1 C:/Users/crist/Documents/coding with auggie/do-mails-v2
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Failed to load PostCSS config: Failed to load PostCSS config (searchPath: C:/Users/crist/Documents/coding with auggie/do-mails-v2): [ReferenceError] module is not defined in ES module scope
+This file is being treated as an ES module because it has a '.js' file extension and 'C:\Users\crist\Documents\coding with auggie\do-mails-v2\package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension.
+ReferenceError: module is not defined in ES module scope
+This file is being treated as an ES module because it has a '.js' file extension and 'C:\Users\crist\Documents\coding with auggie\do-mails-v2\package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension.
+    at file:///C:/Users/crist/Documents/coding%20with%20auggie/do-mails-v2/postcss.config.js:1:1
+    at ModuleJob.run (node:internal/modules/esm/module_job:365:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async importDefault (file:///C:/Users/crist/Documents/coding%20with%20auggie/do-mails-v2/node_modules/vitest/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:33759:18)
+    at async Object.search (file:///C:/Users/crist/Documents/coding%20with%20auggie/do-mails-v2/node_modules/vitest/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:25915:23)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Failed to load PostCSS config: Failed to load PostCSS config (searchPath: C:/Users/crist/Documents/coding with auggie/do-mails-v2): [ReferenceError] module is not defined in ES module scope
+This file is being treated as an ES module because it has a '.js' file extension and 'C:\Users\crist\Documents\coding with auggie\do-mails-v2\package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension.    
+ReferenceError: module is not defined in ES module scope
+This file is being treated as an ES module because it has a '.js' file extension and 'C:\Users\crist\Documents\coding with auggie\do-mails-v2\package.json' contains "type": "module". To treat it as a CommonJS script, rename it to use the '.cjs' file extension.    
+    at file:///C:/Users/crist/Documents/coding%20with%20auggie/do-mails-v2/postcss.config.js:1:1
+    at ModuleJob.run (node:internal/modules/esm/module_job:365:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async importDefault (file:///C:/Users/crist/Documents/coding%20with%20auggie/do-mails-v2/node_modules/vitest/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:33759:18)
+    at async Object.search (file:///C:/Users/crist/Documents/coding%20with%20auggie/do-mails-v2/node_modules/vitest/node_modules/vite/dist/node/chunks/dep-D_zLpgQd.js:25915:23)
+
+
+
+PS C:\Users\crist\Documents\coding with auggie\do-mails-v2> 

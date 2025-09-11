@@ -1,0 +1,18 @@
+PS C:\Users\crist\Documents\coding with auggie\do-mails-v2> npm run build:libs
+
+> do-mails@1.0.0 build:libs
+> npm run build --workspaces --if-present
+
+
+> @do-mails/alias-management@1.0.0 build
+> tsc
+
+
+> @do-mails/domain-verification@1.0.0 build
+> tsc
+
+
+> @do-mails/email-processing@1.0.0 build
+> tsc
+
+PS C:\Users\crist\Documents\coding with auggie\do-mails-v2> 

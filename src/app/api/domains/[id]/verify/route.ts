@@ -6,7 +6,16 @@ import { createAuthenticatedClient } from '@/lib/supabase/server'
 const domainVerifier = new DomainVerification({
   defaultTimeout: 10000,
   defaultRetries: 3,
-  recordPrefix: '_domails-verify'
+  recordPrefix: '_domails-verify',
+  blockedDomains: [
+    'localhost',
+    'example.com',
+    'example.org',
+    'example.net',
+    'test.com',
+    'invalid'
+  ],
+  cacheTimeout: 300000 // 5 minutes
 })
 
 /**
@@ -148,7 +157,7 @@ export async function POST(
               record_name: verificationResult.recordName,
               expected_token: domain.verification_token,
               dns_records_found: verificationResult.dnsRecords,
-              instructions: domainVerifier.verify.getVerificationInstructions(
+              instructions: domainVerifier.getVerificationInstructions(
                 domain.domain_name,
                 domain.verification_token
               )
@@ -189,7 +198,7 @@ export async function POST(
           verification_details: {
             record_name: `_domails-verify.${domain.domain_name}`,
             expected_token: domain.verification_token,
-            instructions: domainVerifier.verify.getVerificationInstructions(
+            instructions: domainVerifier.getVerificationInstructions(
               domain.domain_name,
               domain.verification_token
             )

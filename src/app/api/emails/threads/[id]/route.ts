@@ -146,25 +146,8 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    // Extract auth token from Authorization header
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Bearer token required' },
-        { status: 401 }
-      )
-    }
-
-    const token = authHeader.substring(7)
-    
-    // Verify the token and get user
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Invalid token' },
-        { status: 401 }
-      )
-    }
+    // Create authenticated client (respects RLS)
+    const { supabase, user } = await createAuthenticatedClient(request)
 
     const threadId = params.id
 

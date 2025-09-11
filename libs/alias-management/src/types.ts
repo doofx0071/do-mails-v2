@@ -57,15 +57,15 @@ export const UpdateAliasRequestSchema = z.object({
 
 // Alias generation schemas
 export const AliasGenerationOptionsSchema = z.object({
-  length: z.number().int().min(3).max(32).default(8),
-  includeNumbers: z.boolean().default(true),
-  includeSpecialChars: z.boolean().default(false),
-  prefix: z.string().max(16).default(''),
-  suffix: z.string().max(16).default(''),
-  excludeWords: z.array(z.string()).default([]),
-  pattern: z.enum(['random', 'readable', 'uuid', 'timestamp']).default('random'),
-  count: z.number().int().min(1).max(100).default(1)
-})
+  length: z.number().int().min(3).max(32).optional(),
+  includeNumbers: z.boolean().optional(),
+  includeSpecialChars: z.boolean().optional(),
+  prefix: z.string().max(16).optional(),
+  suffix: z.string().max(16).optional(),
+  excludeWords: z.array(z.string()).optional(),
+  pattern: z.enum(['random', 'readable', 'uuid', 'timestamp']).optional(),
+  count: z.number().int().min(1).max(100).optional()
+}).default({})
 
 // Alias validation schemas
 export const AliasValidationResultSchema = z.object({
@@ -101,22 +101,16 @@ export const AliasStatsSchema = z.object({
 
 // Configuration schemas
 export const AliasManagementConfigSchema = z.object({
-  maxAliasesPerDomain: z.number().int().min(1).default(1000),
-  maxAliasLength: z.number().int().min(1).max(64).default(64),
-  minAliasLength: z.number().int().min(1).max(64).default(1),
-  allowedCharacters: z.string().default('abcdefghijklmnopqrstuvwxyz0123456789._-'),
-  reservedAliases: z.array(z.string()).default([
-    'admin', 'administrator', 'root', 'postmaster', 'webmaster',
-    'hostmaster', 'abuse', 'security', 'noreply', 'no-reply',
-    'support', 'help', 'info', 'contact', 'sales', 'billing'
-  ]),
-  blockedPatterns: z.array(z.string()).default([
-    'test', 'temp', 'temporary', 'delete', 'remove', 'spam'
-  ]),
-  enableProfanityFilter: z.boolean().default(true),
-  enableSimilarityCheck: z.boolean().default(true),
-  similarityThreshold: z.number().min(0).max(1).default(0.8)
-})
+  maxAliasesPerDomain: z.number().int().min(1).optional(),
+  maxAliasLength: z.number().int().min(1).max(64).optional(),
+  minAliasLength: z.number().int().min(1).max(64).optional(),
+  allowedCharacters: z.string().optional(),
+  reservedAliases: z.array(z.string()).optional(),
+  blockedPatterns: z.array(z.string()).optional(),
+  enableProfanityFilter: z.boolean().optional(),
+  enableSimilarityCheck: z.boolean().optional(),
+  similarityThreshold: z.number().min(0).max(1).optional()
+}).default({})
 
 // Type exports
 export type AliasName = z.infer<typeof AliasNameSchema>

@@ -7,7 +7,7 @@ export * from './processor'
 import { MailgunService } from './mailgun'
 import { EmailThreadingService } from './threading'
 import { EmailProcessor } from './processor'
-import { EmailProcessingConfig } from './types'
+import { EmailProcessingConfig, MailgunConfig, ThreadingOptions } from './types'
 
 /**
  * Main EmailProcessing class that combines all functionality
@@ -16,14 +16,37 @@ export class EmailProcessing {
   private mailgunService: MailgunService
   private threadingService: EmailThreadingService
   private processor: EmailProcessor
+  private config: EmailProcessingConfig & {
+    mailgun: MailgunConfig
+    threading: ThreadingOptions
+    maxAttachmentSize: number
+    allowedAttachmentTypes: string[]
+  }
 
   constructor(config: EmailProcessingConfig) {
-    this.mailgunService = new MailgunService(config.mailgun)
-    this.threadingService = new EmailThreadingService(config.threading)
+    this.config = {
+      mailgun: config.mailgun,
+      threading: config.threading ?? {
+        subjectNormalization: true,
+        referencesTracking: true,
+        participantGrouping: true,
+        timeWindowHours: 24
+      },
+      maxAttachmentSize: config.maxAttachmentSize ?? 25 * 1024 * 1024,
+      allowedAttachmentTypes: config.allowedAttachmentTypes ?? [
+        'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+        'application/pdf', 'text/plain', 'text/csv',
+        'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      ]
+    }
+
+    this.mailgunService = new MailgunService(this.config.mailgun)
+    this.threadingService = new EmailThreadingService(this.config.threading)
     this.processor = new EmailProcessor(
       this.mailgunService,
       this.threadingService,
-      config
+      this.config
     )
   }
 
