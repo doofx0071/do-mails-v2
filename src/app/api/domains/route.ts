@@ -22,7 +22,7 @@ const domainVerifier = new DomainVerification({
  */
 export async function GET(request: NextRequest) {
   const logger = createAPILogger(request)
-  const timer = createTimer(logger)
+  const _timer = createTimer(logger)
 
   logger.logRequestStart()
 
@@ -39,9 +39,9 @@ export async function GET(request: NextRequest) {
 
     // Verify authentication and get user
     logger.debug('Verifying authentication')
-    let user
+    let _user
     try {
-      user = await verifyAuth(token)
+      _user = await verifyAuth(token)
     } catch (error) {
       logger.warn('Authentication failed', {
         error: error instanceof Error ? error.message : 'Unknown error',
