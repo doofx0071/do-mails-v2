@@ -38,15 +38,32 @@ const emailProcessor = new EmailProcessing({
 })
 
 /**
+ * GET /api/webhooks/mailgun
+ * Test endpoint to verify webhook is reachable
+ */
+export async function GET() {
+  return NextResponse.json({
+    status: 'ok',
+    message: 'Mailgun webhook endpoint is active',
+    timestamp: new Date().toISOString(),
+  })
+}
+
+/**
  * POST /api/webhooks/mailgun
  * Handle inbound email webhooks from Mailgun
  */
 export async function POST(request: NextRequest) {
+  console.log('🚀 WEBHOOK ATTEMPT STARTED')
+  console.log('⏰ Timestamp:', new Date().toISOString())
+
   try {
     console.log('=== MAILGUN WEBHOOK RECEIVED ===')
     console.log('URL:', request.url)
     console.log('Method:', request.method)
     console.log('Headers:', Object.fromEntries(request.headers.entries()))
+    console.log('User-Agent:', request.headers.get('user-agent'))
+    console.log('Content-Type:', request.headers.get('content-type'))
 
     // Verify webhook signature first
     const signature = request.headers.get('x-mailgun-signature-256')
@@ -428,9 +445,14 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     )
   } catch (error) {
-    console.error('Unexpected error processing webhook:', error)
+    console.error('💥 WEBHOOK ERROR:', error)
+    console.error('💥 Error details:', {
+      message: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString(),
+    })
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error.message },
       { status: 500 }
     )
   }
