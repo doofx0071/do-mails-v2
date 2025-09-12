@@ -76,10 +76,11 @@ export async function POST(request: NextRequest) {
         })
 
         // Map event-data structure to webhook format
-        // Use envelope.targets or message.headers.to for recipient
+        // Prioritize actual email recipient over webhook routing recipient
         const recipient =
-          eventData.envelope?.targets ||
           message.headers?.to ||
+          message.recipients?.[0] ||
+          eventData.envelope?.targets ||
           eventData.recipient
 
         webhookData = {
