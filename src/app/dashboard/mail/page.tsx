@@ -47,75 +47,33 @@ export default function MailPage() {
         console.log('🔍 Raw threads sample:', data.threads?.slice(0, 2))
 
         // Transform API data to match EmailThread interface
-        const transformedThreads: EmailThread[] = await Promise.all(
-          (data.threads || []).map(async (thread: any) => {
-            // Fetch thread messages to get full details
-            let messages: EmailMessage[] = []
-            try {
-              const threadResponse = await fetch(
-                `/api/emails/threads/${thread.id}`,
-                {
-                  headers: {
-                    Authorization: `Bearer ${token}`,
-                  },
-                }
-              )
-              if (threadResponse.ok) {
-                const threadData = await threadResponse.json()
-                console.log(`🔍 Thread ${thread.id} data:`, threadData)
-                messages = (threadData.messages || []).map((msg: any) => ({
-                  id: msg.id,
-                  threadId: thread.id,
-                  fromAddress: msg.from_address,
-                  toAddresses: msg.to_addresses || [],
-                  subject: msg.subject,
-                  bodyPlain: msg.body_text,
-                  bodyHtml: msg.body_html,
-                  receivedAt: msg.received_at,
-                  createdAt: msg.created_at,
-                  isRead: true, // TODO: Add read status
-                }))
-              }
-              } else {
-                console.error(`❌ Failed to fetch thread ${thread.id}:`, threadResponse.status)
-              }
-            } catch (error) {
-              console.error('Error fetching thread messages:', error)
-            }
+        // Use participants directly from threads API - no need to fetch individual threads for list view
+        const transformedThreads: EmailThread[] = (data.threads || []).map(
+          (thread: any) => {
+            // Use participants directly from the threads API response
+            const participants = thread.participants || []
 
             // Determine labels
             const labels = []
             if (thread.is_archived) labels.push('archived')
 
-            // Check if thread contains sent messages
-            const hasSentMessages = messages.some(
-              (msg) => msg.fromAddress.includes('@do-mails.space') // Adjust based on your domain
-            )
-            if (hasSentMessages) labels.push('sent')
+            // For list view, we don't need full message content
+            // Messages will be loaded when user clicks on a thread
+            const messages: EmailMessage[] = []
 
-            // Extract participants - use thread.participants if available, otherwise from messages
-            let participants = thread.participants || []
-            if (participants.length === 0 && messages.length > 0) {
-              participants = Array.from(
-                new Set([
-                  ...messages.map((msg) => msg.fromAddress),
-                  ...messages.flatMap((msg) => msg.toAddresses),
-                ])
-              ).filter((email) => email && email.trim() !== '')
-            }
-            console.log(`🔍 Thread ${thread.id} participants:`, participants)
+            console.log(`✅ Thread ${thread.id} participants:`, participants)
 
             return {
               id: thread.id,
               subject: thread.subject || 'No Subject',
               participants,
               lastMessageAt: thread.last_message_at || new Date().toISOString(),
-              messageCount: thread.message_count || messages.length,
+              messageCount: thread.message_count || 0,
               isRead: true, // TODO: Implement read status
               labels,
-              messages,
+              messages, // Empty for list view, will be loaded on demand
             }
-          })
+          }
         )
 
         console.log(
