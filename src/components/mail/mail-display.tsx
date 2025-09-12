@@ -10,7 +10,9 @@ import {
   Reply,
   ReplyAll,
   Trash2,
+  Loader2,
 } from 'lucide-react'
+import { useState, useEffect } from 'react'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -29,13 +31,73 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { EmailThread } from './mail'
+import { EmailThread, EmailMessage } from './mail'
 
 interface MailDisplayProps {
   thread: EmailThread | null
 }
 
+interface ThreadMessage {
+  id: string
+  thread_id: string
+  from_address: string
+  to_addresses: string[]
+  subject: string
+  body_text?: string
+  body_html?: string
+  received_at: string
+  created_at: string
+  is_read: boolean
+  is_sent: boolean
+}
+
 export function MailDisplay({ thread }: MailDisplayProps) {
+  const [messages, setMessages] = useState<ThreadMessage[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // Load messages when thread changes
+  useEffect(() => {
+    if (!thread) {
+      setMessages([])
+      return
+    }
+
+    const loadMessages = async () => {
+      setLoading(true)
+      setError(null)
+
+      try {
+        const token = localStorage.getItem('auth_token')
+        if (!token) {
+          throw new Error('No auth token')
+        }
+
+        const response = await fetch(`/api/emails/threads/${thread.id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        })
+
+        if (!response.ok) {
+          throw new Error(`Failed to load messages: ${response.status}`)
+        }
+
+        const data = await response.json()
+        console.log('🔍 Loaded thread messages:', data.messages?.length || 0)
+        setMessages(data.messages || [])
+      } catch (err) {
+        console.error('Error loading thread messages:', err)
+        setError(err instanceof Error ? err.message : 'Failed to load messages')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadMessages()
+  }, [thread?.id])
+
   const today = new Date()
 
   if (!thread) {
@@ -163,12 +225,67 @@ export function MailDisplay({ thread }: MailDisplayProps) {
             )}
           </div>
           <Separator />
-          <div className="flex-1 whitespace-pre-wrap p-4 text-sm">
-            {thread.messages[0]?.body_text ||
-              thread.messages[0]?.body_html ||
-              thread.messages[0]?.bodyPlain ||
-              thread.messages[0]?.bodyHtml ||
-              `This thread contains ${thread.messageCount} message${thread.messageCount !== 1 ? 's' : ''}. Click on a thread to load and view the full conversation.`}
+          <div className="flex-1 overflow-auto">
+            {loading ? (
+              <div className="flex items-center justify-center p-8">
+                <Loader2 className="mr-2 h-6 w-6 animate-spin" />
+                <span>Loading messages...</span>
+              </div>
+            ) : error ? (
+              <div className="p-4 text-red-600">
+                <p>Error loading messages: {error}</p>
+              </div>
+            ) : messages.length > 0 ? (
+              <div className="space-y-4 p-4">
+                {messages.map((message, index) => (
+                  <div
+                    key={message.id}
+                    className="border-b pb-4 last:border-b-0"
+                  >
+                    <div className="mb-2 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-6 w-6">
+                          <AvatarFallback className="text-xs">
+                            {message.is_sent
+                              ? 'You'
+                              : message.from_address.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm font-medium">
+                          {message.is_sent ? 'You' : message.from_address}
+                        </span>
+                        {message.to_addresses.length > 0 && (
+                          <span className="text-xs text-muted-foreground">
+                            to {message.to_addresses.join(', ')}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        {format(
+                          new Date(message.received_at),
+                          'MMM d, yyyy h:mm a'
+                        )}
+                      </span>
+                    </div>
+                    <div className="whitespace-pre-wrap text-sm">
+                      {message.body_html ? (
+                        <div
+                          dangerouslySetInnerHTML={{
+                            __html: message.body_html,
+                          }}
+                        />
+                      ) : (
+                        message.body_text || 'No content'
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-4 text-muted-foreground">
+                No messages found in this thread.
+              </div>
+            )}
           </div>
           <Separator className="mt-auto" />
           <div className="p-4">
