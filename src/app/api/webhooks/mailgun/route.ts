@@ -68,9 +68,22 @@ export async function POST(request: NextRequest) {
         const eventData = jsonData['event-data']
         const message = eventData.message || {}
 
-        // Map event-data structure to webhook format
-        webhookData = {
+        console.log('🔍 Event data structure:', {
           recipient: eventData.recipient,
+          envelope: eventData.envelope,
+          messageHeaders: message.headers,
+          messageKeys: Object.keys(message),
+        })
+
+        // Map event-data structure to webhook format
+        // Use envelope.targets or message.headers.to for recipient
+        const recipient =
+          eventData.envelope?.targets ||
+          message.headers?.to ||
+          eventData.recipient
+
+        webhookData = {
+          recipient: recipient,
           from: message.headers?.from || eventData.envelope?.sender,
           subject: message.headers?.subject,
           'body-plain': message['body-plain'] || '',
@@ -85,7 +98,10 @@ export async function POST(request: NextRequest) {
           Cc: message.headers?.cc,
           Bcc: message.headers?.bcc,
         }
-        console.log('📦 Mapped event-data to webhook format')
+        console.log(
+          '📦 Mapped event-data to webhook format with recipient:',
+          recipient
+        )
       } else {
         // Direct webhook format
         webhookData = jsonData
