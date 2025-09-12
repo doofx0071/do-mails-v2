@@ -297,6 +297,43 @@ export async function POST(request: NextRequest) {
     }
 
     if (existingMessage) {
+      // Check if existing message has no content but current message has content
+      const { data: existingMessageData } = await supabase
+        .from('email_messages')
+        .select('body_text, body_html')
+        .eq('id', existingMessage.id)
+        .single()
+
+      const existingHasContent =
+        existingMessageData &&
+        (existingMessageData.body_text || existingMessageData.body_html)
+      const currentHasContent = emailMessage.bodyText || emailMessage.bodyHtml
+
+      if (!existingHasContent && currentHasContent) {
+        console.log(
+          '🔄 Updating existing message with body content:',
+          emailMessage.messageId
+        )
+
+        // Update the existing message with body content
+        await supabase
+          .from('email_messages')
+          .update({
+            body_text: emailMessage.bodyText,
+            body_html: emailMessage.bodyHtml,
+          })
+          .eq('id', existingMessage.id)
+
+        return NextResponse.json(
+          {
+            success: true,
+            message: 'Message updated with body content',
+            updated: true,
+          },
+          { status: 200 }
+        )
+      }
+
       console.log(
         'Message already exists (duplicate prevented):',
         emailMessage.messageId
