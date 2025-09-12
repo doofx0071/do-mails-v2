@@ -3,19 +3,25 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { 
-  Loader2, 
-  Mail, 
-  Archive, 
-  ArchiveRestore, 
-  Reply, 
+import {
+  Loader2,
+  Mail,
+  Archive,
+  ArchiveRestore,
+  Reply,
   MoreHorizontal,
   User,
   Calendar,
-  Paperclip
+  Paperclip,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -72,14 +78,22 @@ interface ThreadViewProps {
 }
 
 export function ThreadView({ threadId }: ThreadViewProps) {
-  const [expandedMessages, setExpandedMessages] = useState<Set<string>>(new Set())
+  const [expandedMessages, setExpandedMessages] = useState<Set<string>>(
+    new Set()
+  )
   const [showReplyDialog, setShowReplyDialog] = useState(false)
-  const [replyToMessage, setReplyToMessage] = useState<EmailMessage | null>(null)
+  const [replyToMessage, setReplyToMessage] = useState<EmailMessage | null>(
+    null
+  )
   const { toast } = useToast()
   const queryClient = useQueryClient()
 
   // Fetch thread with messages
-  const { data: thread, isLoading, error } = useQuery<EmailThread>({
+  const {
+    data: thread,
+    isLoading,
+    error,
+  } = useQuery<EmailThread>({
     queryKey: ['email-thread', threadId],
     queryFn: async () => {
       const token = localStorage.getItem('auth_token')
@@ -87,9 +101,9 @@ export function ThreadView({ threadId }: ThreadViewProps) {
 
       const response = await fetch(`/api/emails/threads/${threadId}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
       })
 
       if (!response.ok) {
@@ -99,7 +113,7 @@ export function ThreadView({ threadId }: ThreadViewProps) {
 
       return response.json()
     },
-    enabled: !!threadId
+    enabled: !!threadId,
   })
 
   // Archive/unarchive thread mutation
@@ -111,12 +125,12 @@ export function ThreadView({ threadId }: ThreadViewProps) {
       const response = await fetch(`/api/emails/threads/${threadId}`, {
         method: 'PATCH',
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          is_archived: isArchived
-        })
+          is_archived: isArchived,
+        }),
       })
 
       if (!response.ok) {
@@ -138,26 +152,32 @@ export function ThreadView({ threadId }: ThreadViewProps) {
       toast({
         title: 'Update Failed',
         description: error.message,
-        variant: 'destructive'
+        variant: 'destructive',
       })
-    }
+    },
   })
 
   // Mark message as read mutation
   const markReadMutation = useMutation({
-    mutationFn: async ({ messageId, isRead }: { messageId: string, isRead: boolean }) => {
+    mutationFn: async ({
+      messageId,
+      isRead,
+    }: {
+      messageId: string
+      isRead: boolean
+    }) => {
       const token = localStorage.getItem('auth_token')
       if (!token) throw new Error('No auth token')
 
       const response = await fetch(`/api/emails/messages/${messageId}/read`, {
         method: 'PATCH',
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          is_read: isRead
-        })
+          is_read: isRead,
+        }),
       })
 
       if (!response.ok) {
@@ -169,7 +189,7 @@ export function ThreadView({ threadId }: ThreadViewProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['email-thread', threadId] })
-    }
+    },
   })
 
   const toggleMessageExpanded = (messageId: string) => {
@@ -179,7 +199,7 @@ export function ThreadView({ threadId }: ThreadViewProps) {
     } else {
       newExpanded.add(messageId)
       // Mark as read when expanded
-      const message = thread?.messages.find(m => m.id === messageId)
+      const message = thread?.messages.find((m) => m.id === messageId)
       if (message && !message.is_read && !message.is_sent) {
         markReadMutation.mutate({ messageId, isRead: true })
       }
@@ -199,7 +219,8 @@ export function ThreadView({ threadId }: ThreadViewProps) {
   }
 
   const getMessagePreview = (message: EmailMessage) => {
-    const text = message.body_text || message.body_html?.replace(/<[^>]*>/g, '') || ''
+    const text =
+      message.body_text || message.body_html?.replace(/<[^>]*>/g, '') || ''
     return text.substring(0, 100) + (text.length > 100 ? '...' : '')
   }
 
@@ -230,8 +251,8 @@ export function ThreadView({ threadId }: ThreadViewProps) {
       <Card>
         <CardContent className="p-6">
           <div className="text-center">
-            <Mail className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Select a thread</h3>
+            <Mail className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+            <h3 className="mb-2 text-lg font-semibold">Select a thread</h3>
             <p className="text-muted-foreground">
               Choose a conversation from the list to view its messages
             </p>
@@ -248,19 +269,23 @@ export function ThreadView({ threadId }: ThreadViewProps) {
         <CardHeader>
           <div className="flex items-start justify-between">
             <div>
-              <CardTitle className="text-xl">{thread.subject || '(No Subject)'}</CardTitle>
+              <CardTitle className="text-xl">
+                {thread.subject || '(No Subject)'}
+              </CardTitle>
               <CardDescription className="mt-2">
                 <div className="flex items-center gap-4">
                   <span>via {thread.alias.full_address}</span>
                   <span>{thread.message_count} messages</span>
-                  <span>Last activity {formatDate(thread.last_message_at)}</span>
+                  <span>
+                    Last activity {formatDate(thread.last_message_at)}
+                  </span>
                 </div>
               </CardDescription>
             </div>
             <div className="flex items-center gap-2">
               {thread.is_archived && (
                 <Badge variant="secondary">
-                  <Archive className="h-3 w-3 mr-1" />
+                  <Archive className="mr-1 h-3 w-3" />
                   Archived
                 </Badge>
               )}
@@ -274,12 +299,12 @@ export function ThreadView({ threadId }: ThreadViewProps) {
                   <DropdownMenuItem onClick={handleArchiveToggle}>
                     {thread.is_archived ? (
                       <>
-                        <ArchiveRestore className="h-4 w-4 mr-2" />
+                        <ArchiveRestore className="mr-2 h-4 w-4" />
                         Unarchive
                       </>
                     ) : (
                       <>
-                        <Archive className="h-4 w-4 mr-2" />
+                        <Archive className="mr-2 h-4 w-4" />
                         Archive
                       </>
                     )}
@@ -296,16 +321,19 @@ export function ThreadView({ threadId }: ThreadViewProps) {
         {thread.messages.map((message, index) => {
           const isExpanded = expandedMessages.has(message.id)
           const isLastMessage = index === thread.messages.length - 1
-          
+
           return (
-            <Card key={message.id} className={`${!message.is_read && !message.is_sent ? 'ring-2 ring-blue-200' : ''}`}>
-              <CardHeader 
+            <Card
+              key={message.id}
+              className={`${!message.is_read && !message.is_sent ? 'ring-2 ring-blue-200' : ''}`}
+            >
+              <CardHeader
                 className="cursor-pointer hover:bg-muted/50"
                 onClick={() => toggleMessageExpanded(message.id)}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
                       <User className="h-4 w-4" />
                     </div>
                     <div>
@@ -314,10 +342,14 @@ export function ThreadView({ threadId }: ThreadViewProps) {
                           {message.is_sent ? 'You' : message.from_address}
                         </span>
                         {!message.is_read && !message.is_sent && (
-                          <Badge variant="secondary" className="text-xs">Unread</Badge>
+                          <Badge variant="secondary" className="text-xs">
+                            Unread
+                          </Badge>
                         )}
                         {message.is_sent && (
-                          <Badge variant="outline" className="text-xs">Sent</Badge>
+                          <Badge variant="outline" className="text-xs">
+                            Sent
+                          </Badge>
                         )}
                       </div>
                       <div className="text-sm text-muted-foreground">
@@ -339,39 +371,55 @@ export function ThreadView({ threadId }: ThreadViewProps) {
                   </div>
                 )}
               </CardHeader>
-              
+
               {isExpanded && (
                 <CardContent>
                   <Separator className="mb-4" />
-                  
+
                   {message.attachments.length > 0 && (
                     <div className="mb-4">
-                      <div className="flex items-center gap-2 text-sm font-medium mb-2">
+                      <div className="mb-2 flex items-center gap-2 text-sm font-medium">
                         <Paperclip className="h-4 w-4" />
-                        {message.attachments.length} attachment{message.attachments.length !== 1 ? 's' : ''}
+                        {message.attachments.length} attachment
+                        {message.attachments.length !== 1 ? 's' : ''}
                       </div>
                       <div className="space-y-1">
                         {message.attachments.map((attachment, idx) => (
-                          <div key={idx} className="text-sm text-muted-foreground">
+                          <div
+                            key={idx}
+                            className="text-sm text-muted-foreground"
+                          >
                             {attachment.filename} ({attachment.size})
                           </div>
                         ))}
                       </div>
                     </div>
                   )}
-                  
+
                   <div className="prose prose-sm max-w-none">
                     {message.body_html ? (
-                      <div dangerouslySetInnerHTML={{ __html: message.body_html }} />
-                    ) : (
-                      <pre className="whitespace-pre-wrap font-sans">
+                      <div
+                        className="email-content prose prose-sm prose-headings:text-foreground prose-p:text-foreground prose-a:text-blue-600 prose-strong:text-foreground prose-em:text-foreground prose-code:text-foreground prose-pre:bg-muted prose-pre:text-foreground prose-blockquote:text-muted-foreground prose-th:text-foreground prose-td:text-foreground prose-img:rounded-md max-w-none"
+                        dangerouslySetInnerHTML={{ __html: message.body_html }}
+                        style={{
+                          wordWrap: 'break-word',
+                          overflowWrap: 'break-word',
+                          maxWidth: '100%',
+                        }}
+                      />
+                    ) : message.body_text ? (
+                      <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed">
                         {message.body_text}
                       </pre>
+                    ) : (
+                      <div className="text-sm italic text-muted-foreground">
+                        No content available
+                      </div>
                     )}
                   </div>
-                  
+
                   {isLastMessage && (
-                    <div className="mt-4 pt-4 border-t">
+                    <div className="mt-4 border-t pt-4">
                       <Button
                         size="sm"
                         onClick={() => {
@@ -379,7 +427,7 @@ export function ThreadView({ threadId }: ThreadViewProps) {
                           setShowReplyDialog(true)
                         }}
                       >
-                        <Reply className="h-4 w-4 mr-2" />
+                        <Reply className="mr-2 h-4 w-4" />
                         Reply
                       </Button>
                     </div>
@@ -397,18 +445,24 @@ export function ThreadView({ threadId }: ThreadViewProps) {
         onOpenChange={setShowReplyDialog}
         domains={[]} // We'll get this from the thread's alias domain
         replyToMessage={replyToMessage || undefined}
-        replyToAlias={thread?.alias ? {
-          id: thread.alias.id,
-          domain_id: '', // Not needed for reply
-          alias_name: thread.alias.alias_name,
-          full_address: thread.alias.full_address,
-          is_enabled: true
-        } : undefined}
+        replyToAlias={
+          thread?.alias
+            ? {
+                id: thread.alias.id,
+                domain_id: '', // Not needed for reply
+                alias_name: thread.alias.alias_name,
+                full_address: thread.alias.full_address,
+                is_enabled: true,
+              }
+            : undefined
+        }
         onSuccess={() => {
           setShowReplyDialog(false)
           setReplyToMessage(null)
           // Refresh thread to show new message
-          queryClient.invalidateQueries({ queryKey: ['email-thread', threadId] })
+          queryClient.invalidateQueries({
+            queryKey: ['email-thread', threadId],
+          })
         }}
       />
     </div>

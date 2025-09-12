@@ -1,14 +1,39 @@
-/* Email content styling */
+/* Email content styling with strict isolation */
 .email-content {
   /* Reset email styles */
   font-family: inherit !important;
   line-height: 1.6 !important;
   color: inherit !important;
+  /* Strict containment to prevent style leakage */
+  contain: layout style !important;
+  isolation: isolate !important;
+  position: relative !important;
 }
 
 .email-content * {
   max-width: 100% !important;
   box-sizing: border-box !important;
+  /* Prevent any styles from affecting parent elements */
+  position: static !important;
+}
+
+/* Aggressive style resets for email content */
+.email-content *:not(img):not(svg):not(video) {
+  background-color: transparent !important;
+  border: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Re-apply necessary spacing */
+.email-content p {
+  margin: 12px 0 !important;
+  padding: 0 !important;
+}
+
+.email-content div {
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 .email-content img {
@@ -86,7 +111,9 @@
   padding: 12px !important;
   border-radius: 6px !important;
   overflow-x: auto !important;
-  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace !important;
+  font-family:
+    ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo,
+    monospace !important;
   font-size: 0.875rem !important;
 }
 
@@ -94,7 +121,9 @@
   background-color: hsl(var(--muted)) !important;
   padding: 2px 4px !important;
   border-radius: 4px !important;
-  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace !important;
+  font-family:
+    ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo,
+    monospace !important;
   font-size: 0.875rem !important;
 }
 
@@ -109,11 +138,11 @@
 }
 
 /* Fix for Figma and other email templates */
-.email-content [style*="font-family"] {
+.email-content [style*='font-family'] {
   font-family: inherit !important;
 }
 
-.email-content [style*="color"] {
+.email-content [style*='color'] {
   color: inherit !important;
 }
 
@@ -122,7 +151,7 @@
   .email-content table {
     font-size: 0.875rem !important;
   }
-  
+
   .email-content td,
   .email-content th {
     padding: 6px 8px !important;

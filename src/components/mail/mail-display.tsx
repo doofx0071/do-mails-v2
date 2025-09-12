@@ -295,9 +295,13 @@ export function MailDisplay({ thread }: MailDisplayProps) {
                         maxWidth: '100%',
                       }}
                     />
+                  ) : message.body_text ? (
+                    <div className="whitespace-pre-wrap leading-relaxed">
+                      {message.body_text}
+                    </div>
                   ) : (
-                    <div className="whitespace-pre-wrap">
-                      {message.body_text || 'No content'}
+                    <div className="italic text-muted-foreground">
+                      No content available
                     </div>
                   )}
                 </div>
