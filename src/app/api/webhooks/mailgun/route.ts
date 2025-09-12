@@ -457,18 +457,3 @@ export async function POST(request: NextRequest) {
     )
   }
 }
-
-/**
- * GET /api/webhooks/mailgun
- * Health check endpoint for webhook
- */
-export async function GET() {
-  return NextResponse.json(
-    {
-      status: 'ok',
-      message: 'Mailgun webhook endpoint is active',
-      timestamp: new Date().toISOString(),
-    },
-    { status: 200 }
-  )
-}
