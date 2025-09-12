@@ -272,11 +272,20 @@ export async function POST(request: NextRequest) {
       `✅ Catch-all: Accepting email for ${recipientEmail} on verified domain ${domainName}`
     )
 
+    // Normalize message ID to prevent duplicates (remove/add angle brackets consistently)
+    const normalizedMessageId =
+      emailMessage.messageId.startsWith('<') &&
+      emailMessage.messageId.endsWith('>')
+        ? emailMessage.messageId
+        : `<${emailMessage.messageId}>`
+
     // Check if message already exists (prevent duplicates)
     const { data: existingMessage, error: checkError } = await supabase
       .from('email_messages')
       .select('id')
-      .eq('message_id', emailMessage.messageId)
+      .or(
+        `message_id.eq.${emailMessage.messageId},message_id.eq.${normalizedMessageId}`
+      )
       .single()
 
     if (checkError && checkError.code !== 'PGRST116') {
@@ -288,7 +297,10 @@ export async function POST(request: NextRequest) {
     }
 
     if (existingMessage) {
-      console.log('Message already exists:', emailMessage.messageId)
+      console.log(
+        'Message already exists (duplicate prevented):',
+        emailMessage.messageId
+      )
       return NextResponse.json(
         {
           success: true,
@@ -385,7 +397,7 @@ export async function POST(request: NextRequest) {
         thread_id: threadId,
         domain_id: domain.id,
         recipient_address: recipientEmail.toLowerCase(),
-        message_id: emailMessage.messageId,
+        message_id: normalizedMessageId,
         in_reply_to: emailMessage.inReplyTo,
         references: emailMessage.references,
         from_address: emailMessage.from,
