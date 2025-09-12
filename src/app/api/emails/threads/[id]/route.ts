@@ -34,13 +34,13 @@ export async function GET(
         email_aliases(
           id,
           alias_name,
-          domains!inner(
+          domains(
             id,
             domain_name,
             user_id
           )
         ),
-        domains!inner(
+        domains(
           id,
           domain_name,
           user_id
@@ -48,9 +48,6 @@ export async function GET(
       `
       )
       .eq('id', threadId)
-      .or(
-        `email_aliases.domains.user_id.eq.${user.id},domains.user_id.eq.${user.id}`
-      )
       .single()
 
     if (threadError) {
@@ -73,22 +70,41 @@ export async function GET(
     }
 
     // Verify ownership (either through alias or direct domain ownership)
-    const hasAccess =
-      (thread.email_aliases &&
-        thread.email_aliases.domains.user_id === user.id) ||
-      (thread.domains && thread.domains.user_id === user.id)
+    let hasAccess = false
+
+    // Check if user owns the domain directly (catch-all case)
+    if (thread.domains && thread.domains.user_id === user.id) {
+      hasAccess = true
+      console.log(`✅ User ${user.id} has domain access to thread ${threadId}`)
+    }
+
+    // Check if user owns through alias (specific alias case)
+    if (
+      thread.email_aliases &&
+      thread.email_aliases.domains &&
+      thread.email_aliases.domains.user_id === user.id
+    ) {
+      hasAccess = true
+      console.log(`✅ User ${user.id} has alias access to thread ${threadId}`)
+    }
 
     if (!hasAccess) {
       console.error(
-        `User ${user.id} does not have access to thread ${threadId}`
+        `User ${user.id} does not have access to thread ${threadId}. Thread data:`,
+        JSON.stringify(
+          {
+            domains: thread.domains,
+            email_aliases: thread.email_aliases,
+          },
+          null,
+          2
+        )
       )
       return NextResponse.json(
         { error: 'Thread not found or access denied' },
         { status: 404 }
       )
     }
-
-    console.log(`✅ User ${user.id} has access to thread ${threadId}`)
 
     // Get messages for this thread
     const { data: messages, error: messagesError } = await supabase
