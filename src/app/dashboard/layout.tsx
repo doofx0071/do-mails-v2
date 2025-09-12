@@ -36,6 +36,12 @@ const navigation = [
     description: 'Overview and quick actions',
   },
   {
+    name: 'Mail',
+    href: '/dashboard/mail',
+    icon: Mail,
+    description: 'Beautiful mail interface with resizable panels',
+  },
+  {
     name: 'Emails',
     href: '/dashboard/emails',
     icon: Inbox,
