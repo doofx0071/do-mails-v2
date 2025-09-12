@@ -6,11 +6,18 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, Mail, AlertCircle, CheckCircle } from 'lucide-react'
 import { AuthService } from '@/lib/supabase/auth'
 import { useToast } from '@/components/ui/use-toast'
+import { Logo } from '@/components/ui/logo'
 
 export default function SignUpPage() {
   const [email, setEmail] = useState('')
@@ -47,10 +54,10 @@ export default function SignUpPage() {
       }
 
       // Sign up
-      const { user } = await AuthService.signUp({ 
-        email, 
-        password, 
-        confirmPassword 
+      const { user } = await AuthService.signUp({
+        email,
+        password,
+        confirmPassword,
       })
 
       if (user) {
@@ -60,7 +67,6 @@ export default function SignUpPage() {
           description: 'Please check your email to verify your account.',
         })
       }
-      
     } catch (error: any) {
       console.error('Sign up error:', error)
       setError(error.message || 'An error occurred during sign up')
@@ -71,7 +77,7 @@ export default function SignUpPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
         <div className="w-full max-w-md space-y-6">
           <div className="text-center">
             <Link href="/" className="inline-flex items-center space-x-2">
@@ -94,12 +100,12 @@ export default function SignUpPage() {
               <Alert>
                 <Mail className="h-4 w-4" />
                 <AlertDescription>
-                  We've sent a verification email to <strong>{email}</strong>. 
+                  We've sent a verification email to <strong>{email}</strong>.
                   Please click the link in the email to verify your account.
                 </AlertDescription>
               </Alert>
 
-              <div className="text-center space-y-2">
+              <div className="space-y-2 text-center">
                 <p className="text-sm text-muted-foreground">
                   Didn't receive the email? Check your spam folder.
                 </p>
@@ -118,17 +124,14 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-md space-y-6">
         {/* Logo */}
         <div className="text-center">
           <Link href="/" className="inline-flex items-center space-x-2">
-            <Mail className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-bold">do-Mails</span>
+            <Logo withText={true} width={150} height={45} />
           </Link>
-          <p className="mt-2 text-muted-foreground">
-            Create your account
-          </p>
+          <p className="mt-2 text-muted-foreground">Create your account</p>
         </div>
 
         {/* Sign Up Form */}
@@ -173,7 +176,8 @@ export default function SignUpPage() {
                   required
                 />
                 <p className="text-xs text-muted-foreground">
-                  Must be at least 6 characters with uppercase, lowercase, and numbers
+                  Must be at least 6 characters with uppercase, lowercase, and
+                  numbers
                 </p>
               </div>
 
@@ -190,14 +194,10 @@ export default function SignUpPage() {
                 />
               </div>
 
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isLoading}
-              >
+              <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Creating account...
                   </>
                 ) : (

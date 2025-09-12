@@ -6,11 +6,19 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, Mail, AlertCircle } from 'lucide-react'
 import { AuthService } from '@/lib/supabase/auth'
 import { useToast } from '@/components/ui/use-toast'
+import { Logo } from '@/components/ui/logo'
+import { DemoCredentials } from '@/components/auth/demo-credentials'
 
 export default function SignInPage() {
   const [email, setEmail] = useState('')
@@ -54,7 +62,6 @@ export default function SignInPage() {
       })
 
       // The auth provider will handle the redirect automatically
-      
     } catch (error: any) {
       console.error('Sign in error:', error)
       setError(error.message || 'An error occurred during sign in')
@@ -64,18 +71,23 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-md space-y-6">
         {/* Logo */}
         <div className="text-center">
           <Link href="/" className="inline-flex items-center space-x-2">
-            <Mail className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-bold">do-Mails</span>
+            <Logo withText={true} width={150} height={45} />
           </Link>
-          <p className="mt-2 text-muted-foreground">
-            Sign in to your account
-          </p>
+          <p className="mt-2 text-muted-foreground">Sign in to your account</p>
         </div>
+
+        {/* Demo Credentials */}
+        <DemoCredentials
+          onFillCredentials={(email, password) => {
+            setEmail(email)
+            setPassword(password)
+          }}
+        />
 
         {/* Sign In Form */}
         <Card>
@@ -120,14 +132,10 @@ export default function SignInPage() {
                 />
               </div>
 
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isLoading}
-              >
+              <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Signing in...
                   </>
                 ) : (
@@ -163,7 +171,7 @@ export default function SignInPage() {
         <Card className="border-dashed">
           <CardContent className="pt-6">
             <div className="text-center text-sm text-muted-foreground">
-              <p className="font-medium mb-2">Demo Account</p>
+              <p className="mb-2 font-medium">Demo Account</p>
               <p>Email: demo@veenusra.com</p>
               <p>Password: demo123</p>
             </div>

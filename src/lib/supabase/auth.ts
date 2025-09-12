@@ -28,15 +28,35 @@ export class AuthService {
    * Sign in with email and password
    */
   static async signIn({ email, password }: SignInCredentials) {
+    console.log('🔐 Attempting sign in for:', email)
+
     const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
+      email: email.trim().toLowerCase(),
+      password,
     })
 
     if (error) {
+      console.error('❌ Sign in error:', error)
+
+      // Provide more helpful error messages
+      if (error.message.includes('Invalid login credentials')) {
+        throw new SupabaseAuthError(
+          'Invalid email or password. Please check your credentials and try again.'
+        )
+      } else if (error.message.includes('Email not confirmed')) {
+        throw new SupabaseAuthError(
+          'Please check your email and click the confirmation link before signing in.'
+        )
+      } else if (error.message.includes('Too many requests')) {
+        throw new SupabaseAuthError(
+          'Too many login attempts. Please wait a few minutes and try again.'
+        )
+      }
+
       throw new SupabaseAuthError(error.message)
     }
 
+    console.log('✅ Sign in successful for:', data.user?.email)
     return data
   }
 
@@ -56,8 +76,8 @@ export class AuthService {
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`
-      }
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
     })
 
     if (error) {
@@ -72,7 +92,7 @@ export class AuthService {
    */
   static async signOut() {
     const { error } = await supabase.auth.signOut()
-    
+
     if (error) {
       throw new SupabaseAuthError(error.message)
     }
@@ -88,7 +108,7 @@ export class AuthService {
    */
   static async resetPassword({ email }: ResetPasswordCredentials) {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/reset-password`
+      redirectTo: `${window.location.origin}/auth/reset-password`,
     })
 
     if (error) {
@@ -105,7 +125,7 @@ export class AuthService {
     }
 
     const { error } = await supabase.auth.updateUser({
-      password: newPassword
+      password: newPassword,
     })
 
     if (error) {
@@ -117,7 +137,10 @@ export class AuthService {
    * Get current session
    */
   static async getSession() {
-    const { data: { session }, error } = await supabase.auth.getSession()
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession()
 
     if (error) {
       throw new SupabaseAuthError(error.message)
@@ -130,7 +153,10 @@ export class AuthService {
    * Get current user
    */
   static async getUser() {
-    const { data: { user }, error } = await supabase.auth.getUser()
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser()
 
     if (error) {
       throw new SupabaseAuthError(error.message)
@@ -155,7 +181,9 @@ export class AuthService {
   /**
    * Listen to auth state changes
    */
-  static onAuthStateChange(callback: (event: string, session: Session | null) => void) {
+  static onAuthStateChange(
+    callback: (event: string, session: Session | null) => void
+  ) {
     return supabase.auth.onAuthStateChange(callback)
   }
 
@@ -218,7 +246,7 @@ export class AuthService {
 
     return {
       isValid: errors.length === 0,
-      errors
+      errors,
     }
   }
 }
@@ -234,14 +262,14 @@ export class AuthError extends Error {
 // Helper function to get auth headers for API calls
 export async function getAuthHeaders(): Promise<Record<string, string>> {
   const token = await AuthService.getAccessToken()
-  
+
   if (!token) {
     throw new AuthError('No authentication token available')
   }
 
   return {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json'
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json',
   }
 }
 

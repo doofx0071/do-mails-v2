@@ -15,6 +15,8 @@ import {
   User,
   LayoutDashboard,
   Inbox,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -24,6 +26,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Logo } from '@/components/ui/logo'
 
 const navigation = [
   {
@@ -50,12 +53,6 @@ const navigation = [
     icon: AtSign,
     description: 'Create and manage email aliases',
   },
-  {
-    name: 'Settings',
-    href: '/dashboard/settings',
-    icon: Settings,
-    description: 'Account and application settings',
-  },
 ]
 
 export default function DashboardLayout({
@@ -64,6 +61,7 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const pathname = usePathname()
 
   const handleSignOut = async () => {
@@ -81,15 +79,22 @@ export default function DashboardLayout({
   const SidebarContent = () => (
     <div className="flex h-full flex-col">
       {/* Logo */}
-      <div className="flex h-16 shrink-0 items-center px-6">
-        <Link href="/dashboard" className="flex items-center space-x-2">
-          <Mail className="h-8 w-8 text-primary" />
-          <span className="text-xl font-bold">do-Mails</span>
+      <div
+        className={`flex h-20 shrink-0 items-center justify-center transition-all duration-300 ${sidebarCollapsed ? 'px-3' : 'px-6'}`}
+      >
+        <Link href="/dashboard" className="flex items-center justify-center">
+          <Logo
+            withText={!sidebarCollapsed}
+            width={sidebarCollapsed ? 40 : 160}
+            height={sidebarCollapsed ? 40 : 48}
+          />
         </Link>
       </div>
 
       {/* Navigation */}
-      <nav className="flex flex-1 flex-col px-6 py-4">
+      <nav
+        className={`flex flex-1 flex-col py-4 transition-all duration-300 ${sidebarCollapsed ? 'px-3' : 'px-6'}`}
+      >
         <ul className="flex flex-1 flex-col gap-y-2">
           {navigation.map((item) => {
             const isActive =
@@ -100,18 +105,25 @@ export default function DashboardLayout({
               <li key={item.name}>
                 <Link
                   href={item.href}
-                  className={`group flex gap-x-3 rounded-md p-3 text-sm font-medium transition-colors ${
+                  className={`group flex rounded-md p-3 text-sm font-medium transition-colors ${
+                    sidebarCollapsed ? 'justify-center' : 'gap-x-3'
+                  } ${
                     isActive
                       ? 'bg-primary text-primary-foreground'
                       : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                   }`}
                   onClick={() => setSidebarOpen(false)}
+                  title={sidebarCollapsed ? item.name : undefined}
                 >
                   <item.icon className="h-5 w-5 shrink-0" />
-                  <div>
-                    <div>{item.name}</div>
-                    <div className="text-xs opacity-75">{item.description}</div>
-                  </div>
+                  {!sidebarCollapsed && (
+                    <div>
+                      <div>{item.name}</div>
+                      <div className="text-xs opacity-75">
+                        {item.description}
+                      </div>
+                    </div>
+                  )}
                 </Link>
               </li>
             )
@@ -119,38 +131,25 @@ export default function DashboardLayout({
         </ul>
       </nav>
 
-      {/* User menu */}
-      <div className="border-t px-6 py-4">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="w-full justify-start p-3">
-              <Avatar className="mr-3 h-8 w-8">
-                <AvatarFallback>
-                  <User className="h-4 w-4" />
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col items-start">
-                <span className="text-sm font-medium">Account</span>
-                <span className="text-xs text-muted-foreground">
-                  Manage account
-                </span>
-              </div>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuItem asChild>
-              <Link href="/dashboard/settings">
-                <Settings className="mr-2 h-4 w-4" />
-                Settings
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleSignOut}>
-              <LogOut className="mr-2 h-4 w-4" />
-              Sign out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+      {/* Collapse button */}
+      <div
+        className={`border-t py-4 transition-all duration-300 ${sidebarCollapsed ? 'px-3' : 'px-6'}`}
+      >
+        <Button
+          variant="ghost"
+          className="w-full justify-center p-3 transition-all duration-300"
+          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          {sidebarCollapsed ? (
+            <ChevronRight className="h-5 w-5" />
+          ) : (
+            <div className="flex items-center">
+              <ChevronLeft className="mr-2 h-5 w-5" />
+              <span className="text-sm font-medium">Collapse</span>
+            </div>
+          )}
+        </Button>
       </div>
     </div>
   )
@@ -158,7 +157,9 @@ export default function DashboardLayout({
   return (
     <div className="flex h-screen bg-background">
       {/* Desktop sidebar */}
-      <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
+      <div
+        className={`hidden transition-all duration-300 lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:flex-col ${sidebarCollapsed ? 'lg:w-20' : 'lg:w-72'}`}
+      >
         <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r bg-card">
           <SidebarContent />
         </div>
@@ -173,7 +174,9 @@ export default function DashboardLayout({
         </SheetContent>
 
         {/* Main content */}
-        <div className="flex flex-1 flex-col lg:pl-72">
+        <div
+          className={`flex flex-1 flex-col transition-all duration-300 ${sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-72'}`}
+        >
           {/* Top bar */}
           <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b bg-background px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
             <SheetTrigger asChild>
