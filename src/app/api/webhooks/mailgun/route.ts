@@ -292,7 +292,7 @@ export async function POST(request: NextRequest) {
     // Check if message already exists (prevent duplicates)
     const { data: existingMessage, error: checkError } = await supabase
       .from('email_messages')
-      .select('id')
+      .select('id, body_text, body_html')
       .or(
         `message_id.eq.${emailMessage.messageId},message_id.eq.${normalizedMessageId}`
       )
@@ -307,17 +307,19 @@ export async function POST(request: NextRequest) {
     }
 
     if (existingMessage) {
-      // Check if existing message has no content but current message has content
-      const { data: existingMessageData } = await supabase
-        .from('email_messages')
-        .select('body_text, body_html')
-        .eq('id', existingMessage.id)
-        .single()
+      const existingHasContent = !!(
+        existingMessage.body_text || existingMessage.body_html
+      )
+      const currentHasContent = !!(
+        emailMessage.bodyText || emailMessage.bodyHtml
+      )
 
-      const existingHasContent =
-        existingMessageData &&
-        (existingMessageData.body_text || existingMessageData.body_html)
-      const currentHasContent = emailMessage.bodyText || emailMessage.bodyHtml
+      console.log('📧 Duplicate message detected:', {
+        messageId: emailMessage.messageId,
+        existingHasContent,
+        currentHasContent,
+        action: !existingHasContent && currentHasContent ? 'UPDATE' : 'SKIP',
+      })
 
       if (!existingHasContent && currentHasContent) {
         console.log(
@@ -326,13 +328,21 @@ export async function POST(request: NextRequest) {
         )
 
         // Update the existing message with body content
-        await supabase
+        const { error: updateError } = await supabase
           .from('email_messages')
           .update({
             body_text: emailMessage.bodyText,
             body_html: emailMessage.bodyHtml,
           })
           .eq('id', existingMessage.id)
+
+        if (updateError) {
+          console.error('Error updating message with content:', updateError)
+          return NextResponse.json(
+            { error: 'Failed to update message content' },
+            { status: 500 }
+          )
+        }
 
         return NextResponse.json(
           {
