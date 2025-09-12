@@ -163,9 +163,16 @@ export async function POST(request: NextRequest) {
     const fromAddress = webhookData.from || webhookData.From
     const subject = webhookData.subject || webhookData.Subject || '(No Subject)'
     const bodyText =
-      webhookData['body-plain'] || webhookData['stripped-text'] || ''
+      webhookData['body-plain'] ||
+      webhookData['stripped-text'] ||
+      webhookData['text'] ||
+      webhookData['body'] ||
+      ''
     const bodyHtml =
-      webhookData['body-html'] || webhookData['stripped-html'] || ''
+      webhookData['body-html'] ||
+      webhookData['stripped-html'] ||
+      webhookData['html'] ||
+      ''
     const inReplyTo =
       webhookData['In-Reply-To'] || webhookData['in-reply-to'] || null
     const references = webhookData.References || webhookData.references || ''
@@ -213,6 +220,9 @@ export async function POST(request: NextRequest) {
       from: emailMessage.from,
       to: emailMessage.to,
       subject: emailMessage.subject,
+      bodyTextLength: emailMessage.bodyText?.length || 0,
+      bodyHtmlLength: emailMessage.bodyHtml?.length || 0,
+      hasContent: !!(emailMessage.bodyText || emailMessage.bodyHtml),
       receivedAt: emailMessage.receivedAt,
     })
 
@@ -425,6 +435,17 @@ export async function POST(request: NextRequest) {
       }
 
       threadId = newThread.id
+    }
+
+    // Log if storing message without content
+    if (!emailMessage.bodyText && !emailMessage.bodyHtml) {
+      console.warn('⚠️ Storing message without content:', {
+        messageId: emailMessage.messageId,
+        subject: emailMessage.subject,
+        from: emailMessage.from,
+        webhookType: webhookData['Content-Type'] ? 'form-encoded' : 'json',
+        webhookKeys: Object.keys(webhookData),
+      })
     }
 
     // Store the email message
