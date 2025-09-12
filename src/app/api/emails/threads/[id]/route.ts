@@ -138,11 +138,13 @@ export async function GET(
       labels: thread.labels,
       created_at: thread.created_at,
       updated_at: thread.updated_at,
-      alias: {
-        id: thread.email_aliases.id,
-        alias_name: thread.email_aliases.alias_name,
-        full_address: `${thread.email_aliases.alias_name}@${thread.email_aliases.domains.domain_name}`,
-      },
+      alias: thread.email_aliases
+        ? {
+            id: thread.email_aliases.id,
+            alias_name: thread.email_aliases.alias_name,
+            full_address: `${thread.email_aliases.alias_name}@${thread.email_aliases.domains.domain_name}`,
+          }
+        : null,
       messages: (messages || []).map((message) => ({
         id: message.id,
         thread_id: message.thread_id,
