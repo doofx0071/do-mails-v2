@@ -1,0 +1,448 @@
+2025-09-12T14:43:53.021Z [info] 🚀 WEBHOOK ATTEMPT STARTED
+2025-09-12T14:43:53.021Z [info] ⏰ Timestamp: 2025-09-12T14:43:53.021Z
+2025-09-12T14:43:53.021Z [info] === MAILGUN WEBHOOK RECEIVED ===
+2025-09-12T14:43:53.021Z [info] URL: https://app.do-mails.space/api/webhooks/mailgun
+2025-09-12T14:43:53.021Z [info] Method: POST
+2025-09-12T14:43:53.022Z [info] Headers: {
+  accept: '*/*',
+  'accept-encoding': 'gzip',
+  connection: 'close',
+  'content-length': '1319',
+  'content-type': 'application/json',
+  forwarded: 'for=35.212.253.57;host=app.do-mails.space;proto=https;sig=0QmVhcmVyIDNjYmNkYTUzNmM1ZTZlMGU5NTZmNGJkNzYwZTMwYjE3NzIwYzRlNmVhMDA3NWFlMjAzZGQzZDBjNTE5OTFkN2I=;exp=1757688532',
+  host: 'app.do-mails.space',
+  'user-agent': 'Go-http-client/2.0',
+  'x-forwarded-for': '35.212.253.57',
+  'x-forwarded-host': 'app.do-mails.space',
+  'x-forwarded-proto': 'https',
+  'x-matched-path': '/api/webhooks/mailgun',
+  'x-real-ip': '35.212.253.57',
+  'x-vercel-deployment-url': 'do-mails-v2-jzz50nr3q-jamszi-maxs-projects.vercel.app',
+  'x-vercel-forwarded-for': '35.212.253.57',
+  'x-vercel-id': 'pdx1::dq99m-1757688232819-ad6a89e0fdee',
+  'x-vercel-internal-bot-check': 'skip',
+  'x-vercel-internal-ingress-bucket': 'bucket017',
+  'x-vercel-internal-ingress-port': '17443',
+  'x-vercel-ip-as-number': '15169',
+  'x-vercel-ip-city': 'The%20Dalles',
+  'x-vercel-ip-continent': 'NA',
+  'x-vercel-ip-country': 'US',
+  'x-vercel-ip-country-region': 'OR',
+  'x-vercel-ip-latitude': '45.5999',
+  'x-vercel-ip-longitude': '-121.1871',
+  'x-vercel-ip-postal-code': '97058',
+  'x-vercel-ip-timezone': 'America/Los_Angeles',
+  'x-vercel-ja4-digest': 't13d1411h2_cbb2034c60b8_e7c285222651',
+  'x-vercel-oidc-token': 'eyJraWQiOiJtcmstNDMwMmVjMWI2NzBmNDhhOThhZDYxZGFkZTRhMjNiZTciLCJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYmYiOjE3NTc2ODY0MjgsIm93bmVyX2lkIjoidGVhbV9xMjkyTllFMUNTd0NrRXBwRVFlVE1hdGEiLCJpYXQiOjE3NTc2ODY0MjgsInZlcmNlbF9pZCI6InBkeDE6OjlybXM4LTE3NTc2ODY0Mjg2NjItMzQ3M2NlNzYxZWY2IiwiYXVkIjoiaHR0cHM6XC9cL3ZlcmNlbC5jb21cL2phbXN6aS1tYXhzLXByb2plY3RzIiwib3duZXIiOiJqYW1zemktbWF4cy1wcm9qZWN0cyIsImlzcyI6Imh0dHBzOlwvXC9vaWRjLnZlcmNlbC5jb21cL2phbXN6aS1tYXhzLXByb2plY3RzIiwicHJvamVjdF9pZCI6InByal9BMXF3ZjVpb0lSYUtzUUpJRFBrTzBlNVN0Ymo3IiwiZXhwIjoxNzU3NjkwMDI4LCJlbnZpcm9ubWVudCI6InByb2R1Y3Rpb24iLCJzY29wZSI6Im93bmVyOmphbXN6aS1tYXhzLXByb2plY3RzOnByb2plY3Q6ZG8tbWFpbHMtdjI6ZW52aXJvbm1lbnQ6cHJvZHVjdGlvbiIsInN1YiI6Im93bmVyOmphbXN6aS1tYXhzLXByb2plY3RzOnByb2plY3Q6ZG8tbWFpbHMtdjI6ZW52aXJvbm1lbnQ6cHJvZHVjdGlvbiIsInByb2plY3QiOiJkby1tYWlscy12MiJ9.ZtqU7mrPRWtjkBnc9o4n-7nH5Um0HYHqYOv_CqAZ0FndC7OWh3bstNt5XYRjMB8i_f37Jw2ta5-y9rF2j4qJjehP8zCXilLeLVVIIm5ZLVBMeLRFoJKBTqEtROwMlTIifDH-YwKRwHoO7srcwbxHV1AdDxmREheMPi0GCo467pymnWpT1s0hN3qLcbmr2K_GeCehBfeff3Z-HgggMzY-eFw66K4MtOcYhf0OaBJgZk__AVsruE7QYrt7qmgTPhpfx3J_ZHlPKEV6T6WjKAz4gkiEtQb1uj2OFbEUPub-eijM-5OZlGFw9gZWhCqxvk7vMdXWlhuF9ZmExX8gkqLelQ',
+  'x-vercel-proxied-for': '35.212.253.57',
+  'x-vercel-proxy-signature': 'Bearer 3cbcda536c5e6e0e956f4bd760e30b17720c4e6ea0075ae203dd3d0c51991d7b',
+  'x-vercel-proxy-signature-ts': '1757688532',
+  'x-vercel-sc-basepath': '',
+  'x-vercel-sc-headers': '{"x-vercel-function-platform":"vercel\\/proxy+serverless","x-vercel-ept":"1","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkZXBsb3ltZW50SWQiOiJkcGxfOExmQ2ZlY0FBSFZSc2dtYkVaeTYxZlp0cThveCIsInVubGltaXRlZCI6ZmFsc2UsInBsYW4iOiJob2JieSIsImlzcyI6InNlcnZlcmxlc3MiLCJkb21haW4iOiJhcHAuZG8tbWFpbHMuc3BhY2UiLCJibG9jayI6ZmFsc2UsImlhdCI6MTc1NzY4ODIzMiwicHJvamVjdElkIjoicHJqX0ExcXdmNWlvSVJhS3NRSklEUGtPMGU1U3RiajciLCJleHAiOjE3NTc2ODkxNTIsIm93bmVySWQiOiJ0ZWFtX3EyOTJOWUUxQ1N3Q2tFcHBFUWVUTWF0YSIsInJlcXVlc3RJZCI6ImRxOTltLTE3NTc2ODgyMzI4MTktYWQ2YTg5ZTBmZGVlIiwiZW52IjoicHJvZHVjdGlvbiJ9.oZhw8cud4xQHYPDYVf0BPKkcIfzLn6T99U6nAiOIPtk"}',
+  'x-vercel-sc-host': 'iad1.suspense-cache.vercel-infra.com'
+}
+2025-09-12T14:43:53.022Z [info] User-Agent: Go-http-client/2.0
+2025-09-12T14:43:53.022Z [info] Content-Type: application/json
+2025-09-12T14:43:53.022Z [info] Webhook headers: { signature: false, timestamp: false, token: false }
+2025-09-12T14:43:53.023Z [warning] Missing Mailgun signature headers - proceeding without verification for debugging
+2025-09-12T14:43:53.023Z [info] 📦 Parsing JSON webhook data...
+2025-09-12T14:43:53.029Z [info] 📦 Found event-data structure, extracting message data...
+2025-09-12T14:43:53.029Z [info] 🔍 Event data structure: {
+  recipient: 'https://app.do-mails.space/api/webhooks/mailgun',
+  envelope: {
+    sender: 'bounces+3302489-191b-yaki=do-mails.space@email.figma.com',
+    targets: 'https://app.do-mails.space/api/webhooks/mailgun',
+    transport: 'http'
+  },
+  messageHeaders: {
+    'message-id': 'ZsV6pYGuQ7yWQ0SrcIVyeA@geopod-ismtpd-2',
+    from: 'Figma <support@figma.com>',
+    to: 'yaki <yaki@do-mails.space>',
+    subject: 'Verify your email address'
+  },
+  messageKeys: [ 'size', 'attachments', 'headers', 'recipients' ]
+}
+2025-09-12T14:43:53.029Z [info] 📦 Mapped event-data to webhook format with recipient: yaki <yaki@do-mails.space>
+2025-09-12T14:43:53.030Z [info] Webhook data keys: [
+  'recipient',   'from',
+  'subject',     'body-plain',
+  'body-html',   'Message-Id',
+  'In-Reply-To', 'References',
+  'timestamp',   'signature',
+  'token',       'To',
+  'Cc',          'Bcc'
+]
+2025-09-12T14:43:53.030Z [info] Webhook data sample: {
+  recipient: 'yaki <yaki@do-mails.space>',
+  to: undefined,
+  from: 'Figma <support@figma.com>',
+  subject: 'Verify your email address',
+  'body-plain': '...'
+}
+2025-09-12T14:43:53.030Z [info] Received verified Mailgun webhook: [
+  'recipient',   'from',
+  'subject',     'body-plain',
+  'body-html',   'Message-Id',
+  'In-Reply-To', 'References',
+  'timestamp',   'signature',
+  'token',       'To',
+  'Cc',          'Bcc'
+]
+2025-09-12T14:43:53.030Z [info] 📧 Processing email data directly...
+2025-09-12T14:43:53.031Z [info] 📧 Parsed email message: {
+  messageId: 'ZsV6pYGuQ7yWQ0SrcIVyeA@geopod-ismtpd-2',
+  from: 'support@figma.com',
+  to: [ 'yaki@do-mails.space' ],
+  subject: 'Verify your email address',
+  receivedAt: 2025-09-12T14:18:50.000Z
+}
+2025-09-12T14:43:53.874Z [error] Domain not found or not verified: do-mails.space>
+
+
+d
+doofworkspace@gmail.com
+Test v30
+Reply-To: doofworkspace@gmail.com
+Sep 12, 2025, 10:44:16 PM
+D
+doofworkspace@gmail.com
+to test@do-mails.space
+Sep 12, 2025 10:44 PM
+No content
+
+2025-09-12T14:44:18.906Z [info] ✅ Successfully processed inbound email: {
+  messageId: 'CAOGHcF0=KzB6_Xwd1oJVdQLS6t6WgfqpCpgAN2xHWu5K2rYqHA@mail.gmail.com',
+  threadId: '9995f1f6-f2e8-467c-b0d5-eda87190559d',
+  domainId: '60cbb2e5-8e35-4e42-ab21-ecf651f41a52',
+  recipientEmail: 'test@do-mails.space',
+  from: 'doofworkspace@gmail.com',
+  subject: 'Test v30'
+}
+2025-09-12T14:44:16.420Z [info] 🚀 WEBHOOK ATTEMPT STARTED
+2025-09-12T14:44:16.420Z [info] ⏰ Timestamp: 2025-09-12T14:44:16.402Z
+2025-09-12T14:44:16.420Z [info] === MAILGUN WEBHOOK RECEIVED ===
+2025-09-12T14:44:16.420Z [info] URL: https://app.do-mails.space/api/webhooks/mailgun
+2025-09-12T14:44:16.420Z [info] Method: POST
+2025-09-12T14:44:16.420Z [info] Headers: {
+  accept: '*/*',
+  'accept-encoding': 'gzip',
+  connection: 'close',
+  'content-length': '991',
+  'content-type': 'application/json',
+  forwarded: 'for=35.212.87.157;host=app.do-mails.space;proto=https;sig=0QmVhcmVyIDNkZWJlNjE5YjZiYTRmNzMyNjBhNjhhYzNiNjk5ZDBhMTlkMzMzNzM1MDBhZjI5ZDhlMDhjNDJkN2E5YjE5ZTk=;exp=1757688556',
+  host: 'app.do-mails.space',
+  'user-agent': 'Go-http-client/2.0',
+  'x-forwarded-for': '35.212.87.157',
+  'x-forwarded-host': 'app.do-mails.space',
+  'x-forwarded-proto': 'https',
+  'x-matched-path': '/api/webhooks/mailgun',
+  'x-real-ip': '35.212.87.157',
+  'x-vercel-deployment-url': 'do-mails-v2-jzz50nr3q-jamszi-maxs-projects.vercel.app',
+  'x-vercel-forwarded-for': '35.212.87.157',
+  'x-vercel-id': 'iad1::v8995-1757688256288-9b4297c52748',
+  'x-vercel-internal-bot-check': 'skip',
+  'x-vercel-internal-ingress-bucket': 'bucket017',
+  'x-vercel-internal-ingress-port': '17444',
+  'x-vercel-ip-as-number': '15169',
+  'x-vercel-ip-city': 'Washington',
+  'x-vercel-ip-continent': 'NA',
+  'x-vercel-ip-country': 'US',
+  'x-vercel-ip-country-region': 'DC',
+  'x-vercel-ip-latitude': '38.894',
+  'x-vercel-ip-longitude': '-77.0365',
+  'x-vercel-ip-postal-code': '56972',
+  'x-vercel-ip-timezone': 'America/New_York',
+  'x-vercel-ja4-digest': 't13d1411h2_cbb2034c60b8_e7c285222651',
+  'x-vercel-oidc-token': 'eyJraWQiOiJtcmstNDMwMmVjMWI2NzBmNDhhOThhZDYxZGFkZTRhMjNiZTciLCJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYmYiOjE3NTc2ODgyNTYsIm93bmVyX2lkIjoidGVhbV9xMjkyTllFMUNTd0NrRXBwRVFlVE1hdGEiLCJpYXQiOjE3NTc2ODgyNTYsInZlcmNlbF9pZCI6ImlhZDE6OnY4OTk1LTE3NTc2ODgyNTYyODgtOWI0Mjk3YzUyNzQ4IiwiYXVkIjoiaHR0cHM6XC9cL3ZlcmNlbC5jb21cL2phbXN6aS1tYXhzLXByb2plY3RzIiwib3duZXIiOiJqYW1zemktbWF4cy1wcm9qZWN0cyIsImlzcyI6Imh0dHBzOlwvXC9vaWRjLnZlcmNlbC5jb21cL2phbXN6aS1tYXhzLXByb2plY3RzIiwicHJvamVjdF9pZCI6InByal9BMXF3ZjVpb0lSYUtzUUpJRFBrTzBlNVN0Ymo3IiwiZXhwIjoxNzU3NjkxODU2LCJlbnZpcm9ubWVudCI6InByb2R1Y3Rpb24iLCJzY29wZSI6Im93bmVyOmphbXN6aS1tYXhzLXByb2plY3RzOnByb2plY3Q6ZG8tbWFpbHMtdjI6ZW52aXJvbm1lbnQ6cHJvZHVjdGlvbiIsInN1YiI6Im93bmVyOmphbXN6aS1tYXhzLXByb2plY3RzOnByb2plY3Q6ZG8tbWFpbHMtdjI6ZW52aXJvbm1lbnQ6cHJvZHVjdGlvbiIsInByb2plY3QiOiJkby1tYWlscy12MiJ9.jFBcHl8dCYG1ZK7jD7Gt69vOOXj8LHdELVAeZ1HS4dO8W9tvY645MtL6YhHcGnBzSbi_oO0hmofTd73RJQCT9ECKx_RUa0PYIHe8eRfLo5HnBHoHuJBmCILoS68QeRhoqiUb7yNU1VtGs-qmn5ai9q4HqpM4_18W_F7AniQabJhrjQSkuJapRAa0jfNPfeFrw54wrPhLyWBHdOV8hN-Jr9iTMGoYo93yNNU7fK-0g6Q5Q9zF-ZO2UQImUoAULS2aUx1UfyS3yp-KzJiaHFtgZy0p0DA-8gZCqotHSDuNpjbedXzNQMhG9J-AW7d2xnhMsVgkSPsusLOKgdRtrNB50g',
+  'x-vercel-proxied-for': '35.212.87.157',
+  'x-vercel-proxy-signature': 'Bearer 3debe619b6ba4f73260a68ac3b699d0a19d33373500af29d8e08c42d7a9b19e9',
+  'x-vercel-proxy-signature-ts': '1757688556',
+  'x-vercel-sc-basepath': '',
+  'x-vercel-sc-headers': '{"x-vercel-function-platform":"vercel\\/proxy+serverless","x-vercel-ept":"1","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkZXBsb3ltZW50SWQiOiJkcGxfOExmQ2ZlY0FBSFZSc2dtYkVaeTYxZlp0cThveCIsInVubGltaXRlZCI6ZmFsc2UsInBsYW4iOiJob2JieSIsImlzcyI6InNlcnZlcmxlc3MiLCJkb21haW4iOiJhcHAuZG8tbWFpbHMuc3BhY2UiLCJibG9jayI6ZmFsc2UsImlhdCI6MTc1NzY4ODI1NiwicHJvamVjdElkIjoicHJqX0ExcXdmNWlvSVJhS3NRSklEUGtPMGU1U3RiajciLCJleHAiOjE3NTc2ODkxNzYsIm93bmVySWQiOiJ0ZWFtX3EyOTJOWUUxQ1N3Q2tFcHBFUWVUTWF0YSIsInJlcXVlc3RJZCI6InY4OTk1LTE3NTc2ODgyNTYyODgtOWI0Mjk3YzUyNzQ4IiwiZW52IjoicHJvZHVjdGlvbiJ9.5nfBalgOuzmfxBNXhP_-dMVKQ3KRPFUx8iZlq0zxcpY"}',
+  'x-vercel-sc-host': 'iad1.suspense-cache.vercel-infra.com'
+}
+2025-09-12T14:44:16.420Z [info] User-Agent: Go-http-client/2.0
+2025-09-12T14:44:16.420Z [info] Content-Type: application/json
+2025-09-12T14:44:16.420Z [info] Webhook headers: { signature: false, timestamp: false, token: false }
+2025-09-12T14:44:16.420Z [warning] Missing Mailgun signature headers - proceeding without verification for debugging
+2025-09-12T14:44:16.420Z [info] 📦 Parsing JSON webhook data...
+2025-09-12T14:44:16.420Z [info] 📦 Found event-data structure, extracting message data...
+2025-09-12T14:44:16.420Z [info] 🔍 Event data structure: {
+  recipient: 'test@do-mails.space',
+  envelope: {
+    sender: 'doofworkspace@gmail.com',
+    targets: 'test@do-mails.space',
+    transport: 'smtp'
+  },
+  messageHeaders: {
+    'message-id': 'CAOGHcF0=KzB6_Xwd1oJVdQLS6t6WgfqpCpgAN2xHWu5K2rYqHA@mail.gmail.com',
+    from: 'Doof <doofworkspace@gmail.com>',
+    to: 'test@do-mails.space',
+    subject: 'Test v30'
+  },
+  messageKeys: [ 'headers', 'size' ]
+}
+2025-09-12T14:44:16.420Z [info] 📦 Mapped event-data to webhook format with recipient: test@do-mails.space
+2025-09-12T14:44:16.420Z [info] Webhook data keys: [
+  'recipient',   'from',
+  'subject',     'body-plain',
+  'body-html',   'Message-Id',
+  'In-Reply-To', 'References',
+  'timestamp',   'signature',
+  'token',       'To',
+  'Cc',          'Bcc'
+]
+2025-09-12T14:44:16.420Z [info] Webhook data sample: {
+  recipient: 'test@do-mails.space',
+  to: undefined,
+  from: 'Doof <doofworkspace@gmail.com>',
+  subject: 'Test v30',
+  'body-plain': '...'
+}
+2025-09-12T14:44:16.420Z [info] Received verified Mailgun webhook: [
+  'recipient',   'from',
+  'subject',     'body-plain',
+  'body-html',   'Message-Id',
+  'In-Reply-To', 'References',
+  'timestamp',   'signature',
+  'token',       'To',
+  'Cc',          'Bcc'
+]
+2025-09-12T14:44:16.420Z [info] 📧 Processing email data directly...
+2025-09-12T14:44:16.420Z [info] 📧 Parsed email message: {
+  messageId: 'CAOGHcF0=KzB6_Xwd1oJVdQLS6t6WgfqpCpgAN2xHWu5K2rYqHA@mail.gmail.com',
+  from: 'doofworkspace@gmail.com',
+  to: [ 'test@do-mails.space' ],
+  subject: 'Test v30',
+  receivedAt: 2025-09-12T14:44:16.000Z
+}
+2025-09-12T14:44:16.737Z [info] ✅ Catch-all: Accepting email for test@do-mails.space on verified domain do-mails.space
+
+2025-09-12T14:44:23.150Z [info] Message already exists (duplicate prevented): <CAOGHcF0=KzB6_Xwd1oJVdQLS6t6WgfqpCpgAN2xHWu5K2rYqHA@mail.gmail.com>
+2025-09-12T14:44:22.581Z [info] 🚀 WEBHOOK ATTEMPT STARTED
+2025-09-12T14:44:22.581Z [info] ⏰ Timestamp: 2025-09-12T14:44:22.580Z
+2025-09-12T14:44:22.581Z [info] === MAILGUN WEBHOOK RECEIVED ===
+2025-09-12T14:44:22.581Z [info] URL: https://app.do-mails.space/api/webhooks/mailgun
+2025-09-12T14:44:22.581Z [info] Method: POST
+2025-09-12T14:44:22.582Z [info] Headers: {
+  accept: '*/*',
+  'accept-encoding': 'gzip',
+  connection: 'close',
+  'content-length': '6851',
+  'content-type': 'application/x-www-form-urlencoded',
+  forwarded: 'for=35.212.111.84;host=app.do-mails.space;proto=https;sig=0QmVhcmVyIGUzN2Y3OTdlYzMzZjVlYzA3YzA2OWYzYWM1MDZlNTkxYjMyYjk3ZmU1N2Y4ODQzZGJhNDljZTg2ZTc1ZGZlM2Q=;exp=1757688562',
+  host: 'app.do-mails.space',
+  'user-agent': 'Go-http-client/2.0',
+  'x-forwarded-for': '35.212.111.84',
+  'x-forwarded-host': 'app.do-mails.space',
+  'x-forwarded-proto': 'https',
+  'x-matched-path': '/api/webhooks/mailgun',
+  'x-real-ip': '35.212.111.84',
+  'x-vercel-deployment-url': 'do-mails-v2-jzz50nr3q-jamszi-maxs-projects.vercel.app',
+  'x-vercel-forwarded-for': '35.212.111.84',
+  'x-vercel-id': 'iad1::snsq8-1757688262533-c889f06bd414',
+  'x-vercel-internal-bot-check': 'skip',
+  'x-vercel-internal-ingress-bucket': 'bucket017',
+  'x-vercel-internal-ingress-port': '17444',
+  'x-vercel-ip-as-number': '15169',
+  'x-vercel-ip-city': 'Washington',
+  'x-vercel-ip-continent': 'NA',
+  'x-vercel-ip-country': 'US',
+  'x-vercel-ip-country-region': 'DC',
+  'x-vercel-ip-latitude': '38.894',
+  'x-vercel-ip-longitude': '-77.0365',
+  'x-vercel-ip-postal-code': '56972',
+  'x-vercel-ip-timezone': 'America/New_York',
+  'x-vercel-ja4-digest': 't13d1411h2_cbb2034c60b8_e7c285222651',
+  'x-vercel-oidc-token': 'eyJraWQiOiJtcmstNDMwMmVjMWI2NzBmNDhhOThhZDYxZGFkZTRhMjNiZTciLCJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYmYiOjE3NTc2ODgyNTYsIm93bmVyX2lkIjoidGVhbV9xMjkyTllFMUNTd0NrRXBwRVFlVE1hdGEiLCJpYXQiOjE3NTc2ODgyNTYsInZlcmNlbF9pZCI6ImlhZDE6OnY4OTk1LTE3NTc2ODgyNTYyODgtOWI0Mjk3YzUyNzQ4IiwiYXVkIjoiaHR0cHM6XC9cL3ZlcmNlbC5jb21cL2phbXN6aS1tYXhzLXByb2plY3RzIiwib3duZXIiOiJqYW1zemktbWF4cy1wcm9qZWN0cyIsImlzcyI6Imh0dHBzOlwvXC9vaWRjLnZlcmNlbC5jb21cL2phbXN6aS1tYXhzLXByb2plY3RzIiwicHJvamVjdF9pZCI6InByal9BMXF3ZjVpb0lSYUtzUUpJRFBrTzBlNVN0Ymo3IiwiZXhwIjoxNzU3NjkxODU2LCJlbnZpcm9ubWVudCI6InByb2R1Y3Rpb24iLCJzY29wZSI6Im93bmVyOmphbXN6aS1tYXhzLXByb2plY3RzOnByb2plY3Q6ZG8tbWFpbHMtdjI6ZW52aXJvbm1lbnQ6cHJvZHVjdGlvbiIsInN1YiI6Im93bmVyOmphbXN6aS1tYXhzLXByb2plY3RzOnByb2plY3Q6ZG8tbWFpbHMtdjI6ZW52aXJvbm1lbnQ6cHJvZHVjdGlvbiIsInByb2plY3QiOiJkby1tYWlscy12MiJ9.jFBcHl8dCYG1ZK7jD7Gt69vOOXj8LHdELVAeZ1HS4dO8W9tvY645MtL6YhHcGnBzSbi_oO0hmofTd73RJQCT9ECKx_RUa0PYIHe8eRfLo5HnBHoHuJBmCILoS68QeRhoqiUb7yNU1VtGs-qmn5ai9q4HqpM4_18W_F7AniQabJhrjQSkuJapRAa0jfNPfeFrw54wrPhLyWBHdOV8hN-Jr9iTMGoYo93yNNU7fK-0g6Q5Q9zF-ZO2UQImUoAULS2aUx1UfyS3yp-KzJiaHFtgZy0p0DA-8gZCqotHSDuNpjbedXzNQMhG9J-AW7d2xnhMsVgkSPsusLOKgdRtrNB50g',
+  'x-vercel-proxied-for': '35.212.111.84',
+  'x-vercel-proxy-signature': 'Bearer e37f797ec33f5ec07c069f3ac506e591b32b97fe57f8843dba49ce86e75dfe3d',
+  'x-vercel-proxy-signature-ts': '1757688562',
+  'x-vercel-sc-basepath': '',
+  'x-vercel-sc-headers': '{"x-vercel-function-platform":"vercel\\/proxy+serverless","x-vercel-ept":"1","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkZXBsb3ltZW50SWQiOiJkcGxfOExmQ2ZlY0FBSFZSc2dtYkVaeTYxZlp0cThveCIsInVubGltaXRlZCI6ZmFsc2UsInBsYW4iOiJob2JieSIsImlzcyI6InNlcnZlcmxlc3MiLCJkb21haW4iOiJhcHAuZG8tbWFpbHMuc3BhY2UiLCJibG9jayI6ZmFsc2UsImlhdCI6MTc1NzY4ODI2MiwicHJvamVjdElkIjoicHJqX0ExcXdmNWlvSVJhS3NRSklEUGtPMGU1U3RiajciLCJleHAiOjE3NTc2ODkxODIsIm93bmVySWQiOiJ0ZWFtX3EyOTJOWUUxQ1N3Q2tFcHBFUWVUTWF0YSIsInJlcXVlc3RJZCI6InNuc3E4LTE3NTc2ODgyNjI1MzMtYzg4OWYwNmJkNDE0IiwiZW52IjoicHJvZHVjdGlvbiJ9.0aKzCjJnbhk2mxlSpHxH-1seKrjjiAOkdUjv-Iu4lrI"}',
+  'x-vercel-sc-host': 'iad1.suspense-cache.vercel-infra.com'
+}
+2025-09-12T14:44:22.582Z [info] User-Agent: Go-http-client/2.0
+2025-09-12T14:44:22.582Z [info] Content-Type: application/x-www-form-urlencoded
+2025-09-12T14:44:22.582Z [info] Webhook headers: { signature: false, timestamp: false, token: false }
+2025-09-12T14:44:22.582Z [warning] Missing Mailgun signature headers - proceeding without verification for debugging
+2025-09-12T14:44:22.582Z [info] 📦 Parsing form data webhook data...
+2025-09-12T14:44:22.591Z [info] Webhook data keys: [
+  'Content-Type',
+  'Date',
+  'Dkim-Signature',
+  'From',
+  'Message-Id',
+  'Mime-Version',
+  'Received',
+  'Subject',
+  'To',
+  'X-Envelope-From',
+  'X-Gm-Features',
+  'X-Gm-Gg',
+  'X-Gm-Message-State',
+  'X-Google-Dkim-Signature',
+  'X-Google-Smtp-Source',
+  'X-Mailgun-Incoming',
+  'X-Received',
+  'body-html',
+  'body-plain',
+  'from',
+  'message-headers',
+  'recipient',
+  'sender',
+  'signature',
+  'stripped-html',
+  'stripped-text',
+  'subject',
+  'timestamp',
+  'token'
+]
+2025-09-12T14:44:22.591Z [info] Webhook data sample: {
+  recipient: 'test@do-mails.space',
+  to: undefined,
+  from: 'Doof <doofworkspace@gmail.com>',
+  subject: 'Test v30',
+  'body-plain': 'This is Test v30\r\n...'
+}
+2025-09-12T14:44:22.591Z [info] Received verified Mailgun webhook: [
+  'Content-Type',
+  'Date',
+  'Dkim-Signature',
+  'From',
+  'Message-Id',
+  'Mime-Version',
+  'Received',
+  'Subject',
+  'To',
+  'X-Envelope-From',
+  'X-Gm-Features',
+  'X-Gm-Gg',
+  'X-Gm-Message-State',
+  'X-Google-Dkim-Signature',
+  'X-Google-Smtp-Source',
+  'X-Mailgun-Incoming',
+  'X-Received',
+  'body-html',
+  'body-plain',
+  'from',
+  'message-headers',
+  'recipient',
+  'sender',
+  'signature',
+  'stripped-html',
+  'stripped-text',
+  'subject',
+  'timestamp',
+  'token'
+]
+2025-09-12T14:44:22.591Z [info] 📧 Processing email data directly...
+2025-09-12T14:44:22.591Z [info] 📧 Parsed email message: {
+  messageId: '<CAOGHcF0=KzB6_Xwd1oJVdQLS6t6WgfqpCpgAN2xHWu5K2rYqHA@mail.gmail.com>',
+  from: 'doofworkspace@gmail.com',
+  to: [ 'test@do-mails.space' ],
+  subject: 'Test v30',
+  receivedAt: 2025-09-12T14:44:22.000Z
+}
+2025-09-12T14:44:22.871Z [info] ✅ Catch-all: Accepting email for test@do-mails.space on verified domain do-mails.space
+
+2025-09-12T14:44:22.680Z [info] 🚀 WEBHOOK ATTEMPT STARTED
+2025-09-12T14:44:22.680Z [info] ⏰ Timestamp: 2025-09-12T14:44:22.676Z
+2025-09-12T14:44:22.680Z [info] === MAILGUN WEBHOOK RECEIVED ===
+2025-09-12T14:44:22.680Z [info] URL: https://app.do-mails.space/api/webhooks/mailgun
+2025-09-12T14:44:22.681Z [info] Method: POST
+2025-09-12T14:44:22.681Z [info] Headers: {
+  accept: '*/*',
+  'accept-encoding': 'gzip',
+  connection: 'close',
+  'content-length': '1294',
+  'content-type': 'application/json',
+  forwarded: 'for=35.212.23.116;host=app.do-mails.space;proto=https;sig=0QmVhcmVyIDEzNmFkNGYxZWVjYjZhNTUwOTljYzFiYzdjOTRjMzFiMjI2ZDMxYWRhYTEwMWYxNTJhODVhMGY0ZTVhZGMxMTk=;exp=1757688562',
+  host: 'app.do-mails.space',
+  'user-agent': 'Go-http-client/2.0',
+  'x-forwarded-for': '35.212.23.116',
+  'x-forwarded-host': 'app.do-mails.space',
+  'x-forwarded-proto': 'https',
+  'x-matched-path': '/api/webhooks/mailgun',
+  'x-real-ip': '35.212.23.116',
+  'x-vercel-deployment-url': 'do-mails-v2-jzz50nr3q-jamszi-maxs-projects.vercel.app',
+  'x-vercel-forwarded-for': '35.212.23.116',
+  'x-vercel-id': 'iad1::q47wz-1757688262641-8a088093c2cb',
+  'x-vercel-internal-bot-check': 'skip',
+  'x-vercel-internal-ingress-bucket': 'bucket017',
+  'x-vercel-internal-ingress-port': '17444',
+  'x-vercel-ip-as-number': '15169',
+  'x-vercel-ip-city': 'Washington',
+  'x-vercel-ip-continent': 'NA',
+  'x-vercel-ip-country': 'US',
+  'x-vercel-ip-country-region': 'DC',
+  'x-vercel-ip-latitude': '38.894',
+  'x-vercel-ip-longitude': '-77.0365',
+  'x-vercel-ip-postal-code': '56972',
+  'x-vercel-ip-timezone': 'America/New_York',
+  'x-vercel-ja4-digest': 't13d1411h2_cbb2034c60b8_e7c285222651',
+  'x-vercel-oidc-token': 'eyJraWQiOiJtcmstNDMwMmVjMWI2NzBmNDhhOThhZDYxZGFkZTRhMjNiZTciLCJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYmYiOjE3NTc2ODgyNTYsIm93bmVyX2lkIjoidGVhbV9xMjkyTllFMUNTd0NrRXBwRVFlVE1hdGEiLCJpYXQiOjE3NTc2ODgyNTYsInZlcmNlbF9pZCI6ImlhZDE6OnY4OTk1LTE3NTc2ODgyNTYyODgtOWI0Mjk3YzUyNzQ4IiwiYXVkIjoiaHR0cHM6XC9cL3ZlcmNlbC5jb21cL2phbXN6aS1tYXhzLXByb2plY3RzIiwib3duZXIiOiJqYW1zemktbWF4cy1wcm9qZWN0cyIsImlzcyI6Imh0dHBzOlwvXC9vaWRjLnZlcmNlbC5jb21cL2phbXN6aS1tYXhzLXByb2plY3RzIiwicHJvamVjdF9pZCI6InByal9BMXF3ZjVpb0lSYUtzUUpJRFBrTzBlNVN0Ymo3IiwiZXhwIjoxNzU3NjkxODU2LCJlbnZpcm9ubWVudCI6InByb2R1Y3Rpb24iLCJzY29wZSI6Im93bmVyOmphbXN6aS1tYXhzLXByb2plY3RzOnByb2plY3Q6ZG8tbWFpbHMtdjI6ZW52aXJvbm1lbnQ6cHJvZHVjdGlvbiIsInN1YiI6Im93bmVyOmphbXN6aS1tYXhzLXByb2plY3RzOnByb2plY3Q6ZG8tbWFpbHMtdjI6ZW52aXJvbm1lbnQ6cHJvZHVjdGlvbiIsInByb2plY3QiOiJkby1tYWlscy12MiJ9.jFBcHl8dCYG1ZK7jD7Gt69vOOXj8LHdELVAeZ1HS4dO8W9tvY645MtL6YhHcGnBzSbi_oO0hmofTd73RJQCT9ECKx_RUa0PYIHe8eRfLo5HnBHoHuJBmCILoS68QeRhoqiUb7yNU1VtGs-qmn5ai9q4HqpM4_18W_F7AniQabJhrjQSkuJapRAa0jfNPfeFrw54wrPhLyWBHdOV8hN-Jr9iTMGoYo93yNNU7fK-0g6Q5Q9zF-ZO2UQImUoAULS2aUx1UfyS3yp-KzJiaHFtgZy0p0DA-8gZCqotHSDuNpjbedXzNQMhG9J-AW7d2xnhMsVgkSPsusLOKgdRtrNB50g',
+  'x-vercel-proxied-for': '35.212.23.116',
+  'x-vercel-proxy-signature': 'Bearer 136ad4f1eecb6a55099cc1bc7c94c31b226d31adaa101f152a85a0f4e5adc119',
+  'x-vercel-proxy-signature-ts': '1757688562',
+  'x-vercel-sc-basepath': '',
+  'x-vercel-sc-headers': '{"x-vercel-function-platform":"vercel\\/proxy+serverless","x-vercel-ept":"1","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkZXBsb3ltZW50SWQiOiJkcGxfOExmQ2ZlY0FBSFZSc2dtYkVaeTYxZlp0cThveCIsInVubGltaXRlZCI6ZmFsc2UsInBsYW4iOiJob2JieSIsImlzcyI6InNlcnZlcmxlc3MiLCJkb21haW4iOiJhcHAuZG8tbWFpbHMuc3BhY2UiLCJibG9jayI6ZmFsc2UsImlhdCI6MTc1NzY4ODI2MiwicHJvamVjdElkIjoicHJqX0ExcXdmNWlvSVJhS3NRSklEUGtPMGU1U3RiajciLCJleHAiOjE3NTc2ODkxODIsIm93bmVySWQiOiJ0ZWFtX3EyOTJOWUUxQ1N3Q2tFcHBFUWVUTWF0YSIsInJlcXVlc3RJZCI6InE0N3d6LTE3NTc2ODgyNjI2NDEtOGEwODgwOTNjMmNiIiwiZW52IjoicHJvZHVjdGlvbiJ9.a4DjgpwEf_tu8SLueSabxypf5gLBZ4jXkDhTXbV3_t8"}',
+  'x-vercel-sc-host': 'iad1.suspense-cache.vercel-infra.com'
+}
+2025-09-12T14:44:22.681Z [info] User-Agent: Go-http-client/2.0
+2025-09-12T14:44:22.681Z [info] Content-Type: application/json
+2025-09-12T14:44:22.681Z [info] Webhook headers: { signature: false, timestamp: false, token: false }
+2025-09-12T14:44:22.681Z [warning] Missing Mailgun signature headers - proceeding without verification for debugging
+2025-09-12T14:44:22.681Z [info] 📦 Parsing JSON webhook data...
+2025-09-12T14:44:22.681Z [info] 📦 Found event-data structure, extracting message data...
+2025-09-12T14:44:22.681Z [info] 🔍 Event data structure: {
+  recipient: 'https://app.do-mails.space/api/webhooks/mailgun',
+  envelope: {
+    sender: 'doofworkspace@gmail.com',
+    targets: 'https://app.do-mails.space/api/webhooks/mailgun',
+    transport: 'http'
+  },
+  messageHeaders: {
+    'message-id': 'CAOGHcF0=KzB6_Xwd1oJVdQLS6t6WgfqpCpgAN2xHWu5K2rYqHA@mail.gmail.com',
+    from: 'Doof <doofworkspace@gmail.com>',
+    to: 'test@do-mails.space',
+    subject: 'Test v30'
+  },
+  messageKeys: [ 'size', 'attachments', 'headers', 'recipients' ]
+}
+2025-09-12T14:44:22.681Z [info] 📦 Mapped event-data to webhook format with recipient: test@do-mails.space
+2025-09-12T14:44:22.681Z [info] Webhook data keys: [
+  'recipient',   'from',
+  'subject',     'body-plain',
+  'body-html',   'Message-Id',
+  'In-Reply-To', 'References',
+  'timestamp',   'signature',
+  'token',       'To',
+  'Cc',          'Bcc'
+]
+2025-09-12T14:44:22.681Z [info] Webhook data sample: {
+  recipient: 'test@do-mails.space',
+  to: undefined,
+  from: 'Doof <doofworkspace@gmail.com>',
+  subject: 'Test v30',
+  'body-plain': '...'
+}
+2025-09-12T14:44:22.681Z [info] Received verified Mailgun webhook: [
+  'recipient',   'from',
+  'subject',     'body-plain',
+  'body-html',   'Message-Id',
+  'In-Reply-To', 'References',
+  'timestamp',   'signature',
+  'token',       'To',
+  'Cc',          'Bcc'
+]
+2025-09-12T14:44:22.681Z [info] 📧 Processing email data directly...
+2025-09-12T14:44:22.681Z [info] 📧 Parsed email message: {
+  messageId: 'CAOGHcF0=KzB6_Xwd1oJVdQLS6t6WgfqpCpgAN2xHWu5K2rYqHA@mail.gmail.com',
+  from: 'doofworkspace@gmail.com',
+  to: [ 'test@do-mails.space' ],
+  subject: 'Test v30',
+  receivedAt: 2025-09-12T14:44:22.000Z
+}
+2025-09-12T14:44:23.504Z [info] ✅ Catch-all: Accepting email for test@do-mails.space on verified domain do-mails.space
+2025-09-12T14:44:23.794Z [info] Message already exists (duplicate prevented): CAOGHcF0=KzB6_Xwd1oJVdQLS6t6WgfqpCpgAN2xHWu5K2rYqHA@mail.gmail.com

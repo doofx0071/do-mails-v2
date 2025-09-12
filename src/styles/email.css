@@ -1,0 +1,137 @@
+/* Email content styling */
+.email-content {
+  /* Reset email styles */
+  font-family: inherit !important;
+  line-height: 1.6 !important;
+  color: inherit !important;
+}
+
+.email-content * {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.email-content img {
+  max-width: 100% !important;
+  height: auto !important;
+  border-radius: 8px !important;
+  margin: 8px 0 !important;
+}
+
+.email-content table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin: 16px 0 !important;
+}
+
+.email-content td,
+.email-content th {
+  padding: 8px 12px !important;
+  border: 1px solid hsl(var(--border)) !important;
+  text-align: left !important;
+}
+
+.email-content th {
+  background-color: hsl(var(--muted)) !important;
+  font-weight: 600 !important;
+}
+
+.email-content a {
+  color: hsl(var(--primary)) !important;
+  text-decoration: underline !important;
+}
+
+.email-content a:hover {
+  color: hsl(var(--primary)) !important;
+  opacity: 0.8 !important;
+}
+
+.email-content p {
+  margin: 12px 0 !important;
+}
+
+.email-content h1,
+.email-content h2,
+.email-content h3,
+.email-content h4,
+.email-content h5,
+.email-content h6 {
+  margin: 16px 0 8px 0 !important;
+  font-weight: 600 !important;
+  color: inherit !important;
+}
+
+.email-content h1 {
+  font-size: 1.5rem !important;
+}
+
+.email-content h2 {
+  font-size: 1.25rem !important;
+}
+
+.email-content h3 {
+  font-size: 1.125rem !important;
+}
+
+.email-content blockquote {
+  border-left: 4px solid hsl(var(--border)) !important;
+  padding-left: 16px !important;
+  margin: 16px 0 !important;
+  font-style: italic !important;
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+.email-content pre {
+  background-color: hsl(var(--muted)) !important;
+  padding: 12px !important;
+  border-radius: 6px !important;
+  overflow-x: auto !important;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace !important;
+  font-size: 0.875rem !important;
+}
+
+.email-content code {
+  background-color: hsl(var(--muted)) !important;
+  padding: 2px 4px !important;
+  border-radius: 4px !important;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace !important;
+  font-size: 0.875rem !important;
+}
+
+.email-content ul,
+.email-content ol {
+  margin: 12px 0 !important;
+  padding-left: 24px !important;
+}
+
+.email-content li {
+  margin: 4px 0 !important;
+}
+
+/* Fix for Figma and other email templates */
+.email-content [style*="font-family"] {
+  font-family: inherit !important;
+}
+
+.email-content [style*="color"] {
+  color: inherit !important;
+}
+
+/* Responsive email content */
+@media (max-width: 640px) {
+  .email-content table {
+    font-size: 0.875rem !important;
+  }
+  
+  .email-content td,
+  .email-content th {
+    padding: 6px 8px !important;
+  }
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .email-content {
+    color: hsl(var(--foreground)) !important;
+  }
+}
