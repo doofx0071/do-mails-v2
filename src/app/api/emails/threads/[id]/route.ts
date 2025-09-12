@@ -16,7 +16,8 @@ export async function GET(
     const threadId = params.id
 
     // Validate thread ID format (UUID)
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
     if (!uuidRegex.test(threadId)) {
       return NextResponse.json(
         { error: 'Invalid thread ID format' },
@@ -24,12 +25,13 @@ export async function GET(
       )
     }
 
-    // Get thread and verify ownership
+    // Get thread and verify ownership (handle both alias-based and catch-all threads)
     const { data: thread, error: threadError } = await supabase
       .from('email_threads')
-      .select(`
+      .select(
+        `
         *,
-        email_aliases!inner(
+        email_aliases(
           id,
           alias_name,
           domains!inner(
@@ -37,20 +39,32 @@ export async function GET(
             domain_name,
             user_id
           )
+        ),
+        domains!inner(
+          id,
+          domain_name,
+          user_id
         )
-      `)
+      `
+      )
       .eq('id', threadId)
-      .eq('email_aliases.domains.user_id', user.id)
+      .or(
+        `email_aliases.domains.user_id.eq.${user.id},domains.user_id.eq.${user.id}`
+      )
       .single()
 
     if (threadError) {
-      if (threadError.code === 'PGRST116') { // No rows returned
+      if (threadError.code === 'PGRST116') {
+        // No rows returned
+        console.error(
+          `Thread ${threadId} not found or access denied for user ${user.id}`
+        )
         return NextResponse.json(
           { error: 'Thread not found or access denied' },
           { status: 404 }
         )
       }
-      
+
       console.error('Database error fetching thread:', threadError)
       return NextResponse.json(
         { error: 'Failed to fetch thread' },
@@ -58,13 +72,33 @@ export async function GET(
       )
     }
 
+    // Verify ownership (either through alias or direct domain ownership)
+    const hasAccess =
+      (thread.email_aliases &&
+        thread.email_aliases.domains.user_id === user.id) ||
+      (thread.domains && thread.domains.user_id === user.id)
+
+    if (!hasAccess) {
+      console.error(
+        `User ${user.id} does not have access to thread ${threadId}`
+      )
+      return NextResponse.json(
+        { error: 'Thread not found or access denied' },
+        { status: 404 }
+      )
+    }
+
+    console.log(`✅ User ${user.id} has access to thread ${threadId}`)
+
     // Get messages for this thread
     const { data: messages, error: messagesError } = await supabase
       .from('email_messages')
-      .select(`
+      .select(
+        `
         *,
         email_attachments(*)
-      `)
+      `
+      )
       .eq('thread_id', threadId)
       .order('received_at', { ascending: true })
 
@@ -91,9 +125,9 @@ export async function GET(
       alias: {
         id: thread.email_aliases.id,
         alias_name: thread.email_aliases.alias_name,
-        full_address: `${thread.email_aliases.alias_name}@${thread.email_aliases.domains.domain_name}`
+        full_address: `${thread.email_aliases.alias_name}@${thread.email_aliases.domains.domain_name}`,
       },
-      messages: (messages || []).map(message => ({
+      messages: (messages || []).map((message) => ({
         id: message.id,
         thread_id: message.thread_id,
         alias_id: message.alias_id,
@@ -112,22 +146,18 @@ export async function GET(
         mailgun_message_id: message.mailgun_message_id,
         received_at: message.received_at,
         created_at: message.created_at,
-        attachments: message.email_attachments || []
-      }))
+        attachments: message.email_attachments || [],
+      })),
     }
 
-    return NextResponse.json(
-      responseThread,
-      { 
-        status: 200,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, PATCH, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-        }
-      }
-    )
-
+    return NextResponse.json(responseThread, {
+      status: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, PATCH, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
+    })
   } catch (error) {
     console.error('Unexpected error:', error)
     return NextResponse.json(
@@ -152,7 +182,8 @@ export async function PATCH(
     const threadId = params.id
 
     // Validate thread ID format (UUID)
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
     if (!uuidRegex.test(threadId)) {
       return NextResponse.json(
         { error: 'Invalid thread ID format' },
@@ -182,11 +213,16 @@ export async function PATCH(
 
     // Validate that at least one field is provided for update
     const allowedFields = ['is_archived', 'labels']
-    const providedFields = Object.keys(body).filter(key => allowedFields.includes(key))
-    
+    const providedFields = Object.keys(body).filter((key) =>
+      allowedFields.includes(key)
+    )
+
     if (providedFields.length === 0) {
       return NextResponse.json(
-        { error: 'At least one field must be provided for update: is_archived, labels' },
+        {
+          error:
+            'At least one field must be provided for update: is_archived, labels',
+        },
         { status: 400 }
       )
     }
@@ -194,24 +230,27 @@ export async function PATCH(
     // Verify thread exists and user owns it
     const { data: existingThread, error: threadError } = await supabase
       .from('email_threads')
-      .select(`
+      .select(
+        `
         id,
         email_aliases!inner(
           domains!inner(user_id)
         )
-      `)
+      `
+      )
       .eq('id', threadId)
       .eq('email_aliases.domains.user_id', user.id)
       .single()
 
     if (threadError) {
-      if (threadError.code === 'PGRST116') { // No rows returned
+      if (threadError.code === 'PGRST116') {
+        // No rows returned
         return NextResponse.json(
           { error: 'Thread not found or access denied' },
           { status: 404 }
         )
       }
-      
+
       console.error('Database error fetching thread:', threadError)
       return NextResponse.json(
         { error: 'Failed to fetch thread' },
@@ -221,7 +260,7 @@ export async function PATCH(
 
     // Prepare update data
     const updateData: any = {
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     }
 
     // Validate and process is_archived if provided
@@ -243,7 +282,7 @@ export async function PATCH(
           { status: 400 }
         )
       }
-      
+
       // Validate each label is a string
       for (const label of body.labels) {
         if (typeof label !== 'string') {
@@ -253,7 +292,7 @@ export async function PATCH(
           )
         }
       }
-      
+
       updateData.labels = body.labels
     }
 
@@ -262,7 +301,8 @@ export async function PATCH(
       .from('email_threads')
       .update(updateData)
       .eq('id', threadId)
-      .select(`
+      .select(
+        `
         *,
         email_aliases!inner(
           id,
@@ -271,7 +311,8 @@ export async function PATCH(
             domain_name
           )
         )
-      `)
+      `
+      )
       .single()
 
     if (updateError) {
@@ -297,22 +338,18 @@ export async function PATCH(
       alias: {
         id: updatedThread.email_aliases.id,
         alias_name: updatedThread.email_aliases.alias_name,
-        full_address: `${updatedThread.email_aliases.alias_name}@${updatedThread.email_aliases.domains.domain_name}`
-      }
+        full_address: `${updatedThread.email_aliases.alias_name}@${updatedThread.email_aliases.domains.domain_name}`,
+      },
     }
 
-    return NextResponse.json(
-      responseThread,
-      { 
-        status: 200,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, PATCH, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-        }
-      }
-    )
-
+    return NextResponse.json(responseThread, {
+      status: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, PATCH, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
+    })
   } catch (error) {
     console.error('Unexpected error:', error)
     return NextResponse.json(
@@ -333,7 +370,7 @@ export async function OPTIONS() {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, PATCH, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      'Access-Control-Max-Age': '86400'
-    }
+      'Access-Control-Max-Age': '86400',
+    },
   })
 }
