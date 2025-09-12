@@ -43,7 +43,8 @@ export default function MailPage() {
 
       if (response.ok) {
         const data = await response.json()
-        console.log('Fetched threads:', data)
+        console.log('📧 Fetched threads:', data.threads?.length || 0)
+        console.log('🔍 Raw threads sample:', data.threads?.slice(0, 2))
 
         // Transform API data to match EmailThread interface
         const transformedThreads: EmailThread[] = await Promise.all(
@@ -109,6 +110,10 @@ export default function MailPage() {
           })
         )
 
+        console.log(
+          '🔍 Transformed threads sample:',
+          transformedThreads.slice(0, 2)
+        )
         setThreads(transformedThreads)
       } else {
         console.error('Failed to fetch threads:', response.status)
