@@ -36,17 +36,17 @@ export async function POST(request: NextRequest) {
 
     // Verify webhook signature first
     const signature = request.headers.get('x-mailgun-signature-256')
-    const timestamp = request.headers.get('x-mailgun-timestamp')
+    const signatureTimestamp = request.headers.get('x-mailgun-timestamp')
     const token = request.headers.get('x-mailgun-token')
 
     // Temporarily disable signature verification for debugging
     console.log('Webhook headers:', {
       signature: !!signature,
-      timestamp: !!timestamp,
+      timestamp: !!signatureTimestamp,
       token: !!token,
     })
 
-    if (!signature || !timestamp || !token) {
+    if (!signature || !signatureTimestamp || !token) {
       console.warn(
         'Missing Mailgun signature headers - proceeding without verification for debugging'
       )
