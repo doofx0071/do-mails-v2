@@ -14,6 +14,7 @@ import {
   Mail as MailIcon,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import { sanitizeEmailHtml } from '@/lib/email-sanitizer'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -287,7 +288,7 @@ export function MailDisplay({ thread }: MailDisplayProps) {
                     <div
                       className="email-content prose prose-sm prose-headings:text-foreground prose-p:text-foreground prose-a:text-blue-600 prose-strong:text-foreground prose-em:text-foreground prose-code:text-foreground prose-pre:bg-muted prose-pre:text-foreground prose-blockquote:text-muted-foreground prose-th:text-foreground prose-td:text-foreground prose-img:rounded-md max-w-none"
                       dangerouslySetInnerHTML={{
-                        __html: message.body_html,
+                        __html: sanitizeEmailHtml(message.body_html),
                       }}
                       style={{
                         wordWrap: 'break-word',

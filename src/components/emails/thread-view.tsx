@@ -23,6 +23,7 @@ import {
   Calendar,
   Paperclip,
 } from 'lucide-react'
+import { sanitizeEmailHtml } from '@/lib/email-sanitizer'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -400,7 +401,9 @@ export function ThreadView({ threadId }: ThreadViewProps) {
                     {message.body_html ? (
                       <div
                         className="email-content prose prose-sm prose-headings:text-foreground prose-p:text-foreground prose-a:text-blue-600 prose-strong:text-foreground prose-em:text-foreground prose-code:text-foreground prose-pre:bg-muted prose-pre:text-foreground prose-blockquote:text-muted-foreground prose-th:text-foreground prose-td:text-foreground prose-img:rounded-md max-w-none"
-                        dangerouslySetInnerHTML={{ __html: message.body_html }}
+                        dangerouslySetInnerHTML={{
+                          __html: sanitizeEmailHtml(message.body_html),
+                        }}
                         style={{
                           wordWrap: 'break-word',
                           overflowWrap: 'break-word',

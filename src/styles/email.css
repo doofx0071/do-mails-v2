@@ -8,6 +8,13 @@
   contain: layout style !important;
   isolation: isolate !important;
   position: relative !important;
+  /* Create a new stacking context */
+  z-index: 0 !important;
+  /* Prevent any overflow that might affect layout */
+  overflow: hidden !important;
+  /* Ensure content stays within bounds */
+  width: 100% !important;
+  max-width: 100% !important;
 }
 
 .email-content * {
