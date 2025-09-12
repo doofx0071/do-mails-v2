@@ -62,6 +62,7 @@ export default function MailPage() {
               )
               if (threadResponse.ok) {
                 const threadData = await threadResponse.json()
+                console.log(`🔍 Thread ${thread.id} data:`, threadData)
                 messages = (threadData.messages || []).map((msg: any) => ({
                   id: msg.id,
                   threadId: thread.id,
@@ -74,6 +75,9 @@ export default function MailPage() {
                   createdAt: msg.created_at,
                   isRead: true, // TODO: Add read status
                 }))
+              }
+              } else {
+                console.error(`❌ Failed to fetch thread ${thread.id}:`, threadResponse.status)
               }
             } catch (error) {
               console.error('Error fetching thread messages:', error)
@@ -89,13 +93,17 @@ export default function MailPage() {
             )
             if (hasSentMessages) labels.push('sent')
 
-            // Extract participants
-            const participants = Array.from(
-              new Set([
-                ...messages.map((msg) => msg.fromAddress),
-                ...messages.flatMap((msg) => msg.toAddresses),
-              ])
-            ).filter((email) => email && email.trim() !== '')
+            // Extract participants - use thread.participants if available, otherwise from messages
+            let participants = thread.participants || []
+            if (participants.length === 0 && messages.length > 0) {
+              participants = Array.from(
+                new Set([
+                  ...messages.map((msg) => msg.fromAddress),
+                  ...messages.flatMap((msg) => msg.toAddresses),
+                ])
+              ).filter((email) => email && email.trim() !== '')
+            }
+            console.log(`🔍 Thread ${thread.id} participants:`, participants)
 
             return {
               id: thread.id,
