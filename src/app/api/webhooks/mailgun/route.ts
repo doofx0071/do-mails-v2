@@ -60,7 +60,36 @@ export async function POST(request: NextRequest) {
     if (contentType.includes('application/json')) {
       // Handle JSON content type
       console.log('📦 Parsing JSON webhook data...')
-      webhookData = await request.json()
+      const jsonData = await request.json()
+
+      // Check if data is nested under 'event-data' (Mailgun event format)
+      if (jsonData['event-data']) {
+        console.log('📦 Found event-data structure, extracting message data...')
+        const eventData = jsonData['event-data']
+        const message = eventData.message || {}
+
+        // Map event-data structure to webhook format
+        webhookData = {
+          recipient: eventData.recipient,
+          from: message.headers?.from || eventData.envelope?.sender,
+          subject: message.headers?.subject,
+          'body-plain': message['body-plain'] || '',
+          'body-html': message['body-html'] || '',
+          'Message-Id': message.headers?.['message-id'],
+          'In-Reply-To': message.headers?.['in-reply-to'],
+          References: message.headers?.references,
+          timestamp: eventData.timestamp,
+          signature: jsonData.signature,
+          token: eventData.token,
+          To: message.headers?.to,
+          Cc: message.headers?.cc,
+          Bcc: message.headers?.bcc,
+        }
+        console.log('📦 Mapped event-data to webhook format')
+      } else {
+        // Direct webhook format
+        webhookData = jsonData
+      }
     } else if (
       contentType.includes('multipart/form-data') ||
       contentType.includes('application/x-www-form-urlencoded')
