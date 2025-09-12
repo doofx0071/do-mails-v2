@@ -168,7 +168,7 @@ export function MailDisplay({ thread }: MailDisplayProps) {
               thread.messages[0]?.body_html ||
               thread.messages[0]?.bodyPlain ||
               thread.messages[0]?.bodyHtml ||
-              'No content'}
+              `This thread contains ${thread.messageCount} message${thread.messageCount !== 1 ? 's' : ''}. Click on a thread to load and view the full conversation.`}
           </div>
           <Separator className="mt-auto" />
           <div className="p-4">

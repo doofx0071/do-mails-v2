@@ -1,12 +1,12 @@
-"use client"
+'use client'
 
-import { formatDistanceToNow } from "date-fns"
+import { formatDistanceToNow } from 'date-fns'
 
-import { cn } from "@/lib/utils"
-import { Badge } from "@/components/ui/badge"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { useMail } from "@/components/mail/use-mail"
-import { EmailThread } from "./mail"
+import { cn } from '@/lib/utils'
+import { Badge } from '@/components/ui/badge'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { useMail } from '@/components/mail/use-mail'
+import { EmailThread } from './mail'
 
 interface MailListProps {
   items: EmailThread[]
@@ -22,8 +22,8 @@ export function MailList({ items }: MailListProps) {
           <button
             key={item.id}
             className={cn(
-              "flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all hover:bg-accent",
-              mail.selected === item.id && "bg-muted"
+              'flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all hover:bg-accent',
+              mail.selected === item.id && 'bg-muted'
             )}
             onClick={() =>
               setMail({
@@ -36,8 +36,8 @@ export function MailList({ items }: MailListProps) {
               <div className="flex items-center">
                 <div className="flex items-center gap-2">
                   <div className="font-semibold">
-                    {item.participants.length > 0 
-                      ? item.participants[0].split('@')[0] 
+                    {item.participants.length > 0
+                      ? item.participants[0].split('@')[0]
                       : 'Unknown'}
                   </div>
                   {!item.isRead && (
@@ -46,10 +46,10 @@ export function MailList({ items }: MailListProps) {
                 </div>
                 <div
                   className={cn(
-                    "ml-auto text-xs",
+                    'ml-auto text-xs',
                     mail.selected === item.id
-                      ? "text-foreground"
-                      : "text-muted-foreground"
+                      ? 'text-foreground'
+                      : 'text-muted-foreground'
                   )}
                 >
                   {formatDistanceToNow(new Date(item.lastMessageAt), {
@@ -60,7 +60,8 @@ export function MailList({ items }: MailListProps) {
               <div className="text-xs font-medium">{item.subject}</div>
             </div>
             <div className="line-clamp-2 text-xs text-muted-foreground">
-              {item.messages[0]?.bodyPlain?.substring(0, 300) || "No content"}
+              {item.messages[0]?.bodyPlain?.substring(0, 300) ||
+                `${item.messageCount} message${item.messageCount !== 1 ? 's' : ''} • Click to view`}
             </div>
             {item.labels.length ? (
               <div className="flex items-center gap-2">
@@ -78,18 +79,20 @@ export function MailList({ items }: MailListProps) {
   )
 }
 
-function getBadgeVariantFromLabel(label: string): "default" | "secondary" | "destructive" | "outline" {
-  if (["work"].includes(label.toLowerCase())) {
-    return "default"
+function getBadgeVariantFromLabel(
+  label: string
+): 'default' | 'secondary' | 'destructive' | 'outline' {
+  if (['work'].includes(label.toLowerCase())) {
+    return 'default'
   }
 
-  if (["personal"].includes(label.toLowerCase())) {
-    return "outline"
+  if (['personal'].includes(label.toLowerCase())) {
+    return 'outline'
   }
 
-  if (["important"].includes(label.toLowerCase())) {
-    return "destructive"
+  if (['important'].includes(label.toLowerCase())) {
+    return 'destructive'
   }
 
-  return "secondary"
+  return 'secondary'
 }
