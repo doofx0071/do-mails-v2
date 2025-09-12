@@ -53,13 +53,30 @@ export async function POST(request: NextRequest) {
       // Don't return error, continue processing
     }
 
-    // Parse the webhook data
-    const formData = await request.formData()
-    const webhookData: any = {}
+    // Parse the webhook data based on content type
+    const contentType = request.headers.get('content-type') || ''
+    let webhookData: any = {}
 
-    // Convert FormData to object
-    for (const [key, value] of formData.entries()) {
-      webhookData[key] = value
+    if (contentType.includes('application/json')) {
+      // Handle JSON content type
+      console.log('📦 Parsing JSON webhook data...')
+      webhookData = await request.json()
+    } else if (
+      contentType.includes('multipart/form-data') ||
+      contentType.includes('application/x-www-form-urlencoded')
+    ) {
+      // Handle form data content type
+      console.log('📦 Parsing form data webhook data...')
+      const formData = await request.formData()
+      for (const [key, value] of formData.entries()) {
+        webhookData[key] = value
+      }
+    } else {
+      console.error('❌ Unsupported content type:', contentType)
+      return NextResponse.json(
+        { error: 'Unsupported content type', contentType },
+        { status: 400 }
+      )
     }
 
     console.log('Webhook data keys:', Object.keys(webhookData))
