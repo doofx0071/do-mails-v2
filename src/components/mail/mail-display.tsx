@@ -1,6 +1,6 @@
-"use client"
+'use client'
 
-import { format } from "date-fns"
+import { format } from 'date-fns'
 import {
   Archive,
   ArchiveX,
@@ -10,26 +10,26 @@ import {
   Reply,
   ReplyAll,
   Trash2,
-} from "lucide-react"
+} from 'lucide-react'
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
-import { Switch } from "@/components/ui/switch"
-import { Textarea } from "@/components/ui/textarea"
+} from '@/components/ui/dropdown-menu'
+import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
+import { Switch } from '@/components/ui/switch'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip"
-import { EmailThread } from "./mail"
+} from '@/components/ui/tooltip'
+import { EmailThread } from './mail'
 
 interface MailDisplayProps {
   thread: EmailThread | null
@@ -142,28 +142,33 @@ export function MailDisplay({ thread }: MailDisplayProps) {
                 <AvatarImage alt={thread.participants[0]} />
                 <AvatarFallback>
                   {thread.participants[0]
-                    ?.split(" ")
+                    ?.split(' ')
                     .map((chunk) => chunk[0])
-                    .join("")}
+                    .join('')}
                 </AvatarFallback>
               </Avatar>
               <div className="grid gap-1">
                 <div className="font-semibold">{thread.participants[0]}</div>
                 <div className="line-clamp-1 text-xs">{thread.subject}</div>
                 <div className="line-clamp-1 text-xs">
-                  <span className="font-medium">Reply-To:</span> {thread.participants[0]}
+                  <span className="font-medium">Reply-To:</span>{' '}
+                  {thread.participants[0]}
                 </div>
               </div>
             </div>
             {thread.lastMessageAt && (
               <div className="ml-auto text-xs text-muted-foreground">
-                {format(new Date(thread.lastMessageAt), "PPpp")}
+                {format(new Date(thread.lastMessageAt), 'PPpp')}
               </div>
             )}
           </div>
           <Separator />
           <div className="flex-1 whitespace-pre-wrap p-4 text-sm">
-            {thread.messages[0]?.bodyPlain || thread.messages[0]?.bodyHtml || "No content"}
+            {thread.messages[0]?.body_text ||
+              thread.messages[0]?.body_html ||
+              thread.messages[0]?.bodyPlain ||
+              thread.messages[0]?.bodyHtml ||
+              'No content'}
           </div>
           <Separator className="mt-auto" />
           <div className="p-4">
