@@ -103,17 +103,7 @@ export function MailDisplay({ thread }: MailDisplayProps) {
   const today = new Date()
 
   if (!thread) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <div className="text-center">
-          <MailIcon className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-          <h3 className="text-lg font-medium">No message selected</h3>
-          <p className="text-sm text-muted-foreground">
-            Choose a message from the list to view its contents
-          </p>
-        </div>
-      </div>
-    )
+    return null
   }
 
   return (
@@ -286,7 +276,7 @@ export function MailDisplay({ thread }: MailDisplayProps) {
                 <div className="text-sm">
                   {message.body_html ? (
                     <div
-                      className="email-content prose prose-sm prose-headings:text-foreground prose-p:text-foreground prose-a:text-blue-600 prose-strong:text-foreground prose-em:text-foreground prose-code:text-foreground prose-pre:bg-muted prose-pre:text-foreground prose-blockquote:text-muted-foreground prose-th:text-foreground prose-td:text-foreground prose-img:rounded-md max-w-none"
+                      className="email-content prose prose-sm max-w-none prose-headings:text-foreground prose-p:text-foreground prose-a:text-blue-600 prose-blockquote:text-muted-foreground prose-strong:text-foreground prose-em:text-foreground prose-code:text-foreground prose-pre:bg-muted prose-pre:text-foreground prose-th:text-foreground prose-td:text-foreground prose-img:rounded-md"
                       dangerouslySetInnerHTML={{
                         __html: sanitizeEmailHtml(message.body_html),
                       }}
