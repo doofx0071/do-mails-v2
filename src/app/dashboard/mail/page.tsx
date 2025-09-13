@@ -28,7 +28,7 @@ export default function MailPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
   const [hasMore, setHasMore] = useState(false)
-  const itemsPerPage = 10
+  const itemsPerPage = 50
 
   // Fetch emails from API
   const fetchEmails = async (page: number = 1) => {
@@ -111,7 +111,6 @@ export default function MailPage() {
 
   // Handle page change
   const handlePageChange = (page: number) => {
-    setLoading(true)
     fetchEmails(page)
   }
 

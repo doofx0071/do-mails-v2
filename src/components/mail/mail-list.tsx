@@ -12,8 +12,8 @@ import { Mail as MailIcon, ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useMail } from '@/components/mail/use-mail'
 import { EmailThread, PaginationInfo } from './mail'
 
@@ -31,16 +31,6 @@ function formatEmailTime(date: Date): string {
   } else {
     return format(date, 'M/d/yy')
   }
-}
-
-function getAvatarUrl(email: string): string {
-  // Use Gravatar first, fallback to a more theme-appropriate avatar service
-  const emailHash = btoa(email.toLowerCase().trim()).replace(
-    /[^a-zA-Z0-9]/g,
-    ''
-  )
-  // Using a more subtle avatar service that works better with themes
-  return `https://api.dicebear.com/7.x/thumbs/svg?seed=${encodeURIComponent(email)}&backgroundColor=transparent&shapeColor=6b7280,9ca3af,d1d5db`
 }
 
 export function MailList({ items, onEmailSelect, pagination }: MailListProps) {
@@ -84,28 +74,10 @@ export function MailList({ items, onEmailSelect, pagination }: MailListProps) {
                 }
               }}
             >
-              <Avatar className="h-8 w-8">
-                <AvatarImage
-                  src={
-                    item.participants.length > 0
-                      ? getAvatarUrl(item.participants[0])
-                      : undefined
-                  }
-                  alt={
-                    item.participants.length > 0
-                      ? item.participants[0].split('@')[0]
-                      : 'Unknown'
-                  }
-                />
-                <AvatarFallback className="bg-muted text-xs font-medium text-muted-foreground">
-                  {item.participants.length > 0
-                    ? item.participants[0]
-                        .split('@')[0]
-                        ?.charAt(0)
-                        ?.toUpperCase() || 'U'
-                    : 'U'}
-                </AvatarFallback>
-              </Avatar>
+              <Checkbox
+                className="h-4 w-4"
+                onClick={(e) => e.stopPropagation()}
+              />
 
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">

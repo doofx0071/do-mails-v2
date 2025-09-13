@@ -161,82 +161,108 @@ export default function DashboardLayout({
   )
 
   return (
-    <div className="flex h-screen bg-background">
-      {/* Desktop sidebar */}
+    <div className="relative min-h-screen w-full bg-white dark:bg-[#020617]">
+      {/* Grid Background */}
       <div
-        className={`hidden transition-all duration-300 lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:flex-col ${sidebarCollapsed ? 'lg:w-20' : 'lg:w-72'}`}
-      >
-        <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r bg-card">
-          <SidebarContent />
-        </div>
-      </div>
+        className="absolute inset-0 z-0"
+        style={{
+          backgroundImage: `
+            linear-gradient(to right, #e5e7eb 1px, transparent 1px),
+            linear-gradient(to bottom, #e5e7eb 1px, transparent 1px)
+          `,
+          backgroundSize: '40px 40px',
+        }}
+      />
+      {/* Dark Mode Grid Background */}
+      <div
+        className="absolute inset-0 z-0 hidden dark:block"
+        style={{
+          background: '#020617',
+          backgroundImage: `
+            linear-gradient(to right, rgba(100,116,139,0.4) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(100,116,139,0.4) 1px, transparent 1px)
+          `,
+          backgroundSize: '40px 40px',
+        }}
+      />
 
-      {/* Mobile sidebar */}
-      <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-        <SheetContent side="left" className="w-72 p-0">
-          <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-card">
+      <div className="relative z-10 flex h-screen bg-transparent">
+        {/* Desktop sidebar */}
+        <div
+          className={`hidden transition-all duration-300 lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:flex-col ${sidebarCollapsed ? 'lg:w-20' : 'lg:w-72'}`}
+        >
+          <div className="flex grow flex-col gap-y-5 overflow-y-auto border-r bg-card">
             <SidebarContent />
           </div>
-        </SheetContent>
+        </div>
 
-        {/* Main content */}
-        <div
-          className={`flex flex-1 flex-col transition-all duration-300 ${sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-72'}`}
-        >
-          {/* Top bar */}
-          <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b bg-background px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="sm" className="lg:hidden">
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Open sidebar</span>
-              </Button>
-            </SheetTrigger>
+        {/* Mobile sidebar */}
+        <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+          <SheetContent side="left" className="w-72 p-0">
+            <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-card">
+              <SidebarContent />
+            </div>
+          </SheetContent>
 
-            <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
-              <div className="flex flex-1"></div>
+          {/* Main content */}
+          <div
+            className={`flex flex-1 flex-col transition-all duration-300 ${sidebarCollapsed ? 'lg:pl-20' : 'lg:pl-72'}`}
+          >
+            {/* Top bar */}
+            <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b bg-background px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="sm" className="lg:hidden">
+                  <Menu className="h-5 w-5" />
+                  <span className="sr-only">Open sidebar</span>
+                </Button>
+              </SheetTrigger>
 
-              {/* Desktop user menu */}
-              <div className="hidden lg:flex lg:items-center lg:gap-x-6">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback>
-                          <User className="h-4 w-4" />
-                        </AvatarFallback>
-                      </Avatar>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuItem asChild>
-                      <Link href="/dashboard/settings">
-                        <Settings className="mr-2 h-4 w-4" />
-                        Settings
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleSignOut}>
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Sign out
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+              <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
+                <div className="flex flex-1"></div>
+
+                {/* Desktop user menu */}
+                <div className="hidden lg:flex lg:items-center lg:gap-x-6">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback>
+                            <User className="h-4 w-4" />
+                          </AvatarFallback>
+                        </Avatar>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuItem asChild>
+                        <Link href="/dashboard/settings">
+                          <Settings className="mr-2 h-4 w-4" />
+                          Settings
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleSignOut}>
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Sign out
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Page content */}
-          <main
-            className={`flex-1 ${pathname === '/dashboard/mail' ? 'overflow-hidden' : 'overflow-y-auto'}`}
-          >
-            {pathname === '/dashboard/mail' ? (
-              <div className="h-full">{children}</div>
-            ) : (
-              <div className="px-4 py-6 sm:px-6 lg:px-8">{children}</div>
-            )}
-          </main>
-        </div>
-      </Sheet>
+            {/* Page content */}
+            <main
+              className={`flex-1 ${pathname === '/dashboard/mail' ? 'overflow-hidden' : 'overflow-y-auto'}`}
+            >
+              {pathname === '/dashboard/mail' ? (
+                <div className="h-full">{children}</div>
+              ) : (
+                <div className="px-4 py-6 sm:px-6 lg:px-8">{children}</div>
+              )}
+            </main>
+          </div>
+        </Sheet>
+      </div>
     </div>
   )
 }

@@ -89,9 +89,11 @@ export function Mail({
     React.useState<EmailThread | null>(null)
 
   // Calculate counts for navigation
-  const inboxCount = threads.filter(
-    (t) => !t.labels.includes('sent') && !t.labels.includes('archived')
-  ).length
+  const inboxCount =
+    pagination?.totalCount ||
+    threads.filter(
+      (t) => !t.labels.includes('sent') && !t.labels.includes('archived')
+    ).length
   const sentCount = threads.filter((t) => t.labels.includes('sent')).length
   const unreadCount = threads.filter((t) => !t.isRead).length
 
