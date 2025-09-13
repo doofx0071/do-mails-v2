@@ -200,10 +200,13 @@ export function Mail({
                   </div>
                 </form>
               </div>
-              <TabsContent value="all" className="m-0 flex-1">
+              <TabsContent value="all" className="m-0 flex-1 overflow-hidden">
                 <MailList items={threads} onEmailSelect={handleEmailSelect} />
               </TabsContent>
-              <TabsContent value="unread" className="m-0 flex-1">
+              <TabsContent
+                value="unread"
+                className="m-0 flex-1 overflow-hidden"
+              >
                 <MailList
                   items={threads.filter((item) => !item.isRead)}
                   onEmailSelect={handleEmailSelect}
@@ -229,7 +232,7 @@ export function Mail({
                 </h1>
               </div>
               {/* Email content */}
-              <div className="flex-1">
+              <div className="flex-1 overflow-hidden">
                 <MailDisplay thread={selectedThread} />
               </div>
             </div>
