@@ -240,7 +240,7 @@ export function MailDisplay({ thread }: MailDisplayProps) {
             <p>Error loading messages: {error}</p>
           </div>
         ) : messages.length > 0 ? (
-          <div className="space-y-6 p-6">
+          <div className="space-y-6 p-8">
             {messages.map((message, index) => (
               <div
                 key={message.id}
