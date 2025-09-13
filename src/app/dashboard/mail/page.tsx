@@ -25,9 +25,13 @@ const accounts: Account[] = [
 export default function MailPage() {
   const [threads, setThreads] = useState<EmailThread[]>([])
   const [loading, setLoading] = useState(true)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
+  const [hasMore, setHasMore] = useState(false)
+  const itemsPerPage = 10
 
   // Fetch emails from API
-  const fetchEmails = async () => {
+  const fetchEmails = async (page: number = 1) => {
     try {
       const token = localStorage.getItem('auth_token')
       if (!token) {
@@ -35,16 +39,25 @@ export default function MailPage() {
         return
       }
 
-      const response = await fetch('/api/emails/threads', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
+      const offset = (page - 1) * itemsPerPage
+      const response = await fetch(
+        `/api/emails/threads?limit=${itemsPerPage}&offset=${offset}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
 
       if (response.ok) {
         const data = await response.json()
         console.log('📧 Fetched threads:', data.threads?.length || 0)
         console.log('🔍 Raw threads sample:', data.threads?.slice(0, 2))
+
+        // Update pagination state
+        setTotalCount(data.total || 0)
+        setHasMore(data.has_more || false)
+        setCurrentPage(page)
 
         // Transform API data to match EmailThread interface
         // Use participants directly from threads API - no need to fetch individual threads for list view
@@ -93,8 +106,14 @@ export default function MailPage() {
 
   // Load emails on component mount
   useEffect(() => {
-    fetchEmails()
+    fetchEmails(1)
   }, [])
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setLoading(true)
+    fetchEmails(page)
+  }
 
   if (loading) {
     return (
@@ -115,6 +134,13 @@ export default function MailPage() {
         defaultLayout={[20, 32, 48]}
         defaultCollapsed={false}
         navCollapsedSize={4}
+        pagination={{
+          currentPage,
+          totalCount,
+          itemsPerPage,
+          hasMore,
+          onPageChange: handlePageChange,
+        }}
       />
     </div>
   )

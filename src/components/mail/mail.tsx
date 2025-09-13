@@ -58,12 +58,21 @@ export interface Account {
   icon: React.ReactNode
 }
 
+export interface PaginationInfo {
+  currentPage: number
+  totalCount: number
+  itemsPerPage: number
+  hasMore: boolean
+  onPageChange: (page: number) => void
+}
+
 interface MailProps {
   accounts: Account[]
   threads: EmailThread[]
   defaultLayout?: number[]
   defaultCollapsed?: boolean
   navCollapsedSize: number
+  pagination?: PaginationInfo
 }
 
 export function Mail({
@@ -72,6 +81,7 @@ export function Mail({
   defaultLayout = [20, 32, 48],
   defaultCollapsed = false,
   navCollapsedSize,
+  pagination,
 }: MailProps) {
   const [isCollapsed, setIsCollapsed] = React.useState(defaultCollapsed)
   const [viewMode, setViewMode] = React.useState<'list' | 'email'>('list')
@@ -201,7 +211,11 @@ export function Mail({
                 </form>
               </div>
               <TabsContent value="all" className="m-0 flex-1 overflow-hidden">
-                <MailList items={threads} onEmailSelect={handleEmailSelect} />
+                <MailList
+                  items={threads}
+                  onEmailSelect={handleEmailSelect}
+                  pagination={pagination}
+                />
               </TabsContent>
               <TabsContent
                 value="unread"
@@ -210,6 +224,7 @@ export function Mail({
                 <MailList
                   items={threads.filter((item) => !item.isRead)}
                   onEmailSelect={handleEmailSelect}
+                  pagination={pagination}
                 />
               </TabsContent>
             </Tabs>

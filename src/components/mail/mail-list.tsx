@@ -7,18 +7,20 @@ import {
   isYesterday,
   isThisYear,
 } from 'date-fns'
-import { Mail as MailIcon } from 'lucide-react'
+import { Mail as MailIcon, ChevronLeft, ChevronRight } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useMail } from '@/components/mail/use-mail'
-import { EmailThread } from './mail'
+import { EmailThread, PaginationInfo } from './mail'
 
 interface MailListProps {
   items: EmailThread[]
   onEmailSelect?: (thread: EmailThread) => void
+  pagination?: PaginationInfo
 }
 
 function formatEmailTime(date: Date): string {
@@ -41,7 +43,7 @@ function getAvatarUrl(email: string): string {
   return `https://api.dicebear.com/7.x/thumbs/svg?seed=${encodeURIComponent(email)}&backgroundColor=transparent&shapeColor=6b7280,9ca3af,d1d5db`
 }
 
-export function MailList({ items, onEmailSelect }: MailListProps) {
+export function MailList({ items, onEmailSelect, pagination }: MailListProps) {
   const [mail, setMail] = useMail()
 
   if (items.length === 0) {
@@ -61,91 +63,172 @@ export function MailList({ items, onEmailSelect }: MailListProps) {
   }
 
   return (
-    <ScrollArea className="h-full">
-      <div className="flex flex-col gap-0">
-        {items.map((item) => (
-          <button
-            key={item.id}
-            className={cn(
-              'flex items-center gap-3 rounded-none border-b border-border/30 px-4 py-3 text-left text-sm transition-all hover:bg-accent/50',
-              mail.selected === item.id && 'bg-muted'
-            )}
-            onClick={() => {
-              if (onEmailSelect) {
-                onEmailSelect(item)
-              } else {
-                setMail({
-                  ...mail,
-                  selected: item.id,
-                })
-              }
-            }}
-          >
-            <Avatar className="h-8 w-8">
-              <AvatarImage
-                src={
-                  item.participants.length > 0
-                    ? getAvatarUrl(item.participants[0])
-                    : undefined
+    <div className="flex h-full flex-col">
+      <ScrollArea className="flex-1">
+        <div className="flex flex-col gap-0">
+          {items.map((item) => (
+            <button
+              key={item.id}
+              className={cn(
+                'flex items-center gap-3 rounded-none border-b border-border/30 px-4 py-3 text-left text-sm transition-all hover:bg-accent/50',
+                mail.selected === item.id && 'bg-muted'
+              )}
+              onClick={() => {
+                if (onEmailSelect) {
+                  onEmailSelect(item)
+                } else {
+                  setMail({
+                    ...mail,
+                    selected: item.id,
+                  })
                 }
-                alt={
-                  item.participants.length > 0
-                    ? item.participants[0].split('@')[0]
-                    : 'Unknown'
-                }
-              />
-              <AvatarFallback className="bg-muted text-xs font-medium text-muted-foreground">
-                {item.participants.length > 0
-                  ? item.participants[0]
-                      .split('@')[0]
-                      ?.charAt(0)
-                      ?.toUpperCase() || 'U'
-                  : 'U'}
-              </AvatarFallback>
-            </Avatar>
-
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex min-w-0 flex-1 items-center gap-2">
-                  <span className="truncate font-medium">
-                    {item.participants.length > 0
+              }}
+            >
+              <Avatar className="h-8 w-8">
+                <AvatarImage
+                  src={
+                    item.participants.length > 0
+                      ? getAvatarUrl(item.participants[0])
+                      : undefined
+                  }
+                  alt={
+                    item.participants.length > 0
                       ? item.participants[0].split('@')[0]
-                      : 'Unknown'}
-                  </span>
-                  <span className="truncate text-sm text-muted-foreground">
-                    {item.subject}
-                  </span>
-                  {!item.isRead && (
-                    <span className="flex h-2 w-2 flex-shrink-0 rounded-full bg-blue-600" />
-                  )}
+                      : 'Unknown'
+                  }
+                />
+                <AvatarFallback className="bg-muted text-xs font-medium text-muted-foreground">
+                  {item.participants.length > 0
+                    ? item.participants[0]
+                        .split('@')[0]
+                        ?.charAt(0)
+                        ?.toUpperCase() || 'U'
+                    : 'U'}
+                </AvatarFallback>
+              </Avatar>
+
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex min-w-0 flex-1 items-center gap-2">
+                    <span className="truncate font-medium">
+                      {item.participants.length > 0
+                        ? item.participants[0].split('@')[0]
+                        : 'Unknown'}
+                    </span>
+                    <span className="truncate text-sm text-muted-foreground">
+                      {item.subject}
+                    </span>
+                    {!item.isRead && (
+                      <span className="flex h-2 w-2 flex-shrink-0 rounded-full bg-blue-600" />
+                    )}
+                  </div>
+                  <div className="flex-shrink-0 text-xs text-muted-foreground">
+                    {formatEmailTime(new Date(item.lastMessageAt))}
+                  </div>
                 </div>
-                <div className="flex-shrink-0 text-xs text-muted-foreground">
-                  {formatEmailTime(new Date(item.lastMessageAt))}
+
+                <div className="line-clamp-1 text-xs text-muted-foreground">
+                  {item.messages[0]?.bodyPlain?.substring(0, 100) || ''}
                 </div>
               </div>
 
-              <div className="line-clamp-1 text-xs text-muted-foreground">
-                {item.messages[0]?.bodyPlain?.substring(0, 100) || ''}
-              </div>
+              {item.labels.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1">
+                  {item.labels.slice(0, 2).map((label) => (
+                    <Badge
+                      key={label}
+                      variant={getBadgeVariantFromLabel(label)}
+                      className="text-xs"
+                    >
+                      {label}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </button>
+          ))}
+        </div>
+      </ScrollArea>
+
+      {/* Pagination Controls */}
+      {pagination && pagination.totalCount > pagination.itemsPerPage && (
+        <div className="border-t bg-background p-3">
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">
+              Showing{' '}
+              {(pagination.currentPage - 1) * pagination.itemsPerPage + 1} to{' '}
+              {Math.min(
+                pagination.currentPage * pagination.itemsPerPage,
+                pagination.totalCount
+              )}{' '}
+              of {pagination.totalCount} emails
             </div>
-
-            {item.labels.length > 0 && (
-              <div className="flex flex-wrap items-center gap-1">
-                {item.labels.slice(0, 2).map((label) => (
-                  <Badge
-                    key={label}
-                    variant={getBadgeVariantFromLabel(label)}
-                    className="text-xs"
-                  >
-                    {label}
-                  </Badge>
-                ))}
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  pagination.onPageChange(pagination.currentPage - 1)
+                }
+                disabled={pagination.currentPage === 1}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <div className="flex items-center space-x-1">
+                {Array.from(
+                  {
+                    length: Math.ceil(
+                      pagination.totalCount / pagination.itemsPerPage
+                    ),
+                  },
+                  (_, i) => i + 1
+                )
+                  .filter((page) => {
+                    const current = pagination.currentPage
+                    return (
+                      page === 1 ||
+                      page ===
+                        Math.ceil(
+                          pagination.totalCount / pagination.itemsPerPage
+                        ) ||
+                      (page >= current - 1 && page <= current + 1)
+                    )
+                  })
+                  .map((page, index, array) => (
+                    <div key={page} className="flex items-center">
+                      {index > 0 && array[index - 1] !== page - 1 && (
+                        <span className="px-1 text-muted-foreground">...</span>
+                      )}
+                      <Button
+                        variant={
+                          page === pagination.currentPage ? 'default' : 'ghost'
+                        }
+                        size="sm"
+                        onClick={() => pagination.onPageChange(page)}
+                        className="h-8 w-8 p-0"
+                      >
+                        {page}
+                      </Button>
+                    </div>
+                  ))}
               </div>
-            )}
-          </button>
-        ))}
-      </div>
-    </ScrollArea>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  pagination.onPageChange(pagination.currentPage + 1)
+                }
+                disabled={!pagination.hasMore}
+                className="h-8 w-8 p-0"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
 
