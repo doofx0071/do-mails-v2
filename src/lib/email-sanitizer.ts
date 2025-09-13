@@ -36,16 +36,48 @@ export function sanitizeEmailHtml(html: string): string {
   sanitized = sanitized.replace(/<base[^>]*>/gi, '')
 
   // Remove <object>, <embed>, <iframe> tags for security
-  sanitized = sanitized.replace(/<(object|embed|iframe)[^>]*>[\s\S]*?<\/\1>/gi, '')
+  sanitized = sanitized.replace(
+    /<(object|embed|iframe)[^>]*>[\s\S]*?<\/\1>/gi,
+    ''
+  )
   sanitized = sanitized.replace(/<(object|embed|iframe)[^>]*\/>/gi, '')
 
   // Remove <form> tags to prevent form submissions
   sanitized = sanitized.replace(/<\/?form[^>]*>/gi, '')
 
   // Remove dangerous CSS properties via style attributes
-  sanitized = sanitized.replace(/style\s*=\s*["'][^"']*position\s*:\s*fixed[^"']*["']/gi, '')
-  sanitized = sanitized.replace(/style\s*=\s*["'][^"']*position\s*:\s*absolute[^"']*["']/gi, '')
+  sanitized = sanitized.replace(
+    /style\s*=\s*["'][^"']*position\s*:\s*fixed[^"']*["']/gi,
+    ''
+  )
+  sanitized = sanitized.replace(
+    /style\s*=\s*["'][^"']*position\s*:\s*absolute[^"']*["']/gi,
+    ''
+  )
   sanitized = sanitized.replace(/style\s*=\s*["'][^"']*z-index[^"']*["']/gi, '')
+
+  // Remove background colors that might cause visual issues
+  sanitized = sanitized.replace(
+    /style\s*=\s*["'][^"']*background[^"']*["']/gi,
+    ''
+  )
+  sanitized = sanitized.replace(/style\s*=\s*["'][^"']*purple[^"']*["']/gi, '')
+  sanitized = sanitized.replace(/style\s*=\s*["'][^"']*violet[^"']*["']/gi, '')
+
+  // Remove transform and positioning that could cause overlays
+  sanitized = sanitized.replace(
+    /style\s*=\s*["'][^"']*transform[^"']*["']/gi,
+    ''
+  )
+  sanitized = sanitized.replace(/style\s*=\s*["'][^"']*float[^"']*["']/gi, '')
+  sanitized = sanitized.replace(
+    /style\s*=\s*["'][^"']*overflow[^"']*["']/gi,
+    ''
+  )
+
+  // As a final safety measure, remove ALL style attributes to prevent any CSS leakage
+  // This is aggressive but ensures no styling issues
+  sanitized = sanitized.replace(/\s*style\s*=\s*["'][^"']*["']/gi, '')
 
   return sanitized
 }
