@@ -171,10 +171,10 @@ export function Mail({
         </div>
 
         {/* Main content area */}
-        <div className="flex flex-1 flex-col">
+        <div className="flex h-full flex-1 flex-col">
           {viewMode === 'list' ? (
             /* List View - Gmail Inbox Style */
-            <Tabs defaultValue="all" className="flex flex-1 flex-col">
+            <Tabs defaultValue="all" className="flex h-full flex-1 flex-col">
               <div className="flex items-center border-b px-4 py-2">
                 <h1 className="text-xl font-bold">Inbox</h1>
                 <TabsList className="ml-auto">
@@ -215,7 +215,7 @@ export function Mail({
             </Tabs>
           ) : (
             /* Email View - Gmail Email Style */
-            <div className="flex flex-1 flex-col">
+            <div className="flex h-full flex-1 flex-col">
               {/* Back button header */}
               <div className="flex items-center border-b px-4 py-2">
                 <Button
