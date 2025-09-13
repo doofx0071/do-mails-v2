@@ -11,9 +11,10 @@ import { EmailThread } from './mail'
 
 interface MailListProps {
   items: EmailThread[]
+  onEmailSelect?: (thread: EmailThread) => void
 }
 
-export function MailList({ items }: MailListProps) {
+export function MailList({ items, onEmailSelect }: MailListProps) {
   const [mail, setMail] = useMail()
 
   if (items.length === 0) {
@@ -42,12 +43,16 @@ export function MailList({ items }: MailListProps) {
               'flex flex-col items-start gap-3 rounded-lg border p-4 text-left text-sm transition-all hover:bg-accent hover:shadow-sm',
               mail.selected === item.id && 'border-primary bg-muted shadow-sm'
             )}
-            onClick={() =>
-              setMail({
-                ...mail,
-                selected: item.id,
-              })
-            }
+            onClick={() => {
+              if (onEmailSelect) {
+                onEmailSelect(item)
+              } else {
+                setMail({
+                  ...mail,
+                  selected: item.id,
+                })
+              }
+            }}
           >
             <div className="flex w-full items-start justify-between gap-2">
               <div className="flex min-w-0 flex-1 items-center gap-3">
