@@ -108,7 +108,7 @@ export default function MailPage() {
   }
 
   return (
-    <div className="mail-page-no-scroll hidden h-screen flex-col overflow-hidden md:flex">
+    <div className="h-full overflow-hidden">
       <Mail
         accounts={accounts}
         threads={threads}

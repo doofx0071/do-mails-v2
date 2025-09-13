@@ -226,8 +226,8 @@ export default function DashboardLayout({
           </div>
 
           {/* Page content */}
-          <main className="flex-1 overflow-y-auto">
-            <div className="px-4 py-6 sm:px-6 lg:px-8">{children}</div>
+          <main className="flex-1 overflow-hidden">
+            <div className="h-full">{children}</div>
           </main>
         </div>
       </Sheet>

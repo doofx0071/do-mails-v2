@@ -99,7 +99,7 @@ export function Mail({
 
   return (
     <TooltipProvider delayDuration={0}>
-      <div className="flex h-full">
+      <div className="flex h-full overflow-hidden">
         {/* Sidebar - Always visible */}
         <div
           className={cn(

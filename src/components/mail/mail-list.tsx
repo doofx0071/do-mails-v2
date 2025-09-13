@@ -1,17 +1,44 @@
 'use client'
 
-import { formatDistanceToNow } from 'date-fns'
+import {
+  formatDistanceToNow,
+  format,
+  isToday,
+  isYesterday,
+  isThisYear,
+} from 'date-fns'
 import { Mail as MailIcon } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useMail } from '@/components/mail/use-mail'
 import { EmailThread } from './mail'
 
 interface MailListProps {
   items: EmailThread[]
   onEmailSelect?: (thread: EmailThread) => void
+}
+
+function formatEmailTime(date: Date): string {
+  if (isToday(date)) {
+    return format(date, 'h:mm a')
+  } else if (isThisYear(date)) {
+    return format(date, 'MMM d')
+  } else {
+    return format(date, 'M/d/yy')
+  }
+}
+
+function getAvatarUrl(email: string): string {
+  // Use Gravatar first, fallback to a more theme-appropriate avatar service
+  const emailHash = btoa(email.toLowerCase().trim()).replace(
+    /[^a-zA-Z0-9]/g,
+    ''
+  )
+  // Using a more subtle avatar service that works better with themes
+  return `https://api.dicebear.com/7.x/thumbs/svg?seed=${encodeURIComponent(email)}&backgroundColor=transparent&shapeColor=6b7280,9ca3af,d1d5db`
 }
 
 export function MailList({ items, onEmailSelect }: MailListProps) {
@@ -34,14 +61,14 @@ export function MailList({ items, onEmailSelect }: MailListProps) {
   }
 
   return (
-    <ScrollArea className="h-screen">
-      <div className="flex flex-col gap-1 p-2">
+    <ScrollArea className="h-full">
+      <div className="flex flex-col gap-0 p-0">
         {items.map((item) => (
           <button
             key={item.id}
             className={cn(
-              'flex flex-col items-start gap-3 rounded-lg border p-4 text-left text-sm transition-all hover:bg-accent hover:shadow-sm',
-              mail.selected === item.id && 'border-primary bg-muted shadow-sm'
+              'flex items-center gap-3 rounded-none border-b border-border/30 px-4 py-3 text-left text-sm transition-all hover:bg-accent/50',
+              mail.selected === item.id && 'bg-muted'
             )}
             onClick={() => {
               if (onEmailSelect) {
@@ -54,54 +81,57 @@ export function MailList({ items, onEmailSelect }: MailListProps) {
               }
             }}
           >
-            <div className="flex w-full items-start justify-between gap-2">
-              <div className="flex min-w-0 flex-1 items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-sm font-medium text-primary">
-                  {item.participants.length > 0
-                    ? item.participants[0]
-                        .split('@')[0]
-                        ?.charAt(0)
-                        ?.toUpperCase() || 'U'
-                    : 'U'}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <div className="truncate font-semibold">
-                      {item.participants.length > 0
-                        ? item.participants[0].split('@')[0]
-                        : 'Unknown'}
-                    </div>
-                    {!item.isRead && (
-                      <span className="flex h-2 w-2 flex-shrink-0 rounded-full bg-blue-600" />
-                    )}
-                  </div>
-                  <div className="truncate text-xs font-medium text-muted-foreground">
+            <Avatar className="h-8 w-8">
+              <AvatarImage
+                src={
+                  item.participants.length > 0
+                    ? getAvatarUrl(item.participants[0])
+                    : undefined
+                }
+                alt={
+                  item.participants.length > 0
+                    ? item.participants[0].split('@')[0]
+                    : 'Unknown'
+                }
+              />
+              <AvatarFallback className="bg-muted text-xs font-medium text-muted-foreground">
+                {item.participants.length > 0
+                  ? item.participants[0]
+                      .split('@')[0]
+                      ?.charAt(0)
+                      ?.toUpperCase() || 'U'
+                  : 'U'}
+              </AvatarFallback>
+            </Avatar>
+
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex min-w-0 flex-1 items-center gap-2">
+                  <span className="truncate font-medium">
                     {item.participants.length > 0
-                      ? item.participants[0]
-                      : 'Unknown sender'}
-                  </div>
+                      ? item.participants[0].split('@')[0]
+                      : 'Unknown'}
+                  </span>
+                  <span className="truncate text-sm text-muted-foreground">
+                    {item.subject}
+                  </span>
+                  {!item.isRead && (
+                    <span className="flex h-2 w-2 flex-shrink-0 rounded-full bg-blue-600" />
+                  )}
+                </div>
+                <div className="flex-shrink-0 text-xs text-muted-foreground">
+                  {formatEmailTime(new Date(item.lastMessageAt))}
                 </div>
               </div>
-              <div className="flex-shrink-0 text-xs text-muted-foreground">
-                {formatDistanceToNow(new Date(item.lastMessageAt), {
-                  addSuffix: true,
-                })}
+
+              <div className="line-clamp-1 text-xs text-muted-foreground">
+                {item.messages[0]?.bodyPlain?.substring(0, 100) || ''}
               </div>
             </div>
 
-            <div className="w-full">
-              <div className="mb-1 line-clamp-1 text-sm font-medium">
-                {item.subject}
-              </div>
-              <div className="line-clamp-2 text-xs text-muted-foreground">
-                {item.messages[0]?.bodyPlain?.substring(0, 300) ||
-                  `${item.messageCount} message${item.messageCount !== 1 ? 's' : ''} • Click to view`}
-              </div>
-            </div>
-
-            {item.labels.length ? (
-              <div className="flex flex-wrap items-center gap-2">
-                {item.labels.map((label) => (
+            {item.labels.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1">
+                {item.labels.slice(0, 2).map((label) => (
                   <Badge
                     key={label}
                     variant={getBadgeVariantFromLabel(label)}
@@ -111,7 +141,7 @@ export function MailList({ items, onEmailSelect }: MailListProps) {
                   </Badge>
                 ))}
               </div>
-            ) : null}
+            )}
           </button>
         ))}
       </div>
