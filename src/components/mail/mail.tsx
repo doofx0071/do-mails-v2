@@ -171,42 +171,6 @@ export function Mail({
               },
             ]}
           />
-          <Separator />
-          <Nav
-            isCollapsed={isCollapsed}
-            links={[
-              {
-                title: 'Social',
-                label: '0',
-                icon: Users2,
-                variant: 'ghost',
-              },
-              {
-                title: 'Updates',
-                label: '0',
-                icon: AlertCircle,
-                variant: 'ghost',
-              },
-              {
-                title: 'Forums',
-                label: '0',
-                icon: MessagesSquare,
-                variant: 'ghost',
-              },
-              {
-                title: 'Shopping',
-                label: '0',
-                icon: ShoppingCart,
-                variant: 'ghost',
-              },
-              {
-                title: 'Promotions',
-                label: '0',
-                icon: Archive,
-                variant: 'ghost',
-              },
-            ]}
-          />
         </ResizablePanel>
         <ResizableHandle withHandle />
         <ResizablePanel defaultSize={defaultLayout[1]} minSize={30}>

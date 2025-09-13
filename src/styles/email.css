@@ -1,50 +1,26 @@
-/* Email content styling with complete isolation */
+/* Simplified email content styling */
 .email-content {
-  /* Reset email styles */
-  font-family: inherit !important;
-  line-height: 1.6 !important;
-  color: inherit !important;
-  /* Complete containment to prevent style leakage */
-  contain: layout style size !important;
-  isolation: isolate !important;
-  position: relative !important;
-  /* Create a new stacking context */
-  z-index: 0 !important;
-  /* Prevent any overflow that might affect layout */
-  overflow: hidden !important;
+  /* Basic styling */
+  font-family: inherit;
+  line-height: 1.6;
+  color: inherit;
+  /* Basic containment */
+  isolation: isolate;
+  position: relative;
   /* Ensure content stays within bounds */
-  width: 100% !important;
-  max-width: 100% !important;
-  /* Force background to be transparent */
-  background: transparent !important;
-  /* Create a sandbox environment */
-  border: 1px solid transparent !important;
-  box-sizing: border-box !important;
+  width: 100%;
+  max-width: 100%;
+  /* Transparent background */
+  background: transparent;
+  box-sizing: border-box;
 }
 
 .email-content * {
-  max-width: 100% !important;
-  box-sizing: border-box !important;
-  /* Prevent any styles from affecting parent elements */
-  position: static !important;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
-/* Targeted style resets for email content - less aggressive */
-.email-content
-  *:not(img):not(svg):not(video):not(a):not(span):not(strong):not(em):not(
-    code
-  ) {
-  background-color: transparent !important;
-  background-image: none !important;
-  background: transparent !important;
-  position: static !important;
-  transform: none !important;
-  z-index: auto !important;
-  float: none !important;
-  clear: none !important;
-}
-
-/* Reset margins and padding but preserve display properties */
+/* Basic spacing resets */
 .email-content div,
 .email-content p,
 .email-content h1,
@@ -53,33 +29,19 @@
 .email-content h4,
 .email-content h5,
 .email-content h6 {
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-/* Specifically target elements that might have purple/violet backgrounds */
-.email-content *[style*='purple'],
-.email-content *[style*='violet'],
-.email-content *[style*='#8B5CF6'],
-.email-content *[style*='#A855F7'],
-.email-content *[style*='#9333EA'],
-.email-content *[style*='rgb(139, 92, 246)'],
-.email-content *[style*='rgb(168, 85, 247)'],
-.email-content *[style*='rgb(147, 51, 234)'] {
-  background-color: transparent !important;
-  background-image: none !important;
-  background: transparent !important;
+  margin: 0;
+  padding: 0;
 }
 
 /* Re-apply necessary spacing */
 .email-content p {
-  margin: 12px 0 !important;
-  padding: 0 !important;
+  margin: 12px 0;
+  padding: 0;
 }
 
 .email-content div {
-  margin: 0 !important;
-  padding: 0 !important;
+  margin: 0;
+  padding: 0;
 }
 
 .email-content img {
@@ -211,18 +173,12 @@
   }
 }
 
-/* Remove debugging styles and fix layout issues */
-
-/* Balanced email content isolation - fix layout without breaking content */
+/* Basic safety rules to prevent layout issues */
 .email-content * {
-  /* Prevent positioning issues without breaking layout */
-  position: static !important;
-  z-index: auto !important;
-  /* Remove transforms that could cause overlays */
-  transform: none !important;
-  /* Ensure proper box model */
-  box-sizing: border-box !important;
-  /* Remove floating that could affect layout */
-  float: none !important;
-  clear: none !important;
+  position: static;
+  z-index: auto;
+  transform: none;
+  box-sizing: border-box;
+  float: none;
+  clear: none;
 }
