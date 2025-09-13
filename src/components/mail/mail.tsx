@@ -1,6 +1,6 @@
-"use client"
+'use client'
 
-import * as React from "react"
+import * as React from 'react'
 import {
   AlertCircle,
   Archive,
@@ -13,28 +13,23 @@ import {
   ShoppingCart,
   Trash2,
   Users2,
-} from "lucide-react"
+} from 'lucide-react'
 
-import { cn } from "@/lib/utils"
-import { Input } from "@/components/ui/input"
+import { cn } from '@/lib/utils'
+import { Input } from '@/components/ui/input'
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from "@/components/ui/resizable"
-import { Separator } from "@/components/ui/separator"
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs"
-import { TooltipProvider } from "@/components/ui/tooltip"
-import { AccountSwitcher } from "@/components/mail/account-switcher"
-import { MailDisplay } from "@/components/mail/mail-display"
-import { MailList } from "@/components/mail/mail-list"
-import { Nav } from "@/components/mail/nav"
-import { useMail } from "@/components/mail/use-mail"
+} from '@/components/ui/resizable'
+import { Separator } from '@/components/ui/separator'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { TooltipProvider } from '@/components/ui/tooltip'
+import { AccountSwitcher } from '@/components/mail/account-switcher'
+import { MailDisplay } from '@/components/mail/mail-display'
+import { MailList } from '@/components/mail/mail-list'
+import { Nav } from '@/components/mail/nav'
+import { useMail } from '@/components/mail/use-mail'
 
 // Types for our email system
 export interface EmailThread {
@@ -86,9 +81,11 @@ export function Mail({
   const [mail] = useMail()
 
   // Calculate counts for navigation
-  const inboxCount = threads.filter(t => !t.labels.includes('sent') && !t.labels.includes('archived')).length
-  const sentCount = threads.filter(t => t.labels.includes('sent')).length
-  const unreadCount = threads.filter(t => !t.isRead).length
+  const inboxCount = threads.filter(
+    (t) => !t.labels.includes('sent') && !t.labels.includes('archived')
+  ).length
+  const sentCount = threads.filter((t) => t.labels.includes('sent')).length
+  const unreadCount = threads.filter((t) => !t.isRead).length
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -99,7 +96,7 @@ export function Mail({
             document.cookie = `react-resizable-panels:layout:mail=${JSON.stringify(sizes)}`
           }
         }}
-        className="h-full max-h-[800px] items-stretch"
+        className="h-full items-stretch"
       >
         <ResizablePanel
           defaultSize={defaultLayout[0]}
@@ -121,13 +118,13 @@ export function Mail({
           }}
           className={cn(
             isCollapsed &&
-              "min-w-[50px] transition-all duration-300 ease-in-out"
+              'min-w-[50px] transition-all duration-300 ease-in-out'
           )}
         >
           <div
             className={cn(
-              "flex h-[52px] items-center justify-center",
-              isCollapsed ? "h-[52px]" : "px-2"
+              'flex h-[52px] items-center justify-center',
+              isCollapsed ? 'h-[52px]' : 'px-2'
             )}
           >
             <AccountSwitcher isCollapsed={isCollapsed} accounts={accounts} />
@@ -137,40 +134,40 @@ export function Mail({
             isCollapsed={isCollapsed}
             links={[
               {
-                title: "Inbox",
+                title: 'Inbox',
                 label: inboxCount.toString(),
                 icon: Inbox,
-                variant: "default",
+                variant: 'default',
               },
               {
-                title: "Drafts",
-                label: "0",
+                title: 'Drafts',
+                label: '0',
                 icon: File,
-                variant: "ghost",
+                variant: 'ghost',
               },
               {
-                title: "Sent",
+                title: 'Sent',
                 label: sentCount.toString(),
                 icon: Send,
-                variant: "ghost",
+                variant: 'ghost',
               },
               {
-                title: "Junk",
-                label: "0",
+                title: 'Junk',
+                label: '0',
                 icon: ArchiveX,
-                variant: "ghost",
+                variant: 'ghost',
               },
               {
-                title: "Trash",
-                label: "0",
+                title: 'Trash',
+                label: '0',
                 icon: Trash2,
-                variant: "ghost",
+                variant: 'ghost',
               },
               {
-                title: "Archive",
-                label: "0",
+                title: 'Archive',
+                label: '0',
                 icon: Archive,
-                variant: "ghost",
+                variant: 'ghost',
               },
             ]}
           />
@@ -179,34 +176,34 @@ export function Mail({
             isCollapsed={isCollapsed}
             links={[
               {
-                title: "Social",
-                label: "0",
+                title: 'Social',
+                label: '0',
                 icon: Users2,
-                variant: "ghost",
+                variant: 'ghost',
               },
               {
-                title: "Updates",
-                label: "0",
+                title: 'Updates',
+                label: '0',
                 icon: AlertCircle,
-                variant: "ghost",
+                variant: 'ghost',
               },
               {
-                title: "Forums",
-                label: "0",
+                title: 'Forums',
+                label: '0',
                 icon: MessagesSquare,
-                variant: "ghost",
+                variant: 'ghost',
               },
               {
-                title: "Shopping",
-                label: "0",
+                title: 'Shopping',
+                label: '0',
                 icon: ShoppingCart,
-                variant: "ghost",
+                variant: 'ghost',
               },
               {
-                title: "Promotions",
-                label: "0",
+                title: 'Promotions',
+                label: '0',
                 icon: Archive,
-                variant: "ghost",
+                variant: 'ghost',
               },
             ]}
           />

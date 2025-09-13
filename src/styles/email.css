@@ -211,64 +211,18 @@
   }
 }
 
-/* Temporary debugging - add visible border to email content container */
-.email-content {
-  border: 2px solid red !important;
-  margin: 4px !important;
-}
+/* Remove debugging styles and fix layout issues */
 
-/* Emergency nuclear option - hide any element that could be causing overlay */
-.email-content div[style*='position'],
-.email-content div[style*='z-index'],
-.email-content div[style*='transform'],
-.email-content div[style*='fixed'],
-.email-content div[style*='absolute'],
-.email-content table[style*='position'],
-.email-content table[style*='z-index'] {
-  display: none !important;
-}
-
-/* Complete email content isolation - target all potential issues */
+/* Balanced email content isolation - fix layout without breaking content */
 .email-content * {
-  /* Force all elements to be contained */
+  /* Prevent positioning issues without breaking layout */
   position: static !important;
   z-index: auto !important;
+  /* Remove transforms that could cause overlays */
   transform: none !important;
-  filter: none !important;
-  backdrop-filter: none !important;
-  mix-blend-mode: normal !important;
-  /* Remove any potential overlay backgrounds */
-  background-attachment: scroll !important;
-  background-blend-mode: normal !important;
-  /* Ensure no fixed or absolute positioning */
-  top: auto !important;
-  left: auto !important;
-  right: auto !important;
-  bottom: auto !important;
-  /* Remove any potential floating or overlay effects */
-  float: none !important;
-  clear: none !important;
   /* Ensure proper box model */
   box-sizing: border-box !important;
-}
-
-/* Specifically target purple/violet elements and make them invisible */
-.email-content *[style*='purple'],
-.email-content *[style*='violet'],
-.email-content *[style*='#8B5CF6'],
-.email-content *[style*='#A855F7'],
-.email-content *[style*='#9333EA'],
-.email-content *[style*='rgb(139, 92, 246)'],
-.email-content *[style*='rgb(168, 85, 247)'],
-.email-content *[style*='rgb(147, 51, 234)'],
-.email-content *[class*='purple'],
-.email-content *[class*='violet'] {
-  background-color: transparent !important;
-  background-image: none !important;
-  background: transparent !important;
-  color: inherit !important;
-  border-color: transparent !important;
-  /* Hide completely if it's a background element */
-  opacity: 0 !important;
-  visibility: hidden !important;
+  /* Remove floating that could affect layout */
+  float: none !important;
+  clear: none !important;
 }
