@@ -75,9 +75,24 @@ export function sanitizeEmailHtml(html: string): string {
     ''
   )
 
-  // As a final safety measure, remove ALL style attributes to prevent any CSS leakage
-  // This is aggressive but ensures no styling issues
-  sanitized = sanitized.replace(/\s*style\s*=\s*["'][^"']*["']/gi, '')
+  // Remove specific problematic style attributes instead of ALL styles
+  // This preserves legitimate styling while removing dangerous ones
+  sanitized = sanitized.replace(
+    /style\s*=\s*["'][^"']*position\s*:[^"']*["']/gi,
+    ''
+  )
+  sanitized = sanitized.replace(
+    /style\s*=\s*["'][^"']*z-index\s*:[^"']*["']/gi,
+    ''
+  )
+  sanitized = sanitized.replace(
+    /style\s*=\s*["'][^"']*transform\s*:[^"']*["']/gi,
+    ''
+  )
+  sanitized = sanitized.replace(
+    /style\s*=\s*["'][^"']*overflow\s*:[^"']*["']/gi,
+    ''
+  )
 
   return sanitized
 }

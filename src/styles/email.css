@@ -1,11 +1,11 @@
-/* Email content styling with strict isolation */
+/* Email content styling with balanced isolation */
 .email-content {
   /* Reset email styles */
   font-family: inherit !important;
   line-height: 1.6 !important;
   color: inherit !important;
-  /* Strict containment to prevent style leakage */
-  contain: layout style paint !important;
+  /* Containment to prevent style leakage */
+  contain: layout style !important;
   isolation: isolate !important;
   position: relative !important;
   /* Create a new stacking context */
@@ -17,10 +17,6 @@
   max-width: 100% !important;
   /* Force background to be transparent */
   background: transparent !important;
-  /* Prevent any transforms or positioning */
-  transform: none !important;
-  /* Clip content to container */
-  clip-path: inset(0) !important;
 }
 
 .email-content * {
@@ -30,20 +26,32 @@
   position: static !important;
 }
 
-/* Aggressive style resets for email content */
-.email-content *:not(img):not(svg):not(video) {
+/* Targeted style resets for email content - less aggressive */
+.email-content
+  *:not(img):not(svg):not(video):not(a):not(span):not(strong):not(em):not(
+    code
+  ) {
   background-color: transparent !important;
   background-image: none !important;
   background: transparent !important;
-  border: none !important;
-  margin: 0 !important;
-  padding: 0 !important;
   position: static !important;
   transform: none !important;
   z-index: auto !important;
   float: none !important;
   clear: none !important;
-  display: block !important;
+}
+
+/* Reset margins and padding but preserve display properties */
+.email-content div,
+.email-content p,
+.email-content h1,
+.email-content h2,
+.email-content h3,
+.email-content h4,
+.email-content h5,
+.email-content h6 {
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 /* Specifically target elements that might have purple/violet backgrounds */
@@ -200,24 +208,19 @@
   }
 }
 
-/* Debugging styles - remove after fixing the purple block issue */
-.email-content * {
-  /* Add a subtle border to identify problematic elements */
-  outline: 1px solid rgba(255, 0, 0, 0.1) !important;
-}
-
-/* Emergency override for any purple/violet elements */
-* {
-  background-color: transparent !important;
-}
-
-*[style*='purple'],
-*[style*='violet'],
-*[style*='#8B5CF6'],
-*[style*='#A855F7'],
-*[style*='#9333EA'] {
+/* Targeted fixes for email content only - no global overrides */
+.email-content *[style*='purple'],
+.email-content *[style*='violet'],
+.email-content *[style*='#8B5CF6'],
+.email-content *[style*='#A855F7'],
+.email-content *[style*='#9333EA'],
+.email-content *[style*='rgb(139, 92, 246)'],
+.email-content *[style*='rgb(168, 85, 247)'],
+.email-content *[style*='rgb(147, 51, 234)'] {
   background-color: transparent !important;
   background-image: none !important;
   background: transparent !important;
-  display: none !important;
+  display: block !important;
+  position: static !important;
+  z-index: auto !important;
 }
