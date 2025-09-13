@@ -1,11 +1,11 @@
-/* Email content styling with balanced isolation */
+/* Email content styling with complete isolation */
 .email-content {
   /* Reset email styles */
   font-family: inherit !important;
   line-height: 1.6 !important;
   color: inherit !important;
-  /* Containment to prevent style leakage */
-  contain: layout style !important;
+  /* Complete containment to prevent style leakage */
+  contain: layout style size !important;
   isolation: isolate !important;
   position: relative !important;
   /* Create a new stacking context */
@@ -17,6 +17,9 @@
   max-width: 100% !important;
   /* Force background to be transparent */
   background: transparent !important;
+  /* Create a sandbox environment */
+  border: 1px solid transparent !important;
+  box-sizing: border-box !important;
 }
 
 .email-content * {
@@ -208,7 +211,48 @@
   }
 }
 
-/* Targeted fixes for email content only - no global overrides */
+/* Temporary debugging - add visible border to email content container */
+.email-content {
+  border: 2px solid red !important;
+  margin: 4px !important;
+}
+
+/* Emergency nuclear option - hide any element that could be causing overlay */
+.email-content div[style*='position'],
+.email-content div[style*='z-index'],
+.email-content div[style*='transform'],
+.email-content div[style*='fixed'],
+.email-content div[style*='absolute'],
+.email-content table[style*='position'],
+.email-content table[style*='z-index'] {
+  display: none !important;
+}
+
+/* Complete email content isolation - target all potential issues */
+.email-content * {
+  /* Force all elements to be contained */
+  position: static !important;
+  z-index: auto !important;
+  transform: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  mix-blend-mode: normal !important;
+  /* Remove any potential overlay backgrounds */
+  background-attachment: scroll !important;
+  background-blend-mode: normal !important;
+  /* Ensure no fixed or absolute positioning */
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  /* Remove any potential floating or overlay effects */
+  float: none !important;
+  clear: none !important;
+  /* Ensure proper box model */
+  box-sizing: border-box !important;
+}
+
+/* Specifically target purple/violet elements and make them invisible */
 .email-content *[style*='purple'],
 .email-content *[style*='violet'],
 .email-content *[style*='#8B5CF6'],
@@ -216,11 +260,15 @@
 .email-content *[style*='#9333EA'],
 .email-content *[style*='rgb(139, 92, 246)'],
 .email-content *[style*='rgb(168, 85, 247)'],
-.email-content *[style*='rgb(147, 51, 234)'] {
+.email-content *[style*='rgb(147, 51, 234)'],
+.email-content *[class*='purple'],
+.email-content *[class*='violet'] {
   background-color: transparent !important;
   background-image: none !important;
   background: transparent !important;
-  display: block !important;
-  position: static !important;
-  z-index: auto !important;
+  color: inherit !important;
+  border-color: transparent !important;
+  /* Hide completely if it's a background element */
+  opacity: 0 !important;
+  visibility: hidden !important;
 }
