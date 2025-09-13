@@ -226,8 +226,14 @@ export default function DashboardLayout({
           </div>
 
           {/* Page content */}
-          <main className="flex-1 overflow-hidden">
-            <div className="h-full">{children}</div>
+          <main
+            className={`flex-1 ${pathname === '/dashboard/mail' ? 'overflow-hidden' : 'overflow-y-auto'}`}
+          >
+            {pathname === '/dashboard/mail' ? (
+              <div className="h-full">{children}</div>
+            ) : (
+              <div className="px-4 py-6 sm:px-6 lg:px-8">{children}</div>
+            )}
           </main>
         </div>
       </Sheet>
