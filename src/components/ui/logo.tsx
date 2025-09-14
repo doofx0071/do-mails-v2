@@ -1,9 +1,9 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { useTheme } from "next-themes"
-import Image from "next/image"
-import { getThemeLogo } from "@/lib/logos"
+import * as React from 'react'
+import { useTheme } from 'next-themes'
+import Image from 'next/image'
+import { getThemeLogo } from '@/lib/logos'
 
 interface LogoProps {
   withText?: boolean
@@ -13,12 +13,12 @@ interface LogoProps {
   alt?: string
 }
 
-export function Logo({ 
-  withText = false, 
-  className = "", 
-  width = 32, 
+export function Logo({
+  withText = false,
+  className = '',
+  width = 32,
   height = 32,
-  alt = "do-Mails"
+  alt = 'do-Mails',
 }: LogoProps) {
   const { theme, resolvedTheme } = useTheme()
   const [mounted, setMounted] = React.useState(false)
@@ -31,8 +31,8 @@ export function Logo({
   if (!mounted) {
     // Return a placeholder during SSR to avoid hydration mismatch
     return (
-      <div 
-        className={`bg-gray-200 dark:bg-gray-700 rounded ${className}`}
+      <div
+        className={`rounded bg-gray-200 dark:bg-gray-700 ${className}`}
         style={{ width, height }}
       />
     )
@@ -43,13 +43,33 @@ export function Logo({
   const logoUrl = getThemeLogo(currentTheme, withText)
 
   return (
-    <Image
-      src={logoUrl}
-      alt={alt}
-      width={width}
-      height={height}
-      className={className}
-      priority
-    />
+    <div
+      className="select-none"
+      onContextMenu={(e) => e.preventDefault()}
+      onDragStart={(e) => e.preventDefault()}
+      style={{
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        WebkitUserDrag: 'none',
+        WebkitTouchCallout: 'none',
+      }}
+    >
+      <Image
+        src={logoUrl}
+        alt={alt}
+        width={width}
+        height={height}
+        className={`${className} pointer-events-none`}
+        priority
+        draggable={false}
+        onContextMenu={(e) => e.preventDefault()}
+        style={{
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          WebkitUserDrag: 'none',
+          WebkitTouchCallout: 'none',
+        }}
+      />
+    </div>
   )
 }
