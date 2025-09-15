@@ -48,11 +48,11 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
   // Define protected routes
-  const protectedRoutes = [] // Temporarily disable to test dashboard
+  const protectedRoutes: string[] = [] // Temporarily disable to test dashboard
   const authRoutes = ['/auth/signin', '/auth/signup', '/auth/callback']
 
   // Check if the current path is a protected route
-  const isProtectedRoute = protectedRoutes.some(route =>
+  const isProtectedRoute = protectedRoutes.some((route: string) =>
     pathname.startsWith(route)
   )
 

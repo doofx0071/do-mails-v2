@@ -32,7 +32,7 @@ import { format } from 'date-fns'
 interface Alias {
   id: string
   alias_name: string
-  full_address: string
+  full_address?: string
 }
 
 interface SearchFilters {
@@ -62,10 +62,10 @@ export function SearchFilter({
   const [dateFromOpen, setDateFromOpen] = useState(false)
   const [dateToOpen, setDateToOpen] = useState(false)
 
-  const updateFilter = (key: keyof SearchFilters, value: any) => {
+  const updateFilter = (key: keyof SearchFilters, value: string | Date | boolean | undefined | null) => {
     onFiltersChange({
       ...filters,
-      [key]: value || undefined
+      [key]: value === null ? undefined : value || undefined
     })
   }
 
@@ -200,7 +200,7 @@ export function SearchFilter({
                       <Calendar
                         mode="single"
                         selected={filters.date_from}
-                        onSelect={(date) => {
+                        onSelect={(date: Date | undefined) => {
                           updateFilter('date_from', date)
                           setDateFromOpen(false)
                         }}
@@ -227,7 +227,7 @@ export function SearchFilter({
                       <Calendar
                         mode="single"
                         selected={filters.date_to}
-                        onSelect={(date) => {
+                        onSelect={(date: Date | undefined) => {
                           updateFilter('date_to', date)
                           setDateToOpen(false)
                         }}

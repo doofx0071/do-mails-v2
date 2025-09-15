@@ -21,8 +21,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Verify authentication
+    let user
     try {
-      await verifyAuth(token)
+      user = await verifyAuth(token)
     } catch (error) {
       return NextResponse.json(
         { error: 'Unauthorized - Invalid token' },
@@ -83,20 +84,25 @@ export async function GET(request: NextRequest) {
     }
 
     // Transform the data to include computed fields
-    const transformedSignatures = (signatures || []).map((signature) => ({
-      id: signature.id,
-      alias_id: signature.alias_id,
-      signature_html: signature.signature_html,
-      signature_text: signature.signature_text,
-      is_default: signature.is_default,
-      created_at: signature.created_at,
-      updated_at: signature.updated_at,
-      alias: {
-        id: signature.email_aliases.id,
-        alias_name: signature.email_aliases.alias_name,
-        full_address: `${signature.email_aliases.alias_name}@${signature.email_aliases.domains.domain_name}`,
-      },
-    }))
+    const transformedSignatures = (signatures || []).map((signature) => {
+      const emailAlias = Array.isArray(signature.email_aliases) ? signature.email_aliases[0] : signature.email_aliases
+      const domain = Array.isArray(emailAlias.domains) ? emailAlias.domains[0] : emailAlias.domains
+      
+      return {
+        id: signature.id,
+        alias_id: signature.alias_id,
+        signature_html: signature.signature_html,
+        signature_text: signature.signature_text,
+        is_default: signature.is_default,
+        created_at: signature.created_at,
+        updated_at: signature.updated_at,
+        alias: {
+          id: emailAlias.id,
+          alias_name: emailAlias.alias_name,
+          full_address: `${emailAlias.alias_name}@${domain.domain_name}`,
+        },
+      }
+    })
 
     return NextResponse.json(
       { signatures: transformedSignatures },
@@ -134,8 +140,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify authentication
+    let user
     try {
-      await verifyAuth(token)
+      user = await verifyAuth(token)
     } catch (error) {
       return NextResponse.json(
         { error: 'Unauthorized - Invalid token' },
@@ -316,6 +323,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Return the created signature with alias info
+    const emailAlias = Array.isArray(newSignature.email_aliases) ? newSignature.email_aliases[0] : newSignature.email_aliases
+    const domain = Array.isArray(emailAlias.domains) ? emailAlias.domains[0] : emailAlias.domains
+    
     const responseSignature = {
       id: newSignature.id,
       alias_id: newSignature.alias_id,
@@ -325,9 +335,9 @@ export async function POST(request: NextRequest) {
       created_at: newSignature.created_at,
       updated_at: newSignature.updated_at,
       alias: {
-        id: newSignature.email_aliases.id,
-        alias_name: newSignature.email_aliases.alias_name,
-        full_address: `${newSignature.email_aliases.alias_name}@${newSignature.email_aliases.domains.domain_name}`,
+        id: emailAlias.id,
+        alias_name: emailAlias.alias_name,
+        full_address: `${emailAlias.alias_name}@${domain.domain_name}`,
       },
     }
 

@@ -194,7 +194,9 @@ export async function PATCH(
       }
 
       // Prevent forwarding to the same alias (infinite loop)
-      const aliasFullAddress = `${existingRule.email_aliases.alias_name}@${existingRule.email_aliases.domains.domain_name}`
+      const emailAlias = Array.isArray(existingRule.email_aliases) ? existingRule.email_aliases[0] : existingRule.email_aliases
+      const domain = Array.isArray(emailAlias.domains) ? emailAlias.domains[0] : emailAlias.domains
+      const aliasFullAddress = `${emailAlias.alias_name}@${domain.domain_name}`
       if (body.forward_to_email.toLowerCase() === aliasFullAddress.toLowerCase()) {
         return NextResponse.json(
           { error: 'Cannot forward to the same alias (would create infinite loop)' },
@@ -263,9 +265,9 @@ export async function PATCH(
       created_at: updatedRule.created_at,
       updated_at: updatedRule.updated_at,
       alias: {
-        id: updatedRule.email_aliases.id,
-        alias_name: updatedRule.email_aliases.alias_name,
-        full_address: `${updatedRule.email_aliases.alias_name}@${updatedRule.email_aliases.domains.domain_name}`
+        id: Array.isArray(updatedRule.email_aliases) ? updatedRule.email_aliases[0].id : updatedRule.email_aliases.id,
+        alias_name: Array.isArray(updatedRule.email_aliases) ? updatedRule.email_aliases[0].alias_name : updatedRule.email_aliases.alias_name,
+        full_address: `${Array.isArray(updatedRule.email_aliases) ? updatedRule.email_aliases[0].alias_name : updatedRule.email_aliases.alias_name}@${Array.isArray(updatedRule.email_aliases) ? (Array.isArray(updatedRule.email_aliases[0].domains) ? updatedRule.email_aliases[0].domains[0].domain_name : updatedRule.email_aliases[0].domains.domain_name) : (Array.isArray(updatedRule.email_aliases.domains) ? updatedRule.email_aliases.domains[0].domain_name : updatedRule.email_aliases.domains.domain_name)}`
       }
     }
 

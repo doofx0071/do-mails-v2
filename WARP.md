@@ -179,12 +179,41 @@ src/app/
 - **Zustand**: Client-side UI state (modals, selections, filters)
 - **Jotai**: Atomic state for complex form interactions
 
-### Component Architecture
+### Frontend Architecture
 
-- **shadcn/ui + Radix**: Accessible component primitives
-- **Tailwind CSS**: Utility-first styling with dark/light theme support
+#### Component System
+- **shadcn/ui + Radix**: 50+ accessible component primitives with consistent API
+- **Tailwind CSS**: Utility-first styling with CSS variables for theming
+- **Theme Support**: Built-in dark/light mode with next-themes integration
+- **Responsive Design**: Mobile-first approach with Tailwind breakpoints
+
+#### React Patterns
 - **React Server Components**: Used for initial page loads and data fetching
-- **Client Components**: Interactive UI with 'use client' directive
+- **Client Components**: Interactive UI marked with 'use client' directive
+- **Component Composition**: Compound components pattern for complex UI
+- **Form Handling**: React Hook Form integration with Zod validation
+
+#### Getting Component Documentation
+**Use Context7 MCP for Live Documentation:**
+```bash
+# Get shadcn/ui component docs and examples
+get-library-docs --library="/shadcn/ui" --topic="button"
+get-library-docs --library="/shadcn/ui" --topic="data-table"
+get-library-docs --library="/shadcn/ui" --topic="form-validation"
+
+# Get Next.js App Router documentation
+get-library-docs --library="/vercel/next.js" --topic="app-router"
+
+# Get TanStack Query patterns
+get-library-docs --library="/tanstack/query" --topic="mutations"
+```
+
+**Context7 provides:**
+- Up-to-date API documentation
+- Code examples and usage patterns  
+- Best practices and common patterns
+- TypeScript definitions and props
+- Accessibility guidelines
 
 ## Development Workflows
 
@@ -221,12 +250,41 @@ CREATE TABLE email_signatures (
 3. Generate types: `supabase gen types typescript --local > src/types/database.ts`
 4. Update RLS policies and test with different user contexts
 
-### Adding UI Components
+### Adding UI Components with shadcn/ui
 
-1. Install via shadcn: `npx shadcn-ui@latest add dialog`
-2. Components go in `src/components/ui/`
-3. Follow existing patterns for theming and accessibility
-4. Wire to Radix primitives for behavior
+1. Install component via CLI: `npx shadcn@latest add dialog`
+2. Components are automatically placed in `src/components/ui/`
+3. Import and use in your React components
+4. Follow existing patterns for theming and accessibility
+
+**Available Components:**
+The project uses shadcn/ui which provides 50+ accessible components built on Radix UI:
+
+- **Layout**: Accordion, Card, Separator, Sheet, Sidebar, Tabs
+- **Forms**: Button, Input, Textarea, Select, Checkbox, Radio Group, Switch, Calendar, Date Picker
+- **Navigation**: Breadcrumb, Dropdown Menu, Menubar, Navigation Menu, Pagination  
+- **Feedback**: Alert, Alert Dialog, Dialog, Toast, Tooltip, Progress, Skeleton
+- **Data Display**: Avatar, Badge, Table, Data Table, Chart, Carousel
+- **Overlays**: Popover, Hover Card, Context Menu, Drawer
+- **Typography**: Typography components with consistent styling
+
+**Component Documentation:**
+For detailed component APIs, examples, and usage:
+- Use Context7 MCP: Call `get-library-docs` with `/shadcn/ui` to get up-to-date component docs
+- Visit: https://ui.shadcn.com/docs/components
+- Each component includes accessibility features, keyboard navigation, and theme support
+
+**Installation Examples:**
+```bash
+# Individual components
+npx shadcn@latest add alert
+npx shadcn@latest add button
+npx shadcn@latest add dialog
+npx shadcn@latest add data-table
+
+# Multiple components at once
+npx shadcn@latest add alert button dialog
+```
 
 ### Extending Workspace Libraries
 
@@ -243,43 +301,14 @@ CREATE TABLE email_signatures (
 3. Configure Mailgun route to `{ngrok-url}/api/webhooks/mailgun`
 4. Send test email to configured Mailgun domain
 5. Verify processing in Next.js logs and Supabase tables
+### Development Quality Assurance
 
-## Testing Strategy and Commands
+The project prioritizes runtime stability and TypeScript safety over automated testing:
 
-### Unit Tests (Jest)
-Scope: Pure functions, utilities, React components
-```bash
-npm run test              # Run once
-npm run test:watch        # Watch mode
-npm test -- --coverage   # With coverage
-```
-
-### Contract Tests (Vitest) 
-Scope: API route handlers, input validation
-```bash
-npm run test:contract     # API endpoint contracts
-npm run test:integration  # Cross-library integration
-npm run test:vitest       # All Vitest tests
-```
-
-### End-to-End Tests (Playwright)
-Scope: Full user workflows across browser
-```bash
-npm run test:e2e                    # All E2E tests
-npx playwright test --headed       # With browser visible
-npx playwright test --debug        # Debug mode
-npx playwright show-report         # View test report
-```
-
-### Test Data Management
-
-- **Database**: Each test suite resets Supabase test schema
-- **Email**: Mailgun sandbox mode or webhook replay fixtures
-- **Authentication**: Test users created via Supabase auth
-
-### All Tests Command
-```bash
-npm run test:all          # Jest + Vitest (unit + contract + integration)
+- **Type Safety**: Strict TypeScript configuration with zero errors
+- **Runtime Validation**: Zod schemas for API inputs and webhooks
+- **Error Handling**: Comprehensive try-catch blocks and error logging
+- **Manual Testing**: Use development server and real email flows
 ```
 
 ## Command Reference (Cheatsheet)
@@ -292,6 +321,24 @@ npm run build            # Production build
 npm start                # Start production server
 npm run type-check       # TypeScript validation
 npm run lint             # ESLint
+```
+
+### UI Components (shadcn/ui)
+```bash
+# Install individual components
+npx shadcn@latest add button
+npx shadcn@latest add dialog
+npx shadcn@latest add data-table
+npx shadcn@latest add form
+
+# Install multiple components
+npx shadcn@latest add alert button dialog
+
+# List all available components
+npx shadcn@latest add
+
+# Initialize shadcn/ui in new project (already done)
+npx shadcn@latest init
 ```
 
 ### Workspace Libraries
@@ -316,14 +363,11 @@ supabase db push         # Push migrations to remote
 supabase gen types typescript --local > src/types/database.ts
 ```
 
-### Testing
+### Quality Checks
 ```bash
-npm run test             # Jest unit tests
-npm run test:watch       # Jest watch mode
-npm run test:contract    # Vitest contract tests
-npm run test:integration # Vitest integration tests
-npm run test:e2e         # Playwright E2E tests
-npm run test:all         # Run all test suites
+npm run type-check       # TypeScript validation
+npm run lint             # ESLint
+npm run build            # Production build verification
 ```
 
 ### Library CLIs (after `npm run build:libs`)
@@ -421,6 +465,9 @@ npm run build:libs
 - "Check Supabase connection and database status"
 - "Help me debug this Mailgun webhook issue"
 - "Create a new API route for [feature]"
+- "Show me shadcn/ui documentation for the [component] component"
+- "Get latest Next.js App Router patterns for [specific-feature]"
+- "Find TanStack Query best practices for [use-case]"
 
 ### Do Not Do List
 - ❌ Never run production database operations (`supabase db reset` on prod)
@@ -456,12 +503,28 @@ For active development, use split terminals:
 - `.env.example` - Environment variable template
 
 ### External Documentation
+
+**Primary Sources (Use Context7 MCP for latest docs):**
+- **shadcn/ui**: Use `get-library-docs --library="/shadcn/ui"` for component docs
+- **Next.js**: Use `get-library-docs --library="/vercel/next.js"` for App Router patterns  
+- **TanStack Query**: Use `get-library-docs --library="/tanstack/query"` for data fetching
+- **Radix UI**: Use `get-library-docs --library="/radix-ui/primitives"` for component APIs
+
+**Direct Links (as fallback):**
 - [Next.js App Router](https://nextjs.org/docs/app)
 - [Supabase Auth & RLS](https://supabase.com/docs/guides/auth/row-level-security)
 - [Mailgun Webhooks](https://documentation.mailgun.com/en/latest/user_manual.html#webhooks)
-- [shadcn/ui Components](https://ui.shadcn.com/)
+- [shadcn/ui Components](https://ui.shadcn.com/docs/components)
 - [TanStack Query](https://tanstack.com/query/latest)
 - [Playwright Testing](https://playwright.dev/)
+
+**Context7 MCP Usage:**
+```bash
+# Always prefer Context7 for up-to-date documentation
+get-library-docs --library="/shadcn/ui" --topic="components"
+get-library-docs --library="/vercel/next.js" --topic="app-router" 
+get-library-docs --library="/tanstack/query" --topic="react-query"
+```
 
 ### Internal Documentation
 - `README.md` - Project overview and basic setup

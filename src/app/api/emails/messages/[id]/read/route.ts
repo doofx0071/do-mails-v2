@@ -24,8 +24,9 @@ export async function POST(
     }
 
     // Verify authentication
+    let user
     try {
-      await verifyAuth(token)
+      user = await verifyAuth(token)
     } catch (error) {
       return NextResponse.json(
         { error: 'Unauthorized - Invalid token' },
@@ -155,8 +156,9 @@ export async function PATCH(
     }
 
     // Verify authentication
+    let user
     try {
-      await verifyAuth(token)
+      user = await verifyAuth(token)
     } catch (error) {
       return NextResponse.json(
         { error: 'Unauthorized - Invalid token' },

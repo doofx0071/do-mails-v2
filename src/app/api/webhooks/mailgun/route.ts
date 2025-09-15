@@ -138,7 +138,11 @@ export async function POST(request: NextRequest) {
     // Temporarily disable signature verification for debugging
     let isValidSignature = true
 
-    if (signature && timestamp && token) {
+    const webhookSignature = webhookData.signature
+    const webhookTimestamp = webhookData.timestamp
+    const webhookToken = webhookData.token
+    
+    if (webhookSignature && webhookTimestamp && webhookToken) {
       // TODO: Implement proper signature verification
       // For now, skip verification to get emails working
       console.log('⚠️ Skipping signature verification for debugging')
@@ -176,10 +180,10 @@ export async function POST(request: NextRequest) {
     const inReplyTo =
       webhookData['In-Reply-To'] || webhookData['in-reply-to'] || null
     const references = webhookData.References || webhookData.references || ''
-    const timestamp = webhookData.timestamp
+    const messageTimestamp = webhookData.timestamp
       ? parseInt(webhookData.timestamp) * 1000
       : Date.now()
-    const receivedAt = new Date(timestamp)
+    const receivedAt = new Date(messageTimestamp)
 
     // Parse references into array
     const referencesArray = references
@@ -498,8 +502,14 @@ export async function POST(request: NextRequest) {
     if (attachmentCount > 0) {
       console.log(`Processing ${attachmentCount} attachments`)
 
+      // Get formData reference for attachments
+      let formDataRef: FormData | undefined
+      if (contentType.includes('multipart/form-data') || contentType.includes('application/x-www-form-urlencoded')) {
+        formDataRef = await request.clone().formData()
+      }
+      
       for (let i = 1; i <= attachmentCount; i++) {
-        const attachmentFile = formData.get(`attachment-${i}`) as File
+        const attachmentFile = formDataRef?.get(`attachment-${i}`) as File
         const attachmentName = webhookData[`attachment-${i}`] as string
 
         if (attachmentFile && attachmentName) {
@@ -602,15 +612,17 @@ export async function POST(request: NextRequest) {
       },
       { status: 200 }
     )
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('💥 WEBHOOK ERROR:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const errorStack = error instanceof Error ? error.stack : undefined
     console.error('💥 Error details:', {
-      message: error.message,
-      stack: error.stack,
+      message: errorMessage,
+      stack: errorStack,
       timestamp: new Date().toISOString(),
     })
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error', details: errorMessage },
       { status: 500 }
     )
   }

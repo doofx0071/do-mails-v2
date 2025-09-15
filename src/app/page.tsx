@@ -41,7 +41,7 @@ export default function Home() {
               className="flex select-none items-center space-x-3"
               onContextMenu={(e) => e.preventDefault()}
               onDragStart={(e) => e.preventDefault()}
-              style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
+              style={{ userSelect: 'none', WebkitUserSelect: 'none' } as React.CSSProperties}
             >
               <div
                 className="pointer-events-none"
@@ -50,7 +50,7 @@ export default function Home() {
                   WebkitUserSelect: 'none',
                   WebkitUserDrag: 'none',
                   WebkitTouchCallout: 'none',
-                }}
+                } as React.CSSProperties}
               >
                 <Logo withText={true} width={160} height={48} />
               </div>
@@ -270,7 +270,7 @@ export default function Home() {
                   className="mb-4 flex select-none items-center space-x-3"
                   onContextMenu={(e) => e.preventDefault()}
                   onDragStart={(e) => e.preventDefault()}
-                  style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
+                  style={{ userSelect: 'none', WebkitUserSelect: 'none' } as React.CSSProperties}
                 >
                   <div
                     className="pointer-events-none"
@@ -279,7 +279,7 @@ export default function Home() {
                       WebkitUserSelect: 'none',
                       WebkitUserDrag: 'none',
                       WebkitTouchCallout: 'none',
-                    }}
+                    } as React.CSSProperties}
                   >
                     <Logo withText={true} width={120} height={36} />
                   </div>

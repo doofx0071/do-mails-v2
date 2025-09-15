@@ -325,7 +325,7 @@ export default function EmailsPage() {
       if (response.ok) {
         const data = await response.json()
         const verifiedDomains = (data.domains || []).filter(
-          (d) => d.verification_status === 'verified'
+          (d: any) => d.verification_status === 'verified'
         )
         setDomains(verifiedDomains)
       }

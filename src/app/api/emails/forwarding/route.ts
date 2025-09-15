@@ -222,7 +222,8 @@ export async function POST(request: NextRequest) {
     // Users can have multiple forwarding destinations for the same alias
 
     // Prevent forwarding to the same alias (infinite loop)
-    const aliasFullAddress = `${alias.alias_name}@${alias.domains.domain_name}`
+    const domain = Array.isArray(alias.domains) ? alias.domains[0] : alias.domains
+    const aliasFullAddress = `${alias.alias_name}@${domain.domain_name}`
     if (forward_to_email.toLowerCase() === aliasFullAddress.toLowerCase()) {
       return NextResponse.json(
         { error: 'Cannot forward to the same alias (would create infinite loop)' },
@@ -270,9 +271,9 @@ export async function POST(request: NextRequest) {
       created_at: newRule.created_at,
       updated_at: newRule.updated_at,
       alias: {
-        id: newRule.email_aliases.id,
-        alias_name: newRule.email_aliases.alias_name,
-        full_address: `${newRule.email_aliases.alias_name}@${newRule.email_aliases.domains.domain_name}`
+        id: Array.isArray(newRule.email_aliases) ? newRule.email_aliases[0].id : newRule.email_aliases.id,
+        alias_name: Array.isArray(newRule.email_aliases) ? newRule.email_aliases[0].alias_name : newRule.email_aliases.alias_name,
+        full_address: `${Array.isArray(newRule.email_aliases) ? newRule.email_aliases[0].alias_name : newRule.email_aliases.alias_name}@${Array.isArray(newRule.email_aliases) ? (Array.isArray(newRule.email_aliases[0].domains) ? newRule.email_aliases[0].domains[0].domain_name : newRule.email_aliases[0].domains.domain_name) : (Array.isArray(newRule.email_aliases.domains) ? newRule.email_aliases.domains[0].domain_name : newRule.email_aliases.domains.domain_name)}`
       }
     }
 

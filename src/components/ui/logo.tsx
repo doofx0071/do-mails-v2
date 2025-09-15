@@ -52,7 +52,7 @@ export function Logo({
         WebkitUserSelect: 'none',
         WebkitUserDrag: 'none',
         WebkitTouchCallout: 'none',
-      }}
+      } as React.CSSProperties}
     >
       <Image
         src={logoUrl}
@@ -68,7 +68,7 @@ export function Logo({
           WebkitUserSelect: 'none',
           WebkitUserDrag: 'none',
           WebkitTouchCallout: 'none',
-        }}
+        } as React.CSSProperties}
       />
     </div>
   )

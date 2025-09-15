@@ -69,7 +69,11 @@ export async function GET(
     }
 
     // Double-check user ownership (RLS should handle this, but extra security)
-    if (attachment.email_messages.email_aliases.domains.user_id !== user.id) {
+    const emailMessage = Array.isArray(attachment.email_messages) ? attachment.email_messages[0] : attachment.email_messages
+    const emailAlias = Array.isArray(emailMessage.email_aliases) ? emailMessage.email_aliases[0] : emailMessage.email_aliases
+    const domain = Array.isArray(emailAlias.domains) ? emailAlias.domains[0] : emailAlias.domains
+    
+    if (domain.user_id !== user.id) {
       return NextResponse.json(
         { error: 'Access denied' },
         { status: 403 }
@@ -89,13 +93,13 @@ export async function GET(
           size: attachment.size,
           created_at: attachment.created_at,
           message: {
-            id: attachment.email_messages.id,
-            subject: attachment.email_messages.subject
+            id: emailMessage.id,
+            subject: emailMessage.subject
           },
           alias: {
-            id: attachment.email_messages.email_aliases.id,
-            alias_name: attachment.email_messages.email_aliases.alias_name,
-            full_address: `${attachment.email_messages.email_aliases.alias_name}@${attachment.email_messages.email_aliases.domains.domain_name}`
+            id: emailAlias.id,
+            alias_name: emailAlias.alias_name,
+            full_address: `${emailAlias.alias_name}@${domain.domain_name}`
           }
         },
         { 
@@ -212,7 +216,11 @@ export async function HEAD(
     }
 
     // Double-check user ownership
-    if (attachment.email_messages.email_aliases.domains.user_id !== user.id) {
+    const emailMessage = Array.isArray(attachment.email_messages) ? attachment.email_messages[0] : attachment.email_messages
+    const emailAlias = Array.isArray(emailMessage.email_aliases) ? emailMessage.email_aliases[0] : emailMessage.email_aliases
+    const domain = Array.isArray(emailAlias.domains) ? emailAlias.domains[0] : emailAlias.domains
+    
+    if (domain.user_id !== user.id) {
       return new NextResponse(null, { status: 403 })
     }
 

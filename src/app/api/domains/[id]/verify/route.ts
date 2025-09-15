@@ -183,7 +183,7 @@ export async function POST(
               record_name: verificationResult.recordName,
               expected_token: domain.verification_token,
               dns_records_found: verificationResult.dnsRecords,
-              instructions: domainVerifier.getVerificationInstructions(
+              instructions: domainVerifier.getInstructions(
                 domain.domain_name,
                 domain.verification_token
               ),
@@ -223,7 +223,7 @@ export async function POST(
           verification_details: {
             record_name: `_domails-verify.${domain.domain_name}`,
             expected_token: domain.verification_token,
-            instructions: domainVerifier.getVerificationInstructions(
+            instructions: domainVerifier.getInstructions(
               domain.domain_name,
               domain.verification_token
             ),
