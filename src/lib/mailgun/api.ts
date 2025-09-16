@@ -65,7 +65,15 @@ export class MailgunAPI {
       },
     })
 
-    const data = await response.json()
+    let data
+    try {
+      data = await response.json()
+    } catch (parseError) {
+      // Handle non-JSON responses (like HTML error pages)
+      const text = await response.clone().text()
+      console.error('Mailgun API returned non-JSON response:', text.substring(0, 200))
+      throw new Error(`Mailgun API error: Invalid response format. Status: ${response.status} ${response.statusText}`)
+    }
     
     if (!response.ok) {
       console.error('Mailgun API Error:', data)

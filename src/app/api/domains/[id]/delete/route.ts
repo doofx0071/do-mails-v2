@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAuthenticatedClient } from '@/lib/supabase/server'
-import ForwardingConfigFileManager from '@/lib/forwarding-config-file'
 import MailgunAPI from '@/lib/mailgun/api'
 
 /**
@@ -22,8 +21,12 @@ export async function DELETE(
       user = authResult.user
     } catch (authError) {
       // For non-authenticated requests, try to find domain in forwarding configs
-      const allConfigs = await ForwardingConfigFileManager.listConfigs()
-      const config = allConfigs.find(c => params.id.includes(c.domain) || c.domain.includes(params.id))
+      const ForwardingConfigDBManager = (await import('@/lib/forwarding-config-db')).default
+      
+      // Extract domain name from forwarding ID (forwarding-domain.com -> domain.com)
+      const domainName = params.id.startsWith('forwarding-') ? params.id.replace('forwarding-', '') : params.id
+      
+      const config = await ForwardingConfigDBManager.getConfig(domainName)
       
       if (!config) {
         return NextResponse.json(
@@ -33,27 +36,27 @@ export async function DELETE(
       }
 
       // Delete from forwarding config
-      const deleted = await ForwardingConfigFileManager.removeConfig(config.domain)
+      const deleted = await ForwardingConfigDBManager.removeConfig(domainName)
       
       // Also try to delete from Mailgun
       let mailgunDeleted = false
       try {
         const mailgunAPI = new MailgunAPI()
         if (mailgunAPI.isConfigured()) {
-          await mailgunAPI.deleteDomain(config.domain)
+          await mailgunAPI.deleteDomain(domainName)
           mailgunDeleted = true
-          console.log('✅ Domain deleted from Mailgun:', config.domain)
+          console.log('✅ Domain deleted from Mailgun:', domainName)
         }
       } catch (mailgunError) {
         console.warn('⚠️ Failed to delete domain from Mailgun:', mailgunError)
       }
       
       if (deleted) {
-        console.log('✅ Forwarding config deleted for:', config.domain)
+        console.log('✅ Forwarding config deleted for:', domainName)
         return NextResponse.json({
           success: true,
-          message: `Domain ${config.domain} deleted successfully`,
-          deleted_domain: config.domain,
+          message: `Domain ${domainName} deleted successfully`,
+          deleted_domain: domainName,
           mailgun_deleted: mailgunDeleted
         })
       } else {
@@ -114,7 +117,8 @@ export async function DELETE(
     }
 
     // Also delete forwarding config if it exists
-    await ForwardingConfigFileManager.removeConfig(domain.domain_name)
+    const ForwardingConfigDBManager = (await import('@/lib/forwarding-config-db')).default
+    await ForwardingConfigDBManager.removeConfig(domain.domain_name)
     
     // Try to delete from Mailgun as well
     let mailgunDeleted = false
