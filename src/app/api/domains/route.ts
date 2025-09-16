@@ -96,8 +96,8 @@ export async function GET(request: NextRequest) {
     // Also load domains from forwarding config file (for ImprovMX-style domains)
     let forwardingDomains: any[] = []
     try {
-      const ForwardingConfigFileManager = (await import('@/lib/forwarding-config-file')).default
-      const configs = await ForwardingConfigFileManager.listConfigs()
+      const ForwardingConfigDBManager = (await import('@/lib/forwarding-config-db')).default
+      const configs = await ForwardingConfigDBManager.listConfigs()
       
       // Convert forwarding configs to domain format
       forwardingDomains = configs.map(config => ({

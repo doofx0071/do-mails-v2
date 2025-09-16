@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import ForwardingConfigFileManager from '@/lib/forwarding-config-file'
+import ForwardingConfigDBManager from '@/lib/forwarding-config-db'
 
 /**
  * GET /api/domains/public
@@ -24,8 +24,8 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Load domains from forwarding config file
-    const configs = await ForwardingConfigFileManager.listConfigs()
+    // Load domains from forwarding config database
+    const configs = await ForwardingConfigDBManager.listConfigs()
     
     // Convert forwarding configs to domain format
     let domains = configs.map(config => ({

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
-import ForwardingConfigFileManager from '@/lib/forwarding-config-file'
+import ForwardingConfigDBManager from '@/lib/forwarding-config-db'
 import EmailForwarder from '@/lib/email-forwarding'
 
 // Initialize Supabase client with service role for webhook processing
@@ -272,7 +272,7 @@ export async function POST(request: NextRequest) {
         // No rows returned - check forwarding config file
         console.log('Domain not found in database, checking forwarding config:', domainName)
         
-        const forwardingConfig = await ForwardingConfigFileManager.getConfig(domainName)
+        const forwardingConfig = await ForwardingConfigDBManager.getConfig(domainName)
         if (forwardingConfig && forwardingConfig.enabled) {
           console.log(`✅ Found forwarding config for ${domainName}, proceeding with forwarding only`)
           
@@ -647,7 +647,7 @@ export async function POST(request: NextRequest) {
 
     // Check if this domain has forwarding configured (ImprovMX-style)
     console.log('🔍 Checking forwarding configuration for domain:', domainName)
-    const forwardingEmail = await ForwardingConfigFileManager.getForwardingEmail(domainName)
+    const forwardingEmail = await ForwardingConfigDBManager.getForwardingEmail(domainName)
     
     if (forwardingEmail) {
       console.log(`📧 Forwarding email from ${recipientEmail} to ${forwardingEmail}`)

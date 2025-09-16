@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
-import ForwardingConfigFileManager from '@/lib/forwarding-config-file'
+import ForwardingConfigDBManager from '@/lib/forwarding-config-db'
 import MailgunAPI from '@/lib/mailgun/api'
 
 /**
@@ -55,8 +55,8 @@ export async function POST(request: NextRequest) {
 
     console.log('🔐 Generated token:', verificationToken)
 
-    // Store forwarding configuration using the ForwardingConfigFileManager
-    await ForwardingConfigFileManager.setConfig(domain_name.toLowerCase(), {
+    // Store forwarding configuration using the ForwardingConfigDBManager
+    await ForwardingConfigDBManager.setConfig(domain_name.toLowerCase(), {
       forward_to: forward_to_email,
       created_at: new Date().toISOString(),
       verification_token: verificationToken,
