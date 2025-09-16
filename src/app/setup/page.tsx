@@ -45,11 +45,20 @@ export default function SetupPage() {
 
     setLoading(true)
     try {
+      // Get auth token for API call
+      const token = localStorage.getItem('auth_token')
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      }
+
+      if (token) {
+        headers.Authorization = `Bearer ${token}`
+      }
+
       const response = await fetch('/api/domains/setup-forwarding', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
+        credentials: 'include',
         body: JSON.stringify({
           domain_name: domain,
           forward_to_email: email,
@@ -79,17 +88,17 @@ export default function SetupPage() {
 
   if (setupResult) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-8">
+      <div className="min-h-screen bg-gray-50 px-4 py-12 dark:bg-gray-900">
+        <div className="mx-auto max-w-4xl">
+          <div className="mb-8 text-center">
             <Badge className="mb-4" variant="secondary">
-              <Check className="w-4 h-4 mr-2" />
+              <Check className="mr-2 h-4 w-4" />
               Domain Configured
             </Badge>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+            <h1 className="mb-4 text-3xl font-bold text-gray-900 dark:text-white">
               Setup Complete!
             </h1>
-            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            <p className="mx-auto max-w-2xl text-lg text-gray-600 dark:text-gray-300">
               {setupResult.message}
             </p>
           </div>
@@ -97,17 +106,17 @@ export default function SetupPage() {
           <Card className="mb-8">
             <CardHeader>
               <CardTitle className="flex items-center">
-                <Globe className="w-5 h-5 mr-2" />
+                <Globe className="mr-2 h-5 w-5" />
                 Domain Configuration
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
                   <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     Domain
                   </label>
-                  <div className="mt-1 text-lg font-mono">
+                  <div className="mt-1 font-mono text-lg">
                     {setupResult.domain.domain_name}
                   </div>
                 </div>
@@ -115,7 +124,7 @@ export default function SetupPage() {
                   <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     Forwards to
                   </label>
-                  <div className="mt-1 text-lg font-mono">
+                  <div className="mt-1 font-mono text-lg">
                     {setupResult.domain.forward_to_email}
                   </div>
                 </div>
@@ -123,7 +132,7 @@ export default function SetupPage() {
             </CardContent>
           </Card>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             {/* MX Records */}
             <Card>
               <CardHeader>
@@ -134,23 +143,36 @@ export default function SetupPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {setupResult.dns_instructions.mx_records.map((record, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                      <div className="font-mono text-sm">
-                        <div><strong>Type:</strong> {record.type}</div>
-                        <div><strong>Host:</strong> {record.host}</div>
-                        <div><strong>Priority:</strong> {record.priority}</div>
-                        <div><strong>Value:</strong> {record.value}</div>
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => copyToClipboard(record.value)}
+                  {setupResult.dns_instructions.mx_records.map(
+                    (record, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between rounded-lg bg-gray-50 p-3 dark:bg-gray-800"
                       >
-                        <Copy className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  ))}
+                        <div className="font-mono text-sm">
+                          <div>
+                            <strong>Type:</strong> {record.type}
+                          </div>
+                          <div>
+                            <strong>Host:</strong> {record.host}
+                          </div>
+                          <div>
+                            <strong>Priority:</strong> {record.priority}
+                          </div>
+                          <div>
+                            <strong>Value:</strong> {record.value}
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => copyToClipboard(record.value)}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -165,33 +187,59 @@ export default function SetupPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
                     <div className="font-mono text-sm">
-                      <div><strong>Type:</strong> {setupResult.dns_instructions.spf_record.type}</div>
-                      <div><strong>Host:</strong> {setupResult.dns_instructions.spf_record.host}</div>
-                      <div><strong>Value:</strong> {setupResult.dns_instructions.spf_record.value}</div>
+                      <div>
+                        <strong>Type:</strong>{' '}
+                        {setupResult.dns_instructions.spf_record.type}
+                      </div>
+                      <div>
+                        <strong>Host:</strong>{' '}
+                        {setupResult.dns_instructions.spf_record.host}
+                      </div>
+                      <div>
+                        <strong>Value:</strong>{' '}
+                        {setupResult.dns_instructions.spf_record.value}
+                      </div>
                     </div>
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => copyToClipboard(setupResult.dns_instructions.spf_record.value)}
+                      onClick={() =>
+                        copyToClipboard(
+                          setupResult.dns_instructions.spf_record.value
+                        )
+                      }
                     >
-                      <Copy className="w-4 h-4" />
+                      <Copy className="h-4 w-4" />
                     </Button>
                   </div>
 
-                  <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
                     <div className="font-mono text-sm">
-                      <div><strong>Type:</strong> {setupResult.dns_instructions.verification_record.type}</div>
-                      <div><strong>Host:</strong> {setupResult.dns_instructions.verification_record.host}</div>
-                      <div><strong>Value:</strong> {setupResult.dns_instructions.verification_record.value}</div>
+                      <div>
+                        <strong>Type:</strong>{' '}
+                        {setupResult.dns_instructions.verification_record.type}
+                      </div>
+                      <div>
+                        <strong>Host:</strong>{' '}
+                        {setupResult.dns_instructions.verification_record.host}
+                      </div>
+                      <div>
+                        <strong>Value:</strong>{' '}
+                        {setupResult.dns_instructions.verification_record.value}
+                      </div>
                     </div>
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => copyToClipboard(setupResult.dns_instructions.verification_record.value)}
+                      onClick={() =>
+                        copyToClipboard(
+                          setupResult.dns_instructions.verification_record.value
+                        )
+                      }
                     >
-                      <Copy className="w-4 h-4" />
+                      <Copy className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
@@ -199,13 +247,14 @@ export default function SetupPage() {
             </Card>
           </div>
 
-          <div className="text-center mt-8">
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              After adding these DNS records, verification will happen automatically.
+          <div className="mt-8 text-center">
+            <p className="mb-4 text-gray-600 dark:text-gray-400">
+              After adding these DNS records, verification will happen
+              automatically.
             </p>
-            <Button onClick={() => window.location.href = '/dashboard'}>
+            <Button onClick={() => (window.location.href = '/dashboard')}>
               Go to Dashboard
-              <ArrowRight className="w-4 h-4 ml-2" />
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
         </div>
@@ -214,15 +263,16 @@ export default function SetupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gray-50 px-4 py-12 dark:bg-gray-900">
+      <div className="mx-auto max-w-4xl">
         {/* Hero Section */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+        <div className="mb-12 text-center">
+          <h1 className="mb-4 text-4xl font-bold text-gray-900 dark:text-white">
             Set &amp; Forget Email Forwarding
           </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300 mb-2">
-            Set up in seconds to send &amp; receive emails from your custom domain.
+          <p className="mb-2 text-xl text-gray-600 dark:text-gray-300">
+            Set up in seconds to send &amp; receive emails from your custom
+            domain.
           </p>
           <p className="text-lg text-gray-500 dark:text-gray-400">
             Absolutely free. Rock-solid infrastructure. World-class support.
@@ -230,11 +280,11 @@ export default function SetupPage() {
         </div>
 
         {/* Setup Form */}
-        <Card className="max-w-2xl mx-auto mb-12">
+        <Card className="mx-auto mb-12 max-w-2xl">
           <CardContent className="p-8">
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Your domain name
                 </label>
                 <Input
@@ -247,13 +297,13 @@ export default function SetupPage() {
               </div>
 
               <div className="flex items-center justify-center">
-                <Badge variant="outline" className="text-sm px-4 py-2">
+                <Badge variant="outline" className="px-4 py-2 text-sm">
                   FORWARDS TO
                 </Badge>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Your email address
                 </label>
                 <Input
@@ -265,51 +315,57 @@ export default function SetupPage() {
                 />
               </div>
 
-              <Button 
+              <Button
                 onClick={handleSetup}
                 disabled={loading}
-                className="w-full text-lg py-6"
+                className="w-full py-6 text-lg"
                 size="lg"
               >
                 {loading ? 'Setting up...' : 'Create Free Alias'}
-                <ArrowRight className="w-5 h-5 ml-2" />
+                <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
 
               <p className="text-center text-sm text-gray-500 dark:text-gray-400">
-                No credit card required. <span className="text-blue-600 hover:underline cursor-pointer">Full privacy protection.</span>
+                No credit card required.{' '}
+                <span className="cursor-pointer text-blue-600 hover:underline">
+                  Full privacy protection.
+                </span>
               </p>
             </div>
           </CardContent>
         </Card>
 
         {/* Features */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+        <div className="mx-auto grid max-w-4xl grid-cols-1 gap-6 md:grid-cols-3">
           <Card className="text-center">
             <CardContent className="p-6">
-              <Mail className="w-12 h-12 mx-auto mb-4 text-blue-600" />
-              <h3 className="text-lg font-semibold mb-2">Email Forwarding</h3>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">
-                Forward all emails from your domain to your existing email address instantly.
+              <Mail className="mx-auto mb-4 h-12 w-12 text-blue-600" />
+              <h3 className="mb-2 text-lg font-semibold">Email Forwarding</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Forward all emails from your domain to your existing email
+                address instantly.
               </p>
             </CardContent>
           </Card>
 
           <Card className="text-center">
             <CardContent className="p-6">
-              <Globe className="w-12 h-12 mx-auto mb-4 text-green-600" />
-              <h3 className="text-lg font-semibold mb-2">Full Inbox</h3>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">
-                Access your forwarded emails in a unified inbox with reply capability.
+              <Globe className="mx-auto mb-4 h-12 w-12 text-green-600" />
+              <h3 className="mb-2 text-lg font-semibold">Full Inbox</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Access your forwarded emails in a unified inbox with reply
+                capability.
               </p>
             </CardContent>
           </Card>
 
           <Card className="text-center">
             <CardContent className="p-6">
-              <Shield className="w-12 h-12 mx-auto mb-4 text-purple-600" />
-              <h3 className="text-lg font-semibold mb-2">Privacy First</h3>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">
-                Reply using your domain address while keeping your personal email private.
+              <Shield className="mx-auto mb-4 h-12 w-12 text-purple-600" />
+              <h3 className="mb-2 text-lg font-semibold">Privacy First</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Reply using your domain address while keeping your personal
+                email private.
               </p>
             </CardContent>
           </Card>

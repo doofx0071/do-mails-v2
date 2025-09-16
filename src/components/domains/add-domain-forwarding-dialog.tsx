@@ -74,9 +74,9 @@ interface SetupResponse {
   message: string
 }
 
-export function AddDomainForwardingDialog({ 
-  open, 
-  onOpenChange 
+export function AddDomainForwardingDialog({
+  open,
+  onOpenChange,
 }: AddDomainForwardingDialogProps) {
   const [setupResult, setSetupResult] = useState<SetupResponse | null>(null)
   const { toast } = useToast()
@@ -95,11 +95,19 @@ export function AddDomainForwardingDialog({
     mutationFn: async (values: z.infer<typeof formSchema>) => {
       if (values.enable_forwarding && values.forward_to_email) {
         // Use the new forwarding setup API
+        const token = localStorage.getItem('auth_token')
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+        }
+
+        if (token) {
+          headers.Authorization = `Bearer ${token}`
+        }
+
         const response = await fetch('/api/domains/setup-forwarding', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers,
+          credentials: 'include',
           body: JSON.stringify({
             domain_name: values.domain_name,
             forward_to_email: values.forward_to_email,
@@ -108,7 +116,9 @@ export function AddDomainForwardingDialog({
 
         if (!response.ok) {
           const errorData = await response.json()
-          throw new Error(errorData.error || 'Failed to setup domain forwarding')
+          throw new Error(
+            errorData.error || 'Failed to setup domain forwarding'
+          )
         }
 
         return await response.json()
@@ -120,7 +130,7 @@ export function AddDomainForwardingDialog({
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['domains'] })
-      
+
       if (data.dns_instructions) {
         // This is a forwarding setup response
         setSetupResult(data)
@@ -169,26 +179,24 @@ export function AddDomainForwardingDialog({
   if (setupResult) {
     return (
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center">
-              <CheckCircle className="w-5 h-5 mr-2 text-green-600" />
+              <CheckCircle className="mr-2 h-5 w-5 text-green-600" />
               Setup Complete!
             </DialogTitle>
-            <DialogDescription>
-              {setupResult.message}
-            </DialogDescription>
+            <DialogDescription>{setupResult.message}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6">
             <Card>
               <CardContent className="p-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
                     <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       Domain
                     </label>
-                    <div className="mt-1 text-lg font-mono">
+                    <div className="mt-1 font-mono text-lg">
                       {setupResult.domain.domain_name}
                     </div>
                   </div>
@@ -196,7 +204,7 @@ export function AddDomainForwardingDialog({
                     <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       Forwards to
                     </label>
-                    <div className="mt-1 text-lg font-mono">
+                    <div className="mt-1 font-mono text-lg">
                       {setupResult.domain.forward_to_email}
                     </div>
                   </div>
@@ -204,32 +212,45 @@ export function AddDomainForwardingDialog({
               </CardContent>
             </Card>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               {/* MX Records */}
               <Card>
                 <CardContent className="p-4">
-                  <h3 className="text-lg font-semibold mb-3">MX Records</h3>
-                  <p className="text-sm text-muted-foreground mb-3">
+                  <h3 className="mb-3 text-lg font-semibold">MX Records</h3>
+                  <p className="mb-3 text-sm text-muted-foreground">
                     Add these MX records to your DNS provider
                   </p>
                   <div className="space-y-2">
-                    {setupResult.dns_instructions.mx_records.map((record, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                        <div className="font-mono text-sm">
-                          <div><strong>Type:</strong> {record.type}</div>
-                          <div><strong>Host:</strong> {record.host}</div>
-                          <div><strong>Priority:</strong> {record.priority}</div>
-                          <div><strong>Value:</strong> {record.value}</div>
-                        </div>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => copyToClipboard(record.value)}
+                    {setupResult.dns_instructions.mx_records.map(
+                      (record, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between rounded-lg bg-muted p-3"
                         >
-                          <Copy className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ))}
+                          <div className="font-mono text-sm">
+                            <div>
+                              <strong>Type:</strong> {record.type}
+                            </div>
+                            <div>
+                              <strong>Host:</strong> {record.host}
+                            </div>
+                            <div>
+                              <strong>Priority:</strong> {record.priority}
+                            </div>
+                            <div>
+                              <strong>Value:</strong> {record.value}
+                            </div>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => copyToClipboard(record.value)}
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -237,38 +258,74 @@ export function AddDomainForwardingDialog({
               {/* TXT Records */}
               <Card>
                 <CardContent className="p-4">
-                  <h3 className="text-lg font-semibold mb-3">TXT Records</h3>
-                  <p className="text-sm text-muted-foreground mb-3">
+                  <h3 className="mb-3 text-lg font-semibold">TXT Records</h3>
+                  <p className="mb-3 text-sm text-muted-foreground">
                     Add these TXT records for SPF and verification
                   </p>
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                    <div className="flex items-center justify-between rounded-lg bg-muted p-3">
                       <div className="font-mono text-sm">
-                        <div><strong>Type:</strong> {setupResult.dns_instructions.spf_record.type}</div>
-                        <div><strong>Host:</strong> {setupResult.dns_instructions.spf_record.host}</div>
-                        <div><strong>Value:</strong> {setupResult.dns_instructions.spf_record.value}</div>
+                        <div>
+                          <strong>Type:</strong>{' '}
+                          {setupResult.dns_instructions.spf_record.type}
+                        </div>
+                        <div>
+                          <strong>Host:</strong>{' '}
+                          {setupResult.dns_instructions.spf_record.host}
+                        </div>
+                        <div>
+                          <strong>Value:</strong>{' '}
+                          {setupResult.dns_instructions.spf_record.value}
+                        </div>
                       </div>
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => copyToClipboard(setupResult.dns_instructions.spf_record.value)}
+                        onClick={() =>
+                          copyToClipboard(
+                            setupResult.dns_instructions.spf_record.value
+                          )
+                        }
                       >
-                        <Copy className="w-4 h-4" />
+                        <Copy className="h-4 w-4" />
                       </Button>
                     </div>
 
-                    <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                    <div className="flex items-center justify-between rounded-lg bg-muted p-3">
                       <div className="font-mono text-sm">
-                        <div><strong>Type:</strong> {setupResult.dns_instructions.verification_record.type}</div>
-                        <div><strong>Host:</strong> {setupResult.dns_instructions.verification_record.host}</div>
-                        <div><strong>Value:</strong> {setupResult.dns_instructions.verification_record.value}</div>
+                        <div>
+                          <strong>Type:</strong>{' '}
+                          {
+                            setupResult.dns_instructions.verification_record
+                              .type
+                          }
+                        </div>
+                        <div>
+                          <strong>Host:</strong>{' '}
+                          {
+                            setupResult.dns_instructions.verification_record
+                              .host
+                          }
+                        </div>
+                        <div>
+                          <strong>Value:</strong>{' '}
+                          {
+                            setupResult.dns_instructions.verification_record
+                              .value
+                          }
+                        </div>
                       </div>
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => copyToClipboard(setupResult.dns_instructions.verification_record.value)}
+                        onClick={() =>
+                          copyToClipboard(
+                            setupResult.dns_instructions.verification_record
+                              .value
+                          )
+                        }
                       >
-                        <Copy className="w-4 h-4" />
+                        <Copy className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
@@ -277,15 +334,13 @@ export function AddDomainForwardingDialog({
             </div>
 
             <div className="text-center text-sm text-muted-foreground">
-              After adding these DNS records, verification will happen automatically.
-              You can check the status in your domains list.
+              After adding these DNS records, verification will happen
+              automatically. You can check the status in your domains list.
             </div>
           </div>
 
           <DialogFooter>
-            <Button onClick={handleClose}>
-              Done
-            </Button>
+            <Button onClick={handleClose}>Done</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -372,11 +427,13 @@ export function AddDomainForwardingDialog({
 
             {form.watch('enable_forwarding') && (
               <div className="space-y-3">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                   <Card className="text-center">
                     <CardContent className="p-4">
-                      <Mail className="w-8 h-8 mx-auto mb-2 text-blue-600" />
-                      <h4 className="text-sm font-semibold">Email Forwarding</h4>
+                      <Mail className="mx-auto mb-2 h-8 w-8 text-blue-600" />
+                      <h4 className="text-sm font-semibold">
+                        Email Forwarding
+                      </h4>
                       <p className="text-xs text-muted-foreground">
                         Forward all emails to your account
                       </p>
@@ -385,7 +442,7 @@ export function AddDomainForwardingDialog({
 
                   <Card className="text-center">
                     <CardContent className="p-4">
-                      <Globe className="w-8 h-8 mx-auto mb-2 text-green-600" />
+                      <Globe className="mx-auto mb-2 h-8 w-8 text-green-600" />
                       <h4 className="text-sm font-semibold">Full Inbox</h4>
                       <p className="text-xs text-muted-foreground">
                         Access emails in unified inbox
@@ -395,19 +452,22 @@ export function AddDomainForwardingDialog({
 
                   <Card className="text-center">
                     <CardContent className="p-4">
-                      <Shield className="w-8 h-8 mx-auto mb-2 text-purple-600" />
-                      <h4 className="text-sm font-semibold">Reply with Domain</h4>
+                      <Shield className="mx-auto mb-2 h-8 w-8 text-purple-600" />
+                      <h4 className="text-sm font-semibold">
+                        Reply with Domain
+                      </h4>
                       <p className="text-xs text-muted-foreground">
                         Reply using your domain address
                       </p>
                     </CardContent>
                   </Card>
                 </div>
-                
-                <div className="bg-blue-50 dark:bg-blue-950/20 p-3 rounded-lg">
+
+                <div className="rounded-lg bg-blue-50 p-3 dark:bg-blue-950/20">
                   <p className="text-sm text-blue-700 dark:text-blue-300">
-                    <strong>Note:</strong> You'll need to add MX records to your DNS provider. 
-                    We use Mailgun's servers to receive emails securely.
+                    <strong>Note:</strong> You'll need to add MX records to your
+                    DNS provider. We use Mailgun's servers to receive emails
+                    securely.
                   </p>
                 </div>
               </div>
@@ -421,10 +481,7 @@ export function AddDomainForwardingDialog({
               >
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                disabled={addDomainMutation.isPending}
-              >
+              <Button type="submit" disabled={addDomainMutation.isPending}>
                 {addDomainMutation.isPending ? 'Adding...' : 'Add Domain'}
               </Button>
             </DialogFooter>
