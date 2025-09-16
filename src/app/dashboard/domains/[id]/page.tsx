@@ -283,6 +283,34 @@ export default function DomainDetailPage() {
                 </div>
               </div>
             )}
+            <div className="col-span-1 md:col-span-2">
+              <label className="text-sm font-medium text-muted-foreground">
+                Verification Token
+              </label>
+              <div className="mt-1 flex items-center gap-2">
+                <div className="flex-1 break-all rounded border bg-muted/50 p-2 font-mono text-sm">
+                  {domain.verification_token}
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() =>
+                    copyToClipboard(
+                      domain.verification_token,
+                      'Verification token'
+                    )
+                  }
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Add this as a TXT record for:{' '}
+                <code className="rounded bg-muted px-1">
+                  _domails-verify.{domain.domain_name}
+                </code>
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -84,13 +84,25 @@ export async function GET(
         (record) =>
           record.includes('v=spf1') && record.includes('include:mailgun.org')
       )
+    } catch (error) {
+      console.log(`No TXT records found for ${domainName}:`, error)
+    }
 
-      // Check for verification record
-      verificationRecordValid = txtRecords.some((record) =>
+    try {
+      // Check verification record in _domails-verify subdomain
+      const verificationDomain = `_domails-verify.${domainName}`
+      const verificationResults = await dns.resolveTxt(verificationDomain)
+      const verificationRecords = verificationResults.map((txt) => txt.join(''))
+
+      // Check for verification token
+      verificationRecordValid = verificationRecords.some((record) =>
         record.includes(verificationToken)
       )
     } catch (error) {
-      console.log(`No TXT records found for ${domainName}:`, error)
+      console.log(
+        `No verification records found for _domails-verify.${domainName}:`,
+        error
+      )
     }
 
     const allRecordsValid =
