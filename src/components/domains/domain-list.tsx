@@ -5,8 +5,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, Plus, CheckCircle, XCircle, Clock, AlertCircle } from 'lucide-react'
-import { AddDomainDialog } from './add-domain-dialog'
+import { Loader2, Plus, CheckCircle, XCircle, Clock, AlertCircle, RefreshCw } from 'lucide-react'
+import { AddDomainForwardingDialog } from './add-domain-forwarding-dialog'
 import { VerifyDomainDialog } from './verify-domain-dialog'
 import { useToast } from '@/components/ui/use-toast'
 
@@ -18,6 +18,8 @@ interface Domain {
   verified_at?: string
   created_at: string
   updated_at: string
+  forward_to_email?: string // For forwarding config domains
+  source?: 'forwarding_config' | 'database' // Source type
 }
 
 interface DomainsResponse {
@@ -30,10 +32,25 @@ export function DomainList() {
   const { toast } = useToast()
   const queryClient = useQueryClient()
 
-  // Fetch domains
+  // Fetch domains with fallback to public API
   const { data, isLoading, error } = useQuery<DomainsResponse>({
     queryKey: ['domains'],
-    queryFn: () => import('@/lib/api/client').then(({ domainsAPI }) => domainsAPI.list())
+    queryFn: async () => {
+      try {
+        // Try authenticated API first
+        const { domainsAPI } = await import('@/lib/api/client')
+        return await domainsAPI.list()
+      } catch (authError) {
+        console.log('Authenticated API failed, trying public API:', authError)
+        
+        // Fallback to public API for forwarding config domains
+        const response = await fetch('/api/domains/public')
+        if (!response.ok) {
+          throw new Error(`Failed to fetch domains: ${response.statusText}`)
+        }
+        return response.json()
+      }
+    }
   })
 
   // Verify domain mutation
@@ -60,6 +77,52 @@ export function DomainList() {
     onError: (error: Error) => {
       toast({
         title: 'Verification Error',
+        description: error.message,
+        variant: 'destructive'
+      })
+    }
+  })
+
+  // Refresh status mutation
+  const refreshStatusMutation = useMutation({
+    mutationFn: async (domainId: string) => {
+      const token = localStorage.getItem('auth_token')
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      }
+      if (token) {
+        headers.Authorization = `Bearer ${token}`
+      }
+
+      const response = await fetch(`/api/domains/${domainId}/refresh-status`, {
+        method: 'POST',
+        headers
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to refresh status')
+      }
+
+      return response.json()
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['domains'] })
+      
+      if (data.success) {
+        const status = data.domain.verification_status
+        const message = data.message || 'Status refreshed'
+        
+        toast({
+          title: status === 'verified' ? 'Domain Verified!' : 'Status Updated',
+          description: message,
+          variant: status === 'verified' ? 'default' : 'secondary'
+        })
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Refresh Failed',
         description: error.message,
         variant: 'destructive'
       })
@@ -132,7 +195,7 @@ export function DomainList() {
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Domains</h2>
           <p className="text-muted-foreground">
-            Manage your custom domains for email alias creation
+            Manage your custom domains for email aliases and forwarding
           </p>
         </div>
         <Button onClick={() => setShowAddDialog(true)}>
@@ -147,7 +210,7 @@ export function DomainList() {
             <div className="text-center">
               <h3 className="text-lg font-semibold mb-2">No domains yet</h3>
               <p className="text-muted-foreground mb-4">
-                Add your first domain to start creating email aliases
+                Add your first domain to start creating email aliases and forwarding
               </p>
               <Button onClick={() => setShowAddDialog(true)}>
                 <Plus className="h-4 w-4 mr-2" />
@@ -175,38 +238,66 @@ export function DomainList() {
                       • Verified {new Date(domain.verified_at).toLocaleDateString()}
                     </span>
                   )}
+                  {domain.forward_to_email && (
+                    <div className="mt-1 text-sm">
+                      <span className="font-medium">Forwarding to:</span> {domain.forward_to_email}
+                    </div>
+                  )}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between">
                   <div className="text-sm text-muted-foreground">
                     {domain.verification_status === 'pending' && (
-                      <span>Verification required to create aliases</span>
+                      <span>Add DNS records, then refresh to verify</span>
                     )}
                     {domain.verification_status === 'verified' && (
-                      <span>Ready to create email aliases</span>
+                      <span>✅ Ready to receive emails</span>
                     )}
                     {domain.verification_status === 'failed' && (
-                      <span>Verification failed - please try again</span>
+                      <span>Verification failed - check DNS records</span>
                     )}
                   </div>
-                  {domain.verification_status !== 'verified' && (
+                  <div className="flex items-center space-x-2">
+                    {/* Refresh Status Button */}
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleVerifyDomain(domain)}
-                      disabled={verifyDomainMutation.isPending}
+                      onClick={() => refreshStatusMutation.mutate(domain.id)}
+                      disabled={refreshStatusMutation.isPending || verifyDomainMutation.isPending}
                     >
-                      {verifyDomainMutation.isPending && verifyingDomain?.id === domain.id ? (
+                      {refreshStatusMutation.isPending ? (
                         <>
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Verifying...
+                          Checking...
                         </>
                       ) : (
-                        'Verify Domain'
+                        <>
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                          Refresh
+                        </>
                       )}
                     </Button>
-                  )}
+                    
+                    {/* Legacy Verify Button (if needed) */}
+                    {domain.verification_status !== 'verified' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleVerifyDomain(domain)}
+                        disabled={verifyDomainMutation.isPending || refreshStatusMutation.isPending}
+                      >
+                        {verifyDomainMutation.isPending && verifyingDomain?.id === domain.id ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Verifying...
+                          </>
+                        ) : (
+                          'Manual Verify'
+                        )}
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -214,13 +305,9 @@ export function DomainList() {
         </div>
       )}
 
-      <AddDomainDialog
+      <AddDomainForwardingDialog
         open={showAddDialog}
         onOpenChange={setShowAddDialog}
-        onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ['domains'] })
-          setShowAddDialog(false)
-        }}
       />
 
       <VerifyDomainDialog

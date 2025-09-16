@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import ForwardingConfigFileManager from '@/lib/forwarding-config-file'
+import EmailForwarder from '@/lib/email-forwarding'
 
 // Initialize Supabase client with service role for webhook processing
 // Note: Service role is appropriate here since webhooks are system events,
@@ -267,7 +269,54 @@ export async function POST(request: NextRequest) {
 
     if (domainError) {
       if (domainError.code === 'PGRST116') {
-        // No rows returned
+        // No rows returned - check forwarding config file
+        console.log('Domain not found in database, checking forwarding config:', domainName)
+        
+        const forwardingConfig = await ForwardingConfigFileManager.getConfig(domainName)
+        if (forwardingConfig && forwardingConfig.enabled) {
+          console.log(`✅ Found forwarding config for ${domainName}, proceeding with forwarding only`)
+          
+          // Handle forwarding-only domain (no database storage)
+          const emailData = {
+            from: emailMessage.from,
+            to: recipientEmail,
+            subject: emailMessage.subject,
+            bodyText: emailMessage.bodyText,
+            bodyHtml: emailMessage.bodyHtml,
+            messageId: normalizedMessageId
+          }
+          
+          try {
+            const emailForwarder = new EmailForwarder()
+            const forwardingSuccess = await emailForwarder.forwardEmail(emailData, forwardingConfig.forward_to)
+            
+            if (forwardingSuccess) {
+              console.log(`✅ Email forwarded successfully from ${recipientEmail} to ${forwardingConfig.forward_to}`)
+              return NextResponse.json({
+                success: true,
+                message: 'Email forwarded successfully',
+                forwarded_to: forwardingConfig.forward_to,
+                recipient_email: recipientEmail,
+                from: emailMessage.from,
+                subject: emailMessage.subject
+              }, { status: 200 })
+            } else {
+              console.error(`❌ Failed to forward email to ${forwardingConfig.forward_to}`)
+              return NextResponse.json(
+                { error: 'Failed to forward email' },
+                { status: 500 }
+              )
+            }
+          } catch (forwardingError) {
+            console.error('❌ Error during email forwarding:', forwardingError)
+            return NextResponse.json(
+              { error: 'Email forwarding failed', details: forwardingError instanceof Error ? forwardingError.message : String(forwardingError) },
+              { status: 500 }
+            )
+          }
+        }
+        
+        // No domain found in database or forwarding config
         console.error('Domain not found or not verified:', domainName)
         return NextResponse.json(
           { error: 'Domain not found or not verified' },
@@ -595,6 +644,36 @@ export async function POST(request: NextRequest) {
       from: emailMessage.from,
       subject: emailMessage.subject,
     })
+
+    // Check if this domain has forwarding configured (ImprovMX-style)
+    console.log('🔍 Checking forwarding configuration for domain:', domainName)
+    const forwardingEmail = await ForwardingConfigFileManager.getForwardingEmail(domainName)
+    
+    if (forwardingEmail) {
+      console.log(`📧 Forwarding email from ${recipientEmail} to ${forwardingEmail}`)
+      
+      try {
+        const emailForwarder = new EmailForwarder()
+        const forwardingSuccess = await emailForwarder.forwardEmail({
+          from: emailMessage.from,
+          to: recipientEmail,
+          subject: emailMessage.subject,
+          bodyText: emailMessage.bodyText,
+          bodyHtml: emailMessage.bodyHtml,
+          messageId: normalizedMessageId
+        }, forwardingEmail)
+        
+        if (forwardingSuccess) {
+          console.log('✅ Email forwarded successfully to', forwardingEmail)
+        } else {
+          console.error('❌ Failed to forward email to', forwardingEmail)
+        }
+      } catch (forwardingError) {
+        console.error('❌ Error during email forwarding:', forwardingError)
+      }
+    } else {
+      console.log('ℹ️ No forwarding configured for domain:', domainName)
+    }
 
     return NextResponse.json(
       {

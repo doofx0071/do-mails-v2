@@ -93,8 +93,44 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Also load domains from forwarding config file (for ImprovMX-style domains)
+    let forwardingDomains: any[] = []
+    try {
+      const ForwardingConfigFileManager = (await import('@/lib/forwarding-config-file')).default
+      const configs = await ForwardingConfigFileManager.listConfigs()
+      
+      // Convert forwarding configs to domain format
+      forwardingDomains = configs.map(config => ({
+        id: `forwarding-${config.domain}`,
+        domain_name: config.domain,
+        verification_status: config.status === 'verified' ? 'verified' : 'pending',
+        verification_token: config.verification_token,
+        created_at: config.created_at,
+        updated_at: config.created_at,
+        user_id: null, // These are ImprovMX-style domains without specific user
+        forward_to_email: config.forward_to, // Additional field for forwarding domains
+        source: 'forwarding_config' // Mark source for identification
+      }))
+      
+      console.log(`Found ${forwardingDomains.length} forwarding config domains`)
+    } catch (error) {
+      console.warn('Could not load forwarding config domains:', error)
+    }
+
+    // Merge database domains and forwarding config domains
+    // Remove duplicates (prefer database version if exists)
+    const dbDomainNames = new Set((domains || []).map(d => d.domain_name))
+    const uniqueForwardingDomains = forwardingDomains.filter(fd => !dbDomainNames.has(fd.domain_name))
+    
+    const allDomains = [...(domains || []), ...uniqueForwardingDomains]
+    
+    // Apply status filter to merged results if provided
+    const filteredDomains = status 
+      ? allDomains.filter(d => d.verification_status === status)
+      : allDomains
+
     return NextResponse.json(
-      { domains: domains || [] },
+      { domains: filteredDomains },
       {
         status: 200,
         headers: {
