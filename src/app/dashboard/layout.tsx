@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Logo } from '@/components/ui/logo'
+import { Toaster } from '@/components/ui/toaster'
 
 const navigation = [
   {
@@ -237,6 +238,7 @@ export default function DashboardLayout({
           </main>
         </div>
       </Sheet>
+      <Toaster />
     </div>
   )
 }
