@@ -2,10 +2,27 @@
 
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, Plus, CheckCircle, XCircle, Clock, AlertCircle, RefreshCw, Trash2 } from 'lucide-react'
+import {
+  Loader2,
+  Plus,
+  CheckCircle,
+  XCircle,
+  Clock,
+  AlertCircle,
+  RefreshCw,
+  Trash2,
+  ExternalLink,
+} from 'lucide-react'
 import { AddDomainForwardingDialog } from './add-domain-forwarding-dialog'
 import { VerifyDomainDialog } from './verify-domain-dialog'
 import { DeleteDomainDialog } from './delete-domain-dialog'
@@ -33,6 +50,7 @@ export function DomainList() {
   const [deletingDomain, setDeletingDomain] = useState<Domain | null>(null)
   const { toast } = useToast()
   const queryClient = useQueryClient()
+  const router = useRouter()
 
   // Fetch domains with fallback to public API
   const { data, isLoading, error } = useQuery<DomainsResponse>({
@@ -44,7 +62,7 @@ export function DomainList() {
         return await domainsAPI.list()
       } catch (authError) {
         console.log('Authenticated API failed, trying public API:', authError)
-        
+
         // Fallback to public API for forwarding config domains
         const response = await fetch('/api/domains/public')
         if (!response.ok) {
@@ -52,17 +70,19 @@ export function DomainList() {
         }
         return response.json()
       }
-    }
+    },
   })
 
   // Verify domain mutation
   const verifyDomainMutation = useMutation({
     mutationFn: (domainId: string) =>
-      import('@/lib/api/client').then(({ domainsAPI }) => domainsAPI.verify(domainId)),
+      import('@/lib/api/client').then(({ domainsAPI }) =>
+        domainsAPI.verify(domainId)
+      ),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['domains'] })
       setVerifyingDomain(null)
-      
+
       if (data.success) {
         toast({
           title: 'Domain Verified',
@@ -72,7 +92,7 @@ export function DomainList() {
         toast({
           title: 'Verification Failed',
           description: data.error || 'Domain verification failed',
-          variant: 'destructive'
+          variant: 'destructive',
         })
       }
     },
@@ -80,9 +100,9 @@ export function DomainList() {
       toast({
         title: 'Verification Error',
         description: error.message,
-        variant: 'destructive'
+        variant: 'destructive',
       })
-    }
+    },
   })
 
   // Refresh status mutation
@@ -90,7 +110,7 @@ export function DomainList() {
     mutationFn: async (domainId: string) => {
       const token = localStorage.getItem('auth_token')
       const headers: Record<string, string> = {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       }
       if (token) {
         headers.Authorization = `Bearer ${token}`
@@ -98,7 +118,7 @@ export function DomainList() {
 
       const response = await fetch(`/api/domains/${domainId}/refresh-status`, {
         method: 'POST',
-        headers
+        headers,
       })
 
       if (!response.ok) {
@@ -110,15 +130,15 @@ export function DomainList() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['domains'] })
-      
+
       if (data.success) {
         const status = data.domain.verification_status
         const message = data.message || 'Status refreshed'
-        
+
         toast({
           title: status === 'verified' ? 'Domain Verified!' : 'Status Updated',
           description: message,
-          variant: status === 'verified' ? 'default' : 'secondary'
+          variant: status === 'verified' ? 'default' : 'secondary',
         })
       }
     },
@@ -126,19 +146,26 @@ export function DomainList() {
       toast({
         title: 'Refresh Failed',
         description: error.message,
-        variant: 'destructive'
+        variant: 'destructive',
       })
-    }
+    },
   })
 
   // Delete domain mutation
   const deleteDomainMutation = useMutation({
     mutationFn: async (domainId: string) => {
+      const token = localStorage.getItem('auth_token')
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      }
+
+      if (token) {
+        headers.Authorization = `Bearer ${token}`
+      }
+
       const response = await fetch(`/api/domains/${domainId}/delete`, {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json'
-        }
+        headers,
       })
 
       if (!response.ok) {
@@ -151,7 +178,7 @@ export function DomainList() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['domains'] })
       setDeletingDomain(null)
-      
+
       toast({
         title: 'Domain Deleted',
         description: `${data.deleted_domain} has been successfully deleted`,
@@ -161,9 +188,9 @@ export function DomainList() {
       toast({
         title: 'Delete Failed',
         description: error.message,
-        variant: 'destructive'
+        variant: 'destructive',
       })
-    }
+    },
   })
 
   const getStatusIcon = (status: string) => {
@@ -182,7 +209,11 @@ export function DomainList() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'verified':
-        return <Badge variant="default" className="bg-green-100 text-green-800">Verified</Badge>
+        return (
+          <Badge variant="default" className="bg-green-100 text-green-800">
+            Verified
+          </Badge>
+        )
       case 'failed':
         return <Badge variant="destructive">Failed</Badge>
       case 'pending':
@@ -236,7 +267,7 @@ export function DomainList() {
           </p>
         </div>
         <Button onClick={() => setShowAddDialog(true)}>
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus className="mr-2 h-4 w-4" />
           Add Domain
         </Button>
       </div>
@@ -245,12 +276,13 @@ export function DomainList() {
         <Card>
           <CardContent className="p-6">
             <div className="text-center">
-              <h3 className="text-lg font-semibold mb-2">No domains yet</h3>
-              <p className="text-muted-foreground mb-4">
-                Add your first domain to start creating email aliases and forwarding
+              <h3 className="mb-2 text-lg font-semibold">No domains yet</h3>
+              <p className="mb-4 text-muted-foreground">
+                Add your first domain to start creating email aliases and
+                forwarding
               </p>
               <Button onClick={() => setShowAddDialog(true)}>
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="mr-2 h-4 w-4" />
                 Add Your First Domain
               </Button>
             </div>
@@ -264,7 +296,15 @@ export function DomainList() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     {getStatusIcon(domain.verification_status)}
-                    <CardTitle className="text-lg">{domain.domain_name}</CardTitle>
+                    <CardTitle
+                      className="flex cursor-pointer items-center gap-2 text-lg transition-colors hover:text-primary"
+                      onClick={() =>
+                        router.push(`/dashboard/domains/${domain.id}`)
+                      }
+                    >
+                      {domain.domain_name}
+                      <ExternalLink className="h-4 w-4 opacity-50" />
+                    </CardTitle>
                   </div>
                   {getStatusBadge(domain.verification_status)}
                 </div>
@@ -272,12 +312,14 @@ export function DomainList() {
                   Added {new Date(domain.created_at).toLocaleDateString()}
                   {domain.verified_at && (
                     <span className="ml-2">
-                      • Verified {new Date(domain.verified_at).toLocaleDateString()}
+                      • Verified{' '}
+                      {new Date(domain.verified_at).toLocaleDateString()}
                     </span>
                   )}
                   {domain.forward_to_email && (
                     <div className="mt-1 text-sm">
-                      <span className="font-medium">Forwarding to:</span> {domain.forward_to_email}
+                      <span className="font-medium">Forwarding to:</span>{' '}
+                      {domain.forward_to_email}
                     </div>
                   )}
                 </CardDescription>
@@ -301,32 +343,39 @@ export function DomainList() {
                       variant="outline"
                       size="sm"
                       onClick={() => refreshStatusMutation.mutate(domain.id)}
-                      disabled={refreshStatusMutation.isPending || verifyDomainMutation.isPending}
+                      disabled={
+                        refreshStatusMutation.isPending ||
+                        verifyDomainMutation.isPending
+                      }
                     >
                       {refreshStatusMutation.isPending ? (
                         <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           Checking...
                         </>
                       ) : (
                         <>
-                          <RefreshCw className="h-4 w-4 mr-2" />
+                          <RefreshCw className="mr-2 h-4 w-4" />
                           Refresh
                         </>
                       )}
                     </Button>
-                    
+
                     {/* Legacy Verify Button (if needed) */}
                     {domain.verification_status !== 'verified' && (
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleVerifyDomain(domain)}
-                        disabled={verifyDomainMutation.isPending || refreshStatusMutation.isPending}
+                        disabled={
+                          verifyDomainMutation.isPending ||
+                          refreshStatusMutation.isPending
+                        }
                       >
-                        {verifyDomainMutation.isPending && verifyingDomain?.id === domain.id ? (
+                        {verifyDomainMutation.isPending &&
+                        verifyingDomain?.id === domain.id ? (
                           <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             Verifying...
                           </>
                         ) : (
@@ -334,14 +383,14 @@ export function DomainList() {
                         )}
                       </Button>
                     )}
-                    
+
                     {/* Delete Button */}
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setDeletingDomain(domain)}
                       disabled={deleteDomainMutation.isPending}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      className="text-red-600 hover:bg-red-50 hover:text-red-700"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -370,7 +419,9 @@ export function DomainList() {
         domain={deletingDomain}
         open={!!deletingDomain}
         onOpenChange={(open) => !open && setDeletingDomain(null)}
-        onConfirm={() => deletingDomain && deleteDomainMutation.mutate(deletingDomain.id)}
+        onConfirm={() =>
+          deletingDomain && deleteDomainMutation.mutate(deletingDomain.id)
+        }
         isDeleting={deleteDomainMutation.isPending}
       />
     </div>

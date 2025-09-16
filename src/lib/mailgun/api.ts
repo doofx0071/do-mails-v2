@@ -28,26 +28,33 @@ export class MailgunAPI {
   constructor() {
     this.apiKey = process.env.MAILGUN_API_KEY || ''
     this.domain = process.env.MAILGUN_DOMAIN || ''
-    
+
     // Auto-detect region if MAILGUN_BASE_URL not provided
     const region = process.env.MAILGUN_REGION?.toUpperCase()
     if (process.env.MAILGUN_BASE_URL) {
       this.baseUrl = process.env.MAILGUN_BASE_URL
     } else {
-      this.baseUrl = region === 'EU' ? 'https://api.eu.mailgun.net/v3' : 'https://api.mailgun.net/v3'
+      this.baseUrl =
+        region === 'EU'
+          ? 'https://api.eu.mailgun.net/v3'
+          : 'https://api.mailgun.net/v3'
     }
-    
+
     // Validate configuration
     if (!this.apiKey) {
       console.warn('⚠️ MAILGUN_API_KEY not configured')
     }
-    
+
     // Warn if base URL doesn't look like a Mailgun endpoint
     if (!this.baseUrl.includes('mailgun.net')) {
-      console.warn(`⚠️ MAILGUN_BASE_URL '${this.baseUrl}' doesn't appear to be a Mailgun endpoint`)
+      console.warn(
+        `⚠️ MAILGUN_BASE_URL '${this.baseUrl}' doesn't appear to be a Mailgun endpoint`
+      )
     }
-    
-    console.log(`🗺️ Mailgun API configured for region: ${region || 'US'} at ${this.baseUrl}`)
+
+    console.log(
+      `🗺️ Mailgun API configured for region: ${region || 'US'} at ${this.baseUrl}`
+    )
   }
 
   /**
@@ -61,7 +68,7 @@ export class MailgunAPI {
    * Make authenticated request to Mailgun API
    */
   private async makeRequest(
-    endpoint: string, 
+    endpoint: string,
     options: RequestInit = {}
   ): Promise<any> {
     if (!this.isConfigured()) {
@@ -71,13 +78,13 @@ export class MailgunAPI {
     const url = `${this.baseUrl}${endpoint}`
     // Mailgun uses HTTP Basic Auth with username='api' and password=API_KEY (no prefix needed)
     const auth = Buffer.from(`api:${this.apiKey}`).toString('base64')
-    
+
     const response = await fetch(url, {
       ...options,
       headers: {
-        'Authorization': `Basic ${auth}`,
+        Authorization: `Basic ${auth}`,
         'Content-Type': 'application/x-www-form-urlencoded',
-        'Accept': 'application/json',
+        Accept: 'application/json',
         ...options.headers,
       },
     })
@@ -87,17 +94,21 @@ export class MailgunAPI {
     try {
       data = await response.json()
     } catch {
-      try { 
-        bodyText = await response.text() 
-      } catch { 
+      try {
+        bodyText = await response.text()
+      } catch {
         bodyText = 'Unable to read response body'
       }
     }
-    
+
     if (!response.ok) {
-      console.error(`Mailgun API Error ${response.status} ${response.statusText} on ${options.method || 'GET'} ${url}`)
-      if (data) console.error('Response JSON:', JSON.stringify(data).slice(0, 500))
-      if (!data && bodyText) console.error('Response Text:', bodyText.slice(0, 500))
+      console.error(
+        `Mailgun API Error ${response.status} ${response.statusText} on ${options.method || 'GET'} ${url}`
+      )
+      if (data)
+        console.error('Response JSON:', JSON.stringify(data).slice(0, 500))
+      if (!data && bodyText)
+        console.error('Response Text:', bodyText.slice(0, 500))
       const msg = data?.message || `${response.status} ${response.statusText}`
       throw new Error(`Mailgun API error on ${endpoint}: ${msg}`)
     }
@@ -108,7 +119,10 @@ export class MailgunAPI {
   /**
    * Add a domain to Mailgun
    */
-  async addDomain(domainName: string, options: Partial<MailgunDomain> = {}): Promise<any> {
+  async addDomain(
+    domainName: string,
+    options: Partial<MailgunDomain> = {}
+  ): Promise<any> {
     console.log(`📧 Adding domain ${domainName} to Mailgun...`)
 
     const params = new URLSearchParams({
@@ -117,7 +131,7 @@ export class MailgunAPI {
       wildcard: String(options.wildcard ?? true), // Enable wildcard for catch-all
       force_dkim_authority: String(options.force_dkim_authority ?? false),
       dkim_key_size: String(options.dkim_key_size || 2048),
-      web_scheme: options.web_scheme || 'https'
+      web_scheme: options.web_scheme || 'https',
     })
 
     try {
@@ -160,7 +174,10 @@ export class MailgunAPI {
       console.log(`✅ Domain ${domainName} removed from Mailgun successfully`)
       return result
     } catch (error) {
-      console.error(`❌ Failed to remove domain ${domainName} from Mailgun:`, error)
+      console.error(
+        `❌ Failed to remove domain ${domainName} from Mailgun:`,
+        error
+      )
       throw error
     }
   }
@@ -205,8 +222,14 @@ export class MailgunAPI {
       await this.getDomain(domainName)
       console.log(`✅ Domain ${domainName} exists in Mailgun`)
     } catch (e: any) {
-      if (String(e?.message || '').toLowerCase().includes('not found')) {
-        throw new Error(`Mailgun domain ${domainName} not found. Ensure addDomain completed and propagated before webhook setup.`)
+      if (
+        String(e?.message || '')
+          .toLowerCase()
+          .includes('not found')
+      ) {
+        throw new Error(
+          `Mailgun domain ${domainName} not found. Ensure addDomain completed and propagated before webhook setup.`
+        )
       }
       throw e
     }
@@ -216,41 +239,90 @@ export class MailgunAPI {
    * Set up webhook for domain (idempotent)
    */
   async setupWebhook(
-    domainName: string, 
-    webhookUrl: string, 
-    events: string[] = ['delivered', 'permanent_fail', 'temporary_fail', 'complained', 'unsubscribed', 'opened', 'clicked']
+    domainName: string,
+    webhookUrl: string,
+    events: string[] = [
+      'delivered',
+      'permanent_fail',
+      'temporary_fail',
+      'complained',
+      'unsubscribed',
+      'opened',
+      'clicked',
+    ]
   ): Promise<any> {
     console.log(`🎣 Setting up webhooks for domain ${domainName}...`)
 
     try {
       // Ensure domain exists first
       await this.ensureDomainExists(domainName)
-      
-      const results: Array<{event: string; action: 'created' | 'updated'; result: any}> = []
-      
+
+      const results: Array<{
+        event: string
+        action: 'created' | 'updated' | 'skipped'
+        result: any
+      }> = []
+
       for (const event of events) {
         try {
-          // Check if webhook exists
-          await this.makeRequest(`/domains/${domainName}/webhooks/${event}`, { method: 'GET' })
-          // Exists – update it
-          const updateParams = new URLSearchParams({ url: webhookUrl })
-          const updated = await this.makeRequest(`/domains/${domainName}/webhooks/${event}`, {
-            method: 'PUT',
-            body: updateParams,
+          // Try to create webhook directly (most common case for new domains)
+          const createParams = new URLSearchParams({
+            id: event,
+            url: webhookUrl,
           })
-          results.push({ event, action: 'updated', result: updated })
-        } catch (getErr: any) {
-          // Not found – create it
-          if (String(getErr?.message || '').toLowerCase().includes('not found')) {
-            const createParams = new URLSearchParams({ id: event, url: webhookUrl })
-            const created = await this.makeRequest(`/domains/${domainName}/webhooks`, {
+          const created = await this.makeRequest(
+            `/domains/${domainName}/webhooks`,
+            {
               method: 'POST',
               body: createParams,
-            })
-            results.push({ event, action: 'created', result: created })
+            }
+          )
+          results.push({ event, action: 'created', result: created })
+          console.log(`✅ Created webhook ${event} for ${domainName}`)
+        } catch (createErr: any) {
+          // If webhook already exists, update it
+          if (
+            String(createErr?.message || '')
+              .toLowerCase()
+              .includes('already exists') ||
+            String(createErr?.message || '')
+              .toLowerCase()
+              .includes('conflict')
+          ) {
+            try {
+              const updateParams = new URLSearchParams({ url: webhookUrl })
+              const updated = await this.makeRequest(
+                `/domains/${domainName}/webhooks/${event}`,
+                {
+                  method: 'PUT',
+                  body: updateParams,
+                }
+              )
+              results.push({ event, action: 'updated', result: updated })
+              console.log(
+                `✅ Updated existing webhook ${event} for ${domainName}`
+              )
+            } catch (updateErr: any) {
+              console.warn(
+                `⚠️ Could not update webhook ${event} for ${domainName}:`,
+                updateErr.message
+              )
+              results.push({
+                event,
+                action: 'skipped',
+                result: { error: updateErr.message },
+              })
+            }
           } else {
-            console.error(`❌ Failed checking webhook ${event} on ${domainName}:`, getErr)
-            throw getErr
+            console.warn(
+              `⚠️ Could not create webhook ${event} for ${domainName}:`,
+              createErr.message
+            )
+            results.push({
+              event,
+              action: 'skipped',
+              result: { error: createErr.message },
+            })
           }
         }
       }
@@ -258,7 +330,10 @@ export class MailgunAPI {
       console.log(`✅ Webhooks configured for domain ${domainName}`)
       return results
     } catch (error) {
-      console.error(`❌ Failed to setup webhook for domain ${domainName}:`, error)
+      console.error(
+        `❌ Failed to setup webhook for domain ${domainName}:`,
+        error
+      )
       throw error
     }
   }
@@ -290,7 +365,7 @@ export class MailgunAPI {
       from: `noreply@${domainName}`,
       to: to,
       subject: subject,
-      text: text
+      text: text,
     })
 
     try {
@@ -318,7 +393,10 @@ export class MailgunAPI {
         receiving_dns_records: domain.domain?.receiving_dns_records || [],
       }
     } catch (error) {
-      console.error(`Failed to get DNS records for domain ${domainName}:`, error)
+      console.error(
+        `Failed to get DNS records for domain ${domainName}:`,
+        error
+      )
       throw error
     }
   }

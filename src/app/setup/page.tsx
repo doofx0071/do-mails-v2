@@ -132,12 +132,12 @@ export default function SetupPage() {
             </CardContent>
           </Card>
 
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <div className="space-y-6">
             {/* MX Records */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">MX Records</CardTitle>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-muted-foreground">
                   Add these MX records to your DNS provider
                 </p>
               </CardHeader>
@@ -147,28 +147,48 @@ export default function SetupPage() {
                     (record, index) => (
                       <div
                         key={index}
-                        className="flex items-center justify-between rounded-lg bg-gray-50 p-3 dark:bg-gray-800"
+                        className="flex flex-col gap-3 rounded-lg border bg-muted/50 p-4 sm:flex-row sm:items-center sm:justify-between"
                       >
-                        <div className="font-mono text-sm">
-                          <div>
-                            <strong>Type:</strong> {record.type}
-                          </div>
-                          <div>
-                            <strong>Host:</strong> {record.host}
-                          </div>
-                          <div>
-                            <strong>Priority:</strong> {record.priority}
-                          </div>
-                          <div>
-                            <strong>Value:</strong> {record.value}
+                        <div className="space-y-1">
+                          <div className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
+                            <div>
+                              <span className="font-medium text-muted-foreground">
+                                Type:
+                              </span>
+                              <div className="font-mono">{record.type}</div>
+                            </div>
+                            <div>
+                              <span className="font-medium text-muted-foreground">
+                                Host:
+                              </span>
+                              <div className="break-all font-mono">
+                                {record.host}
+                              </div>
+                            </div>
+                            <div>
+                              <span className="font-medium text-muted-foreground">
+                                Priority:
+                              </span>
+                              <div className="font-mono">{record.priority}</div>
+                            </div>
+                            <div className="col-span-2 sm:col-span-1">
+                              <span className="font-medium text-muted-foreground">
+                                Value:
+                              </span>
+                              <div className="break-all font-mono text-xs sm:text-sm">
+                                {record.value}
+                              </div>
+                            </div>
                           </div>
                         </div>
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() => copyToClipboard(record.value)}
+                          className="w-full sm:w-auto"
                         >
-                          <Copy className="h-4 w-4" />
+                          <Copy className="mr-2 h-4 w-4" />
+                          Copy Value
                         </Button>
                       </div>
                     )
@@ -181,25 +201,40 @@ export default function SetupPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">TXT Records</CardTitle>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-muted-foreground">
                   Add these TXT records for SPF and verification
                 </p>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
-                    <div className="font-mono text-sm">
-                      <div>
-                        <strong>Type:</strong>{' '}
-                        {setupResult.dns_instructions.spf_record.type}
-                      </div>
-                      <div>
-                        <strong>Host:</strong>{' '}
-                        {setupResult.dns_instructions.spf_record.host}
-                      </div>
-                      <div>
-                        <strong>Value:</strong>{' '}
-                        {setupResult.dns_instructions.spf_record.value}
+                  {/* SPF Record */}
+                  <div className="flex flex-col gap-3 rounded-lg border bg-muted/50 p-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="space-y-1">
+                      <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-3">
+                        <div>
+                          <span className="font-medium text-muted-foreground">
+                            Type:
+                          </span>
+                          <div className="font-mono">
+                            {setupResult.dns_instructions.spf_record.type}
+                          </div>
+                        </div>
+                        <div>
+                          <span className="font-medium text-muted-foreground">
+                            Host:
+                          </span>
+                          <div className="break-all font-mono">
+                            {setupResult.dns_instructions.spf_record.host}
+                          </div>
+                        </div>
+                        <div className="col-span-1 sm:col-span-1">
+                          <span className="font-medium text-muted-foreground">
+                            Value:
+                          </span>
+                          <div className="break-all font-mono text-xs sm:text-sm">
+                            {setupResult.dns_instructions.spf_record.value}
+                          </div>
+                        </div>
                       </div>
                     </div>
                     <Button
@@ -210,24 +245,50 @@ export default function SetupPage() {
                           setupResult.dns_instructions.spf_record.value
                         )
                       }
+                      className="w-full sm:w-auto"
                     >
-                      <Copy className="h-4 w-4" />
+                      <Copy className="mr-2 h-4 w-4" />
+                      Copy SPF
                     </Button>
                   </div>
 
-                  <div className="flex items-center justify-between rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
-                    <div className="font-mono text-sm">
-                      <div>
-                        <strong>Type:</strong>{' '}
-                        {setupResult.dns_instructions.verification_record.type}
-                      </div>
-                      <div>
-                        <strong>Host:</strong>{' '}
-                        {setupResult.dns_instructions.verification_record.host}
-                      </div>
-                      <div>
-                        <strong>Value:</strong>{' '}
-                        {setupResult.dns_instructions.verification_record.value}
+                  {/* Verification Record */}
+                  <div className="flex flex-col gap-3 rounded-lg border bg-muted/50 p-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="space-y-1">
+                      <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-3">
+                        <div>
+                          <span className="font-medium text-muted-foreground">
+                            Type:
+                          </span>
+                          <div className="font-mono">
+                            {
+                              setupResult.dns_instructions.verification_record
+                                .type
+                            }
+                          </div>
+                        </div>
+                        <div>
+                          <span className="font-medium text-muted-foreground">
+                            Host:
+                          </span>
+                          <div className="break-all font-mono">
+                            {
+                              setupResult.dns_instructions.verification_record
+                                .host
+                            }
+                          </div>
+                        </div>
+                        <div className="col-span-1 sm:col-span-1">
+                          <span className="font-medium text-muted-foreground">
+                            Value:
+                          </span>
+                          <div className="break-all font-mono text-xs sm:text-sm">
+                            {
+                              setupResult.dns_instructions.verification_record
+                                .value
+                            }
+                          </div>
+                        </div>
                       </div>
                     </div>
                     <Button
@@ -238,8 +299,10 @@ export default function SetupPage() {
                           setupResult.dns_instructions.verification_record.value
                         )
                       }
+                      className="w-full sm:w-auto"
                     >
-                      <Copy className="h-4 w-4" />
+                      <Copy className="mr-2 h-4 w-4" />
+                      Copy Verification
                     </Button>
                   </div>
                 </div>
