@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createAuthenticatedClient } from '@/lib/supabase/server'
+import {
+  createUserClient,
+  extractAuthToken,
+  verifyAuth,
+} from '@/lib/supabase/server'
 import { promises as dns } from 'dns'
 
 export async function GET(
@@ -7,19 +11,30 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = createAuthenticatedClient(request)
-    
-    // Get the authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    
-    if (authError || !user) {
+    // Extract and validate auth token
+    const token = extractAuthToken(request)
+    if (!token) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'Unauthorized - Bearer token required' },
+        { status: 401 }
+      )
+    }
+
+    // Verify authentication and get user
+    let user
+    try {
+      user = await verifyAuth(token)
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Invalid token' },
         { status: 401 }
       )
     }
 
     const domainId = params.id
+
+    // Create Supabase client for the authenticated user
+    const supabase = createUserClient(user.id)
 
     // Fetch domain details
     const { data: domain, error: domainError } = await supabase
@@ -30,10 +45,7 @@ export async function GET(
       .single()
 
     if (domainError || !domain) {
-      return NextResponse.json(
-        { error: 'Domain not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Domain not found' }, { status: 404 })
     }
 
     const domainName = domain.domain_name
@@ -49,16 +61,16 @@ export async function GET(
     try {
       // Check MX records
       const mxResults = await dns.resolveMx(domainName)
-      mxRecords = mxResults.map(mx => `${mx.priority} ${mx.exchange}`)
-      
+      mxRecords = mxResults.map((mx) => `${mx.priority} ${mx.exchange}`)
+
       // Check if Mailgun MX records are present
-      const mailgunMxFound = mxResults.some(mx => 
-        mx.exchange.includes('mailgun.org') || 
-        mx.exchange.includes('mxa.mailgun.org') ||
-        mx.exchange.includes('mxb.mailgun.org')
+      const mailgunMxFound = mxResults.some(
+        (mx) =>
+          mx.exchange.includes('mailgun.org') ||
+          mx.exchange.includes('mxa.mailgun.org') ||
+          mx.exchange.includes('mxb.mailgun.org')
       )
       mxRecordsValid = mailgunMxFound
-
     } catch (error) {
       console.log(`No MX records found for ${domainName}:`, error)
     }
@@ -66,23 +78,24 @@ export async function GET(
     try {
       // Check TXT records
       const txtResults = await dns.resolveTxt(domainName)
-      txtRecords = txtResults.map(txt => txt.join(''))
-      
+      txtRecords = txtResults.map((txt) => txt.join(''))
+
       // Check for SPF record
-      spfRecordValid = txtRecords.some(record => 
-        record.includes('v=spf1') && record.includes('include:mailgun.org')
-      )
-      
-      // Check for verification record
-      verificationRecordValid = txtRecords.some(record => 
-        record.includes(verificationToken)
+      spfRecordValid = txtRecords.some(
+        (record) =>
+          record.includes('v=spf1') && record.includes('include:mailgun.org')
       )
 
+      // Check for verification record
+      verificationRecordValid = txtRecords.some((record) =>
+        record.includes(verificationToken)
+      )
     } catch (error) {
       console.log(`No TXT records found for ${domainName}:`, error)
     }
 
-    const allRecordsValid = mxRecordsValid && spfRecordValid && verificationRecordValid
+    const allRecordsValid =
+      mxRecordsValid && spfRecordValid && verificationRecordValid
 
     const dnsStatus = {
       domain: domainName,
@@ -94,31 +107,30 @@ export async function GET(
         mxRecords,
         txtRecords,
         expectedVerificationToken: verificationToken,
-        foundVerificationToken: verificationRecordValid
-      }
+        foundVerificationToken: verificationRecordValid,
+      },
     }
 
     // Update domain verification status if all records are valid
     if (allRecordsValid && domain.verification_status !== 'verified') {
       await supabase
         .from('domains')
-        .update({ 
+        .update({
           verification_status: 'verified',
-          verified_at: new Date().toISOString()
+          verified_at: new Date().toISOString(),
         })
         .eq('id', domainId)
     } else if (!allRecordsValid && domain.verification_status === 'verified') {
       await supabase
         .from('domains')
-        .update({ 
+        .update({
           verification_status: 'failed',
-          verified_at: null
+          verified_at: null,
         })
         .eq('id', domainId)
     }
 
     return NextResponse.json(dnsStatus)
-
   } catch (error) {
     console.error('Error checking DNS status:', error)
     return NextResponse.json(

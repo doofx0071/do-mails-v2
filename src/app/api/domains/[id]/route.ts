@@ -1,24 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createAuthenticatedClient } from '@/lib/supabase/server'
+import {
+  createUserClient,
+  extractAuthToken,
+  verifyAuth,
+} from '@/lib/supabase/server'
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const supabase = createAuthenticatedClient(request)
-    
-    // Get the authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    
-    if (authError || !user) {
+    // Extract and validate auth token
+    const token = extractAuthToken(request)
+    if (!token) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'Unauthorized - Bearer token required' },
+        { status: 401 }
+      )
+    }
+
+    // Verify authentication and get user
+    let user
+    try {
+      user = await verifyAuth(token)
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Invalid token' },
         { status: 401 }
       )
     }
 
     const domainId = params.id
+
+    // Create Supabase client for the authenticated user
+    const supabase = createUserClient(user.id)
 
     // Fetch domain details
     const { data: domain, error: domainError } = await supabase
@@ -30,21 +45,14 @@ export async function GET(
 
     if (domainError) {
       console.error('Error fetching domain:', domainError)
-      return NextResponse.json(
-        { error: 'Domain not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Domain not found' }, { status: 404 })
     }
 
     if (!domain) {
-      return NextResponse.json(
-        { error: 'Domain not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Domain not found' }, { status: 404 })
     }
 
     return NextResponse.json(domain)
-
   } catch (error) {
     console.error('Error in domain detail API:', error)
     return NextResponse.json(
