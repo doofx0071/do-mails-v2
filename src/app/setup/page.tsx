@@ -308,6 +308,129 @@ export default function SetupPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* DKIM Records */}
+            {setupResult.dns_instructions.dkim_records &&
+              setupResult.dns_instructions.dkim_records.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">DKIM Records</CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      Add these TXT records for email authentication (DKIM)
+                    </p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {setupResult.dns_instructions.dkim_records.map(
+                        (record, index) => (
+                          <div
+                            key={index}
+                            className="flex flex-col gap-3 rounded-lg border bg-muted/50 p-4 sm:flex-row sm:items-center sm:justify-between"
+                          >
+                            <div className="space-y-1">
+                              <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-3">
+                                <div>
+                                  <span className="font-medium text-muted-foreground">
+                                    Type:
+                                  </span>
+                                  <div className="font-mono">{record.type}</div>
+                                </div>
+                                <div>
+                                  <span className="font-medium text-muted-foreground">
+                                    Host:
+                                  </span>
+                                  <div className="break-all font-mono">
+                                    {record.host}
+                                  </div>
+                                </div>
+                                <div className="col-span-1 sm:col-span-1">
+                                  <span className="font-medium text-muted-foreground">
+                                    Value:
+                                  </span>
+                                  <div className="break-all font-mono text-xs sm:text-sm">
+                                    {record.value}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => copyToClipboard(record.value)}
+                              className="w-full sm:w-auto"
+                            >
+                              <Copy className="mr-2 h-4 w-4" />
+                              Copy DKIM
+                            </Button>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+            {/* Tracking Records */}
+            {setupResult.dns_instructions.tracking_records &&
+              setupResult.dns_instructions.tracking_records.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Tracking Records</CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      Add these CNAME records for email tracking (opens, clicks,
+                      unsubscribes)
+                    </p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {setupResult.dns_instructions.tracking_records.map(
+                        (record, index) => (
+                          <div
+                            key={index}
+                            className="flex flex-col gap-3 rounded-lg border bg-muted/50 p-4 sm:flex-row sm:items-center sm:justify-between"
+                          >
+                            <div className="space-y-1">
+                              <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-3">
+                                <div>
+                                  <span className="font-medium text-muted-foreground">
+                                    Type:
+                                  </span>
+                                  <div className="font-mono">{record.type}</div>
+                                </div>
+                                <div>
+                                  <span className="font-medium text-muted-foreground">
+                                    Host:
+                                  </span>
+                                  <div className="break-all font-mono">
+                                    {record.host}
+                                  </div>
+                                </div>
+                                <div className="col-span-1 sm:col-span-1">
+                                  <span className="font-medium text-muted-foreground">
+                                    Value:
+                                  </span>
+                                  <div className="break-all font-mono text-xs sm:text-sm">
+                                    {record.value}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => copyToClipboard(record.value)}
+                              className="w-full sm:w-auto"
+                            >
+                              <Copy className="mr-2 h-4 w-4" />
+                              Copy Tracking
+                            </Button>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
           </div>
 
           <div className="mt-8 text-center">

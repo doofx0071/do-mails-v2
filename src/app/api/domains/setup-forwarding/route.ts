@@ -232,6 +232,90 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Get complete DNS records from Mailgun if available
+    let dnsInstructions = {
+      mx_records: [
+        {
+          type: 'MX',
+          host: '@',
+          priority: 10,
+          value: 'mxa.mailgun.org.',
+        },
+        {
+          type: 'MX',
+          host: '@',
+          priority: 10,
+          value: 'mxb.mailgun.org.',
+        },
+      ],
+      spf_record: {
+        type: 'TXT',
+        host: '@',
+        value: 'v=spf1 include:mailgun.org ~all',
+      },
+      verification_record: {
+        type: 'TXT',
+        host: '_domails-verify',
+        value: verificationToken,
+      },
+      dkim_records: [],
+      tracking_records: [],
+    }
+
+    // If Mailgun is configured, get the complete DNS records
+    if (mailgunResult) {
+      try {
+        console.log('📋 Getting complete DNS records from Mailgun...')
+        const mailgunAPI = new MailgunAPI()
+        const dnsRecords = await mailgunAPI.getDomainDNSRecords(
+          domain_name.toLowerCase()
+        )
+
+        // Add DKIM records
+        if (dnsRecords.sending_dns_records) {
+          dnsInstructions.dkim_records = dnsRecords.sending_dns_records
+            .filter(
+              (record) =>
+                record.record_type === 'TXT' &&
+                record.name.includes('_domainkey')
+            )
+            .map((record) => ({
+              type: 'TXT',
+              host: record.name.replace(`.${domain_name.toLowerCase()}`, ''),
+              value: record.value,
+            }))
+        }
+
+        // Add tracking CNAME record
+        if (dnsRecords.sending_dns_records) {
+          const trackingRecord = dnsRecords.sending_dns_records.find(
+            (record) =>
+              record.record_type === 'CNAME' && record.name.startsWith('email.')
+          )
+          if (trackingRecord) {
+            dnsInstructions.tracking_records = [
+              {
+                type: 'CNAME',
+                host: trackingRecord.name.replace(
+                  `.${domain_name.toLowerCase()}`,
+                  ''
+                ),
+                value: trackingRecord.value,
+              },
+            ]
+          }
+        }
+
+        console.log('✅ Complete DNS records retrieved from Mailgun')
+      } catch (error) {
+        console.error(
+          '⚠️ Failed to get complete DNS records from Mailgun:',
+          error
+        )
+        // Continue with basic records if Mailgun API fails
+      }
+    }
+
     // Return setup instructions (ImprovMX-style)
     return NextResponse.json(
       {
@@ -249,32 +333,7 @@ export async function POST(request: NextRequest) {
             ? 'Domain automatically added to Mailgun'
             : 'Domain needs to be manually added to Mailgun account',
         },
-        dns_instructions: {
-          mx_records: [
-            {
-              type: 'MX',
-              host: '@',
-              priority: 10,
-              value: 'mxa.mailgun.org.',
-            },
-            {
-              type: 'MX',
-              host: '@',
-              priority: 10,
-              value: 'mxb.mailgun.org.',
-            },
-          ],
-          spf_record: {
-            type: 'TXT',
-            host: '@',
-            value: 'v=spf1 include:mailgun.org ~all',
-          },
-          verification_record: {
-            type: 'TXT',
-            host: '_domails-verify',
-            value: verificationToken,
-          },
-        },
+        dns_instructions: dnsInstructions,
         message: mailgunResult
           ? `Domain ${domain_name} has been automatically configured in Mailgun! All emails sent to *@${domain_name} will be forwarded to ${forward_to_email}. Please add the DNS records to complete setup.`
           : `All emails sent to *@${domain_name} will be forwarded to ${forward_to_email}. Please add the DNS records and manually configure the domain in Mailgun to complete setup.`,

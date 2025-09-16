@@ -145,6 +145,40 @@ export default function DomainDetailPage() {
     },
   })
 
+  // Verify in Mailgun mutation
+  const verifyMailgunMutation = useMutation({
+    mutationFn: async () => {
+      const headers = await getAuthHeaders()
+
+      const response = await fetch(`/api/domains/${domainId}/verify-mailgun`, {
+        method: 'POST',
+        headers,
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to verify domain in Mailgun')
+      }
+
+      return response.json()
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['dns-status', domainId] })
+      queryClient.invalidateQueries({ queryKey: ['domain', domainId] })
+      toast({
+        title: 'Mailgun Verification Triggered',
+        description: `Domain verification has been triggered in Mailgun. Status: ${data.mailgun_status}`,
+      })
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Mailgun Verification Failed',
+        description: error.message,
+        variant: 'destructive',
+      })
+    },
+  })
+
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text)
     toast({
@@ -220,23 +254,42 @@ export default function DomainDetailPage() {
             {getStatusBadge(domain.verification_status)}
           </div>
         </div>
-        <Button
-          onClick={() => refreshDNSMutation.mutate()}
-          disabled={refreshDNSMutation.isPending}
-          variant="outline"
-        >
-          {refreshDNSMutation.isPending ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Checking...
-            </>
-          ) : (
-            <>
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Refresh DNS Status
-            </>
-          )}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => refreshDNSMutation.mutate()}
+            disabled={refreshDNSMutation.isPending}
+            variant="outline"
+          >
+            {refreshDNSMutation.isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Checking...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Refresh DNS
+              </>
+            )}
+          </Button>
+          <Button
+            onClick={() => verifyMailgunMutation.mutate()}
+            disabled={verifyMailgunMutation.isPending}
+            variant="default"
+          >
+            {verifyMailgunMutation.isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Verifying...
+              </>
+            ) : (
+              <>
+                <CheckCircle className="mr-2 h-4 w-4" />
+                Verify in Mailgun
+              </>
+            )}
+          </Button>
+        </div>
       </div>
 
       {/* Domain Info */}
