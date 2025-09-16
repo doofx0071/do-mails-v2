@@ -27,6 +27,7 @@ import {
   Loader2,
 } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
+import { getAuthHeaders } from '@/lib/supabase/auth'
 
 interface Domain {
   id: string
@@ -77,14 +78,7 @@ export default function DomainDetailPage() {
   } = useQuery<Domain>({
     queryKey: ['domain', domainId],
     queryFn: async () => {
-      const token = localStorage.getItem('auth_token')
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      }
-
-      if (token) {
-        headers.Authorization = `Bearer ${token}`
-      }
+      const headers = await getAuthHeaders()
 
       const response = await fetch(`/api/domains/${domainId}`, {
         headers,
@@ -102,14 +96,7 @@ export default function DomainDetailPage() {
   const { data: dnsStatus, isLoading: dnsLoading } = useQuery<DNSStatus>({
     queryKey: ['dns-status', domainId],
     queryFn: async () => {
-      const token = localStorage.getItem('auth_token')
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      }
-
-      if (token) {
-        headers.Authorization = `Bearer ${token}`
-      }
+      const headers = await getAuthHeaders()
 
       const response = await fetch(`/api/domains/${domainId}/dns-status`, {
         headers,
@@ -127,14 +114,7 @@ export default function DomainDetailPage() {
   // Refresh DNS status mutation
   const refreshDNSMutation = useMutation({
     mutationFn: async () => {
-      const token = localStorage.getItem('auth_token')
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      }
-
-      if (token) {
-        headers.Authorization = `Bearer ${token}`
-      }
+      const headers = await getAuthHeaders()
 
       const response = await fetch(`/api/domains/${domainId}/refresh-status`, {
         method: 'POST',
