@@ -27,12 +27,27 @@ export class MailgunAPI {
 
   constructor() {
     this.apiKey = process.env.MAILGUN_API_KEY || ''
-    this.baseUrl = process.env.MAILGUN_BASE_URL || 'https://api.mailgun.net/v3'
     this.domain = process.env.MAILGUN_DOMAIN || ''
     
+    // Auto-detect region if MAILGUN_BASE_URL not provided
+    const region = process.env.MAILGUN_REGION?.toUpperCase()
+    if (process.env.MAILGUN_BASE_URL) {
+      this.baseUrl = process.env.MAILGUN_BASE_URL
+    } else {
+      this.baseUrl = region === 'EU' ? 'https://api.eu.mailgun.net/v3' : 'https://api.mailgun.net/v3'
+    }
+    
+    // Validate configuration
     if (!this.apiKey) {
       console.warn('⚠️ MAILGUN_API_KEY not configured')
     }
+    
+    // Warn if base URL doesn't look like a Mailgun endpoint
+    if (!this.baseUrl.includes('mailgun.net')) {
+      console.warn(`⚠️ MAILGUN_BASE_URL '${this.baseUrl}' doesn't appear to be a Mailgun endpoint`)
+    }
+    
+    console.log(`🗺️ Mailgun API configured for region: ${region || 'US'} at ${this.baseUrl}`)
   }
 
   /**
@@ -62,33 +77,32 @@ export class MailgunAPI {
       headers: {
         'Authorization': `Basic ${auth}`,
         'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json',
         ...options.headers,
       },
     })
 
-    let data
+    let bodyText = ''
+    let data: any = null
     try {
       data = await response.json()
-    } catch (parseError) {
-      // Handle non-JSON responses (like HTML error pages)
-      // Clone response before trying to read it
-      let text = ''
-      try {
-        // Try to read as text if JSON parsing failed
-        text = await response.text()
-      } catch (textError) {
-        text = 'Unable to read response body'
+    } catch {
+      try { 
+        bodyText = await response.text() 
+      } catch { 
+        bodyText = 'Unable to read response body'
       }
-      console.error('Mailgun API returned non-JSON response:', text.substring(0, 200))
-      throw new Error(`Mailgun API error: Invalid response format. Status: ${response.status} ${response.statusText}`)
     }
     
     if (!response.ok) {
-      console.error('Mailgun API Error:', data)
-      throw new Error(`Mailgun API error: ${data.message || response.statusText}`)
+      console.error(`Mailgun API Error ${response.status} ${response.statusText} on ${options.method || 'GET'} ${url}`)
+      if (data) console.error('Response JSON:', JSON.stringify(data).slice(0, 500))
+      if (!data && bodyText) console.error('Response Text:', bodyText.slice(0, 500))
+      const msg = data?.message || `${response.status} ${response.statusText}`
+      throw new Error(`Mailgun API error on ${endpoint}: ${msg}`)
     }
 
-    return data
+    return data ?? bodyText
   }
 
   /**
@@ -184,29 +198,61 @@ export class MailgunAPI {
   }
 
   /**
-   * Set up webhook for domain
+   * Ensure domain exists in Mailgun before setting up webhooks
+   */
+  async ensureDomainExists(domainName: string): Promise<void> {
+    try {
+      await this.getDomain(domainName)
+      console.log(`✅ Domain ${domainName} exists in Mailgun`)
+    } catch (e: any) {
+      if (String(e?.message || '').toLowerCase().includes('not found')) {
+        throw new Error(`Mailgun domain ${domainName} not found. Ensure addDomain completed and propagated before webhook setup.`)
+      }
+      throw e
+    }
+  }
+
+  /**
+   * Set up webhook for domain (idempotent)
    */
   async setupWebhook(
     domainName: string, 
     webhookUrl: string, 
-    events: string[] = ['delivered', 'permanent_fail', 'temporary_fail']
+    events: string[] = ['delivered', 'permanent_fail', 'temporary_fail', 'complained', 'unsubscribed', 'opened', 'clicked']
   ): Promise<any> {
-    console.log(`🎣 Setting up webhook for domain ${domainName}...`)
+    console.log(`🎣 Setting up webhooks for domain ${domainName}...`)
 
     try {
-      const results = []
+      // Ensure domain exists first
+      await this.ensureDomainExists(domainName)
+      
+      const results: Array<{event: string; action: 'created' | 'updated'; result: any}> = []
       
       for (const event of events) {
-        const params = new URLSearchParams({
-          url: webhookUrl
-        })
-
-        const result = await this.makeRequest(`/domains/${domainName}/webhooks/${event}`, {
-          method: 'POST',
-          body: params,
-        })
-
-        results.push({ event, result })
+        try {
+          // Check if webhook exists
+          await this.makeRequest(`/domains/${domainName}/webhooks/${event}`, { method: 'GET' })
+          // Exists – update it
+          const updateParams = new URLSearchParams({ url: webhookUrl })
+          const updated = await this.makeRequest(`/domains/${domainName}/webhooks/${event}`, {
+            method: 'PUT',
+            body: updateParams,
+          })
+          results.push({ event, action: 'updated', result: updated })
+        } catch (getErr: any) {
+          // Not found – create it
+          if (String(getErr?.message || '').toLowerCase().includes('not found')) {
+            const createParams = new URLSearchParams({ id: event, url: webhookUrl })
+            const created = await this.makeRequest(`/domains/${domainName}/webhooks`, {
+              method: 'POST',
+              body: createParams,
+            })
+            results.push({ event, action: 'created', result: created })
+          } else {
+            console.error(`❌ Failed checking webhook ${event} on ${domainName}:`, getErr)
+            throw getErr
+          }
+        }
       }
 
       console.log(`✅ Webhooks configured for domain ${domainName}`)
@@ -248,7 +294,7 @@ export class MailgunAPI {
     })
 
     try {
-      const result = await this.makeRequest(`/domains/${domainName}/messages`, {
+      const result = await this.makeRequest(`/${domainName}/messages`, {
         method: 'POST',
         body: params,
       })

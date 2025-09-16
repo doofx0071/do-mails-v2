@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import { cookies } from 'next/headers'
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import ForwardingConfigDBManager from '@/lib/forwarding-config-db'
 import MailgunAPI from '@/lib/mailgun/api'
+import { generateVerificationToken, isUUID } from '@/lib/utils/uuid'
 
 /**
  * POST /api/domains/setup-forwarding
@@ -12,18 +15,45 @@ export async function POST(request: NextRequest) {
   try {
     console.log('=== ImprovMX Setup API Called ===')
     
-    const supabase = createServiceClient()
+    // Get authenticated user session
+    const supabase = createRouteHandlerClient({ cookies })
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
     
     // Parse request body
     const body = await request.json()
     const { domain_name, forward_to_email } = body
 
-    console.log('📦 Setup request:', { domain_name, forward_to_email })
+    console.log('📦 Setup request:', { domain_name, forward_to_email, user_id: user?.id })
 
     if (!domain_name || !forward_to_email) {
       return NextResponse.json(
         { error: 'Domain name and forwarding email are required' },
         { status: 400 }
+      )
+    }
+
+    // Check authentication - allow both user sessions and service-to-service calls
+    let ownerUserId = user?.id
+    const serviceKey = process.env.INTERNAL_SERVICE_KEY
+    const providedServiceKey = request.headers.get('x-service-key')
+    const providedUserId = request.headers.get('x-user-id')
+    
+    if (!ownerUserId && serviceKey && providedServiceKey === serviceKey && providedUserId) {
+      // Service-to-service call with valid key and user ID
+      if (!isUUID(providedUserId)) {
+        return NextResponse.json(
+          { error: 'Invalid x-user-id format: must be UUID' },
+          { status: 400 }
+        )
+      }
+      ownerUserId = providedUserId
+      console.log('🔑 Service-to-service authentication with user_id:', ownerUserId)
+    }
+    
+    if (!ownerUserId) {
+      return NextResponse.json(
+        { error: 'Authentication required. Please sign in or provide valid service credentials.' },
+        { status: 401 }
       )
     }
 
@@ -47,13 +77,11 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Validation passed')
 
-    // For ImprovMX-style setup, use a dedicated system user
-    const SYSTEM_USER_ID = 'improvmx-style-system'
-
-    // Generate verification token
-    const verificationToken = `domails-verify-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`
-
+    // Generate verification token using secure method
+    const verificationToken = generateVerificationToken()
+    
     console.log('🔐 Generated token:', verificationToken)
+    console.log('👤 Using user_id:', ownerUserId)
 
     // Store forwarding configuration using the ForwardingConfigDBManager
     await ForwardingConfigDBManager.setConfig(domain_name.toLowerCase(), {
@@ -79,16 +107,19 @@ export async function POST(request: NextRequest) {
           spam_action: 'disabled'
         })
         
-        // Set up webhook for the domain (use environment variable for webhook URL)
+        // Set up webhook for the domain
         const webhookUrl = process.env.NEXT_PUBLIC_APP_URL 
           ? `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/mailgun`
-          : process.env.WEBHOOK_URL || 'https://your-app-domain.com/api/webhooks/mailgun'
+          : process.env.APP_BASE_URL 
+          ? `${process.env.APP_BASE_URL}/api/webhooks/mailgun`
+          : null
         
-        if (webhookUrl && !webhookUrl.includes('your-app-domain.com')) {
-          await mailgunAPI.setupWebhook(domain_name.toLowerCase(), webhookUrl, ['delivered'])
+        if (webhookUrl) {
+          console.log('🎣 Setting up webhook at:', webhookUrl)
+          await mailgunAPI.setupWebhook(domain_name.toLowerCase(), webhookUrl)
           console.log('✅ Mailgun webhook configured for', domain_name.toLowerCase())
         } else {
-          console.warn('⚠️ Webhook URL not configured, skipping webhook setup')
+          console.warn('⚠️ No webhook URL configured (NEXT_PUBLIC_APP_URL or APP_BASE_URL), skipping webhook setup')
         }
         
         console.log('✅ Domain added to Mailgun successfully:', domain_name.toLowerCase())
@@ -101,60 +132,56 @@ export async function POST(request: NextRequest) {
       // Continue with domain creation even if Mailgun fails
     }
     
-    // Try to create the domain in the database for dashboard integration
+    // Upsert domain in database with proper user_id
     let domain
     try {
-      // Check if domain already exists
-      const { data: existingDomain, error: checkError } = await supabase
+      console.log('🎯 Upserting domain in database...')
+      
+      // First try to find existing domain for this user
+      const { data: existingDomain, error: fetchError } = await supabase
         .from('domains')
-        .select('id, verification_status, user_id, domain_name')
+        .select('id, domain_name, verification_status, mailgun_webhooks')
+        .eq('user_id', ownerUserId)
         .eq('domain_name', domain_name.toLowerCase())
-        .single()
+        .maybeSingle()
 
-      if (checkError && checkError.code !== 'PGRST116') {
-        console.error('❌ Domain check error:', checkError)
-        // Continue without database record - forwarding will still work
+      if (fetchError) {
+        console.error('❌ Error fetching existing domain:', fetchError)
+        throw fetchError
       }
 
       if (existingDomain) {
-        console.log('🔄 Domain exists in database:', existingDomain.id)
+        console.log('🔄 Using existing domain:', existingDomain.id)
         domain = existingDomain
       } else {
-        // Try to create domain record (this may fail due to user_id constraints)
-        console.log('🎯 Attempting to create domain in database...')
+        // Create new domain record with proper user_id
+        console.log('✨ Creating new domain in database...')
         const { data: newDomain, error: createError } = await supabase
           .from('domains')
           .insert({
+            user_id: ownerUserId,
             domain_name: domain_name.toLowerCase(),
             verification_token: verificationToken,
-            verification_status: 'pending'
-            // Note: Not setting user_id to avoid constraints
+            verification_status: 'pending',
+            mailgun_webhooks: {}
           })
-          .select('*')
+          .select('id, domain_name, verification_status, mailgun_webhooks')
           .single()
 
         if (createError) {
-          console.warn('⚠️ Could not create domain in database:', createError.message)
-          console.warn('Forwarding will still work via in-memory config')
-          // Create mock domain object
-          domain = {
-            id: `forwarding-${Date.now()}`,
-            domain_name: domain_name.toLowerCase(),
-            verification_status: 'pending'
-          }
-        } else {
-          domain = newDomain
-          console.log('✅ Domain created in database:', domain.id)
+          console.error('❌ Failed to create domain in database:', createError)
+          throw createError
         }
+        
+        domain = newDomain
+        console.log('✅ Domain created in database with ID:', domain.id)
       }
     } catch (dbError) {
-      console.warn('⚠️ Database operation failed:', dbError)
-      // Create mock domain object
-      domain = {
-        id: `forwarding-${Date.now()}`,
-        domain_name: domain_name.toLowerCase(),
-        verification_status: 'pending'
-      }
+      console.error('❌ Database operation failed:', dbError)
+      return NextResponse.json(
+        { error: 'Failed to create domain record', details: dbError.message },
+        { status: 500 }
+      )
     }
 
     // Return setup instructions (ImprovMX-style)
