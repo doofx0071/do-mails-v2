@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServiceClient } from '@/lib/supabase/server'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import ForwardingConfigDBManager from '@/lib/forwarding-config-db'
 import MailgunAPI from '@/lib/mailgun/api'
 import { generateVerificationToken, isUUID } from '@/lib/utils/uuid'
@@ -15,15 +14,34 @@ export async function POST(request: NextRequest) {
   try {
     console.log('=== ImprovMX Setup API Called ===')
     
-    // Get authenticated user session
-    const supabase = createRouteHandlerClient({ cookies })
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const cookieStore = cookies()
+    
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value
+          },
+          set(name: string, value: string, options: CookieOptions) {
+            cookieStore.set({ name, value, ...options })
+          },
+          remove(name: string, options: CookieOptions) {
+            cookieStore.set({ name, value: '', ...options })
+          },
+        },
+      }
+    )
     
     // Parse request body
     const body = await request.json()
     const { domain_name, forward_to_email } = body
-
-    console.log('📦 Setup request:', { domain_name, forward_to_email, user_id: user?.id })
+    
+    // Get authenticated user session
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    
+    console.log('📦 Setup request:', { domain_name, forward_to_email, user_id: user?.id, auth_error: authError?.message })
 
     if (!domain_name || !forward_to_email) {
       return NextResponse.json(

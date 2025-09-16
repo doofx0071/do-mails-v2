@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAuthenticatedClient } from '@/lib/supabase/server'
 import DNSVerifier from '@/lib/dns-verification'
 import ForwardingConfigFileManager from '@/lib/forwarding-config-file'
+import { isUUID } from '@/lib/utils/uuid'
 
 /**
  * POST /api/domains/[id]/refresh-status
@@ -13,6 +14,44 @@ export async function POST(
 ) {
   try {
     console.log('🔄 Refreshing domain status for ID:', params.id)
+    
+    // Check if the ID is a UUID or a domain name
+    const isValidUUID = isUUID(params.id)
+    
+    if (!isValidUUID) {
+      // Handle non-UUID ID (like "forwarding-kuyadoof.dev") by looking up in forwarding configs
+      const allConfigs = await ForwardingConfigFileManager.listConfigs()
+      const domainName = params.id.replace(/^forwarding-/, '') // Remove "forwarding-" prefix
+      const config = allConfigs.find(c => c.domain === domainName || params.id.includes(c.domain))
+      
+      if (!config) {
+        return NextResponse.json(
+          { error: 'Domain not found' },
+          { status: 404 }
+        )
+      }
+
+      // Verify DNS for forwarding config domain
+      const dnsResult = await DNSVerifier.verifyDomainRecords(config.domain, config.verification_token)
+      const statusInfo = DNSVerifier.getVerificationStatus(dnsResult)
+
+      // Update forwarding config status
+      if (dnsResult.allRecordsValid) {
+        await ForwardingConfigFileManager.setVerificationStatus(config.domain, 'verified')
+      }
+
+      return NextResponse.json({
+        success: true,
+        domain: {
+          id: params.id,
+          domain_name: config.domain,
+          verification_status: dnsResult.allRecordsValid ? 'verified' : 'pending'
+        },
+        dns_verification: dnsResult,
+        status_info: statusInfo,
+        message: statusInfo.message
+      })
+    }
 
     // For authenticated routes (dashboard), use auth
     let supabase, user
