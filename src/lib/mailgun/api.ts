@@ -54,6 +54,7 @@ export class MailgunAPI {
     }
 
     const url = `${this.baseUrl}${endpoint}`
+    // Mailgun uses HTTP Basic Auth with username='api' and password=API_KEY (no prefix needed)
     const auth = Buffer.from(`api:${this.apiKey}`).toString('base64')
     
     const response = await fetch(url, {
