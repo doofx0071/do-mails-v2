@@ -5,9 +5,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, Plus, CheckCircle, XCircle, Clock, AlertCircle, RefreshCw } from 'lucide-react'
+import { Loader2, Plus, CheckCircle, XCircle, Clock, AlertCircle, RefreshCw, Trash2 } from 'lucide-react'
 import { AddDomainForwardingDialog } from './add-domain-forwarding-dialog'
 import { VerifyDomainDialog } from './verify-domain-dialog'
+import { DeleteDomainDialog } from './delete-domain-dialog'
 import { useToast } from '@/components/ui/use-toast'
 
 interface Domain {
@@ -29,6 +30,7 @@ interface DomainsResponse {
 export function DomainList() {
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [verifyingDomain, setVerifyingDomain] = useState<Domain | null>(null)
+  const [deletingDomain, setDeletingDomain] = useState<Domain | null>(null)
   const { toast } = useToast()
   const queryClient = useQueryClient()
 
@@ -123,6 +125,41 @@ export function DomainList() {
     onError: (error: Error) => {
       toast({
         title: 'Refresh Failed',
+        description: error.message,
+        variant: 'destructive'
+      })
+    }
+  })
+
+  // Delete domain mutation
+  const deleteDomainMutation = useMutation({
+    mutationFn: async (domainId: string) => {
+      const response = await fetch(`/api/domains/${domainId}/delete`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to delete domain')
+      }
+
+      return response.json()
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['domains'] })
+      setDeletingDomain(null)
+      
+      toast({
+        title: 'Domain Deleted',
+        description: `${data.deleted_domain} has been successfully deleted`,
+      })
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Delete Failed',
         description: error.message,
         variant: 'destructive'
       })
@@ -297,6 +334,17 @@ export function DomainList() {
                         )}
                       </Button>
                     )}
+                    
+                    {/* Delete Button */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setDeletingDomain(domain)}
+                      disabled={deleteDomainMutation.isPending}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
               </CardContent>
@@ -316,6 +364,14 @@ export function DomainList() {
         onOpenChange={(open) => !open && setVerifyingDomain(null)}
         onVerify={handleVerifyConfirm}
         isVerifying={verifyDomainMutation.isPending}
+      />
+
+      <DeleteDomainDialog
+        domain={deletingDomain}
+        open={!!deletingDomain}
+        onOpenChange={(open) => !open && setDeletingDomain(null)}
+        onConfirm={() => deletingDomain && deleteDomainMutation.mutate(deletingDomain.id)}
+        isDeleting={deleteDomainMutation.isPending}
       />
     </div>
   )
