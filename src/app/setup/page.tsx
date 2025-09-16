@@ -309,14 +309,22 @@ export default function SetupPage() {
               </CardContent>
             </Card>
 
-            {/* DKIM Records */}
+            {/* DKIM Records - Optional for Advanced Features */}
             {setupResult.dns_instructions.dkim_records &&
               setupResult.dns_instructions.dkim_records.length > 0 && (
-                <Card>
+                <Card className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950">
                   <CardHeader>
-                    <CardTitle className="text-lg">DKIM Records</CardTitle>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      DKIM Records
+                      <Badge variant="secondary" className="text-xs">
+                        Optional
+                      </Badge>
+                    </CardTitle>
                     <p className="text-sm text-muted-foreground">
-                      Add these TXT records for email authentication (DKIM)
+                      <strong>Optional:</strong> Add these TXT records for
+                      advanced email authentication (DKIM). Required only if you
+                      plan to send emails from your domain or need advanced
+                      anti-spam protection.
                     </p>
                   </CardHeader>
                   <CardContent>
@@ -370,15 +378,22 @@ export default function SetupPage() {
                 </Card>
               )}
 
-            {/* Tracking Records */}
+            {/* Tracking Records - Optional for Advanced Features */}
             {setupResult.dns_instructions.tracking_records &&
               setupResult.dns_instructions.tracking_records.length > 0 && (
-                <Card>
+                <Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
                   <CardHeader>
-                    <CardTitle className="text-lg">Tracking Records</CardTitle>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      Tracking Records
+                      <Badge variant="secondary" className="text-xs">
+                        Optional
+                      </Badge>
+                    </CardTitle>
                     <p className="text-sm text-muted-foreground">
-                      Add these CNAME records for email tracking (opens, clicks,
-                      unsubscribes)
+                      <strong>Optional:</strong> Add these CNAME records for
+                      email tracking (opens, clicks, unsubscribes). Required
+                      only if you need detailed email analytics and tracking
+                      features.
                     </p>
                   </CardHeader>
                   <CardContent>
@@ -434,9 +449,22 @@ export default function SetupPage() {
           </div>
 
           <div className="mt-8 text-center">
+            <div className="mb-6 rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-950">
+              <h3 className="mb-2 font-semibold text-green-800 dark:text-green-200">
+                🎯 Quick Start (Like ImprovMX)
+              </h3>
+              <p className="text-sm text-green-700 dark:text-green-300">
+                <strong>For basic email forwarding, you only need:</strong> MX
+                Records + TXT Records (SPF + Verification).
+                <br />
+                The DKIM and Tracking records are optional for advanced
+                features.
+              </p>
+            </div>
             <p className="mb-4 text-gray-600 dark:text-gray-400">
-              After adding these DNS records, verification will happen
-              automatically.
+              After adding the required DNS records, verification will happen
+              automatically. Add optional records later if you need advanced
+              features.
             </p>
             <Button onClick={() => (window.location.href = '/dashboard')}>
               Go to Dashboard

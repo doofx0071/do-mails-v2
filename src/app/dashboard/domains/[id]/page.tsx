@@ -535,6 +535,170 @@ export default function DomainDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Required DNS Records Setup */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Settings className="mr-2 h-5 w-5" />
+            Required DNS Records
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Add these DNS records to your domain provider to enable email
+            forwarding
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            {/* Required Records */}
+            <div>
+              <h4 className="mb-3 font-semibold text-green-800 dark:text-green-200">
+                ✅ Required (Like ImprovMX)
+              </h4>
+              <div className="space-y-3">
+                {/* MX Records */}
+                <div className="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-950">
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="font-medium">MX Records</span>
+                    <Badge variant="outline" className="text-xs">
+                      Required
+                    </Badge>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <div className="grid grid-cols-3 gap-2 font-mono">
+                      <span className="text-muted-foreground">Type: MX</span>
+                      <span className="text-muted-foreground">Host: @</span>
+                      <span className="text-muted-foreground">
+                        Priority: 10
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 gap-1">
+                      <div className="flex items-center justify-between">
+                        <code className="text-xs">mxa.mailgun.org</code>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() =>
+                            copyToClipboard('mxa.mailgun.org', 'MX record')
+                          }
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <code className="text-xs">mxb.mailgun.org</code>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() =>
+                            copyToClipboard('mxb.mailgun.org', 'MX record')
+                          }
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* SPF Record */}
+                <div className="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-950">
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="font-medium">SPF Record</span>
+                    <Badge variant="outline" className="text-xs">
+                      Required
+                    </Badge>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <div className="grid grid-cols-2 gap-2 font-mono">
+                      <span className="text-muted-foreground">Type: TXT</span>
+                      <span className="text-muted-foreground">Host: @</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <code className="break-all text-xs">
+                        v=spf1 include:mailgun.org ~all
+                      </code>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() =>
+                          copyToClipboard(
+                            'v=spf1 include:mailgun.org ~all',
+                            'SPF record'
+                          )
+                        }
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Optional Records */}
+            <div>
+              <h4 className="mb-3 font-semibold text-orange-800 dark:text-orange-200">
+                🔧 Optional (Advanced Features)
+              </h4>
+              <div className="space-y-3">
+                {/* DKIM Record */}
+                <div className="rounded-lg border border-orange-200 bg-orange-50 p-4 dark:border-orange-800 dark:bg-orange-950">
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="font-medium">DKIM Record</span>
+                    <Badge variant="secondary" className="text-xs">
+                      Optional
+                    </Badge>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <div className="grid grid-cols-2 gap-2 font-mono">
+                      <span className="text-muted-foreground">Type: TXT</span>
+                      <span className="text-muted-foreground">
+                        Host: pic._domainkey
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Required for sending emails from your domain. Get the DKIM
+                      value from Mailgun dashboard.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Tracking Record */}
+                <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950">
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="font-medium">Tracking Record</span>
+                    <Badge variant="secondary" className="text-xs">
+                      Optional
+                    </Badge>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <div className="grid grid-cols-2 gap-2 font-mono">
+                      <span className="text-muted-foreground">Type: CNAME</span>
+                      <span className="text-muted-foreground">Host: email</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <code className="text-xs">mailgun.org</code>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() =>
+                          copyToClipboard('mailgun.org', 'Tracking record')
+                        }
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Required for email tracking (opens, clicks, unsubscribes).
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
