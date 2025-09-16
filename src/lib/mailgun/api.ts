@@ -156,6 +156,7 @@ export class MailgunAPI {
    */
   async listDomains(): Promise<any> {
     try {
+      // Use v3 API for listing domains (v4 doesn't exist for domains endpoint)
       return await this.makeRequest('/domains')
     } catch (error) {
       console.error('Failed to list Mailgun domains:', error)
