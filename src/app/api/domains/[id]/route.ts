@@ -32,15 +32,14 @@ export async function GET(
 
     const domainId = params.id
 
-    // Create Supabase client for the authenticated user
-    const supabase = createUserClient(user.id)
+    // Create Supabase client with the token (RLS will handle user filtering)
+    const supabase = createUserClient(token)
 
-    // Fetch domain details
+    // Fetch domain details - RLS automatically filters by user
     const { data: domain, error: domainError } = await supabase
       .from('domains')
       .select('*')
       .eq('id', domainId)
-      .eq('user_id', user.id)
       .single()
 
     if (domainError) {
