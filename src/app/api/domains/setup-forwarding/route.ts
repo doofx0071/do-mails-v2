@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+import { createServiceClient } from '@/lib/supabase/server'
 import ForwardingConfigDBManager from '@/lib/forwarding-config-db'
 import MailgunAPI from '@/lib/mailgun/api'
 import { generateVerificationToken, isUUID } from '@/lib/utils/uuid'
@@ -14,32 +13,58 @@ export async function POST(request: NextRequest) {
   try {
     console.log('=== ImprovMX Setup API Called ===')
     
-    const cookieStore = cookies()
-    
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get(name: string) {
-            return cookieStore.get(name)?.value
-          },
-          set(name: string, value: string, options: CookieOptions) {
-            cookieStore.set({ name, value, ...options })
-          },
-          remove(name: string, options: CookieOptions) {
-            cookieStore.set({ name, value: '', ...options })
-          },
-        },
-      }
-    )
+    const supabase = createServiceClient()
     
     // Parse request body
     const body = await request.json()
     const { domain_name, forward_to_email } = body
     
-    // Get authenticated user session
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    // Extract session from cookies manually - let's see what cookies we have
+    const cookieHeader = request.headers.get('cookie') || ''
+    console.log('🍪 Cookie header:', cookieHeader.substring(0, 200) + '...')
+    
+    let user = null
+    let authError = null
+    
+    // Try multiple possible cookie patterns
+    const supabaseCookiePatterns = [
+      /sb-[^=]+-auth-token=([^;]+)/,
+      /supabase-auth-token=([^;]+)/,
+      /sb-auth-token=([^;]+)/
+    ]
+    
+    let sessionToken = null
+    for (const pattern of supabaseCookiePatterns) {
+      const match = cookieHeader.match(pattern)
+      if (match) {
+        sessionToken = decodeURIComponent(match[1])
+        console.log('✅ Found session token with pattern:', pattern)
+        break
+      }
+    }
+    
+    if (sessionToken) {
+      try {
+        const sessionData = JSON.parse(sessionToken)
+        console.log('🔑 Session data keys:', Object.keys(sessionData))
+        
+        if (sessionData.access_token) {
+          const { data: { user: authUser }, error: getUserError } = await supabase.auth.getUser(sessionData.access_token)
+          user = authUser
+          authError = getUserError
+          console.log('✅ Successfully extracted user from session')
+        } else {
+          authError = { message: 'No access token in session' }
+          console.log('❌ No access token in parsed session data')
+        }
+      } catch (parseError) {
+        authError = { message: 'Failed to parse session cookie' }
+        console.log('❌ Failed to parse session cookie:', parseError)
+      }
+    } else {
+      authError = { message: 'Auth session missing!' }
+      console.log('❌ No Supabase session cookie found')
+    }
     
     console.log('📦 Setup request:', { domain_name, forward_to_email, user_id: user?.id, auth_error: authError?.message })
 
