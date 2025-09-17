@@ -143,6 +143,9 @@ export default function DomainDetailPage() {
 
       const data = await response.json()
       console.log('✅ Mailgun DNS data received:', data)
+      console.log('🔍 DKIM Record structure:', data.dkimRecord)
+      console.log('🔍 DKIM Record host:', data.dkimRecord?.host)
+      console.log('🔍 DKIM Record value:', data.dkimRecord?.value)
       return data
     },
     enabled: !!domain,
@@ -842,7 +845,7 @@ export default function DomainDetailPage() {
                     <div className="grid grid-cols-2 gap-2 font-mono">
                       <span className="text-muted-foreground">Type: TXT</span>
                       <span className="text-muted-foreground">
-                        Host: pic._domainkey
+                        Host: {mailgunDNS?.dkimRecord?.host || 'pic._domainkey'}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
@@ -851,7 +854,9 @@ export default function DomainDetailPage() {
                           ? 'Loading DKIM value...'
                           : mailgunDNS?.dkimRecord?.value
                             ? mailgunDNS.dkimRecord.value
-                            : 'Get DKIM value from Mailgun dashboard'}
+                            : mailgunDNS?.success === false
+                              ? `Error: ${mailgunDNS?.error || 'Unknown error'}`
+                              : 'Get DKIM value from Mailgun dashboard'}
                       </code>
                       <Button
                         size="sm"
