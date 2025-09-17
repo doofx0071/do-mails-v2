@@ -612,24 +612,50 @@ export default function DomainDetailPage() {
                 </p>
               </div>
             </div>
-            <Button
-              onClick={() => refreshDNSMutation.mutate()}
-              disabled={refreshDNSMutation.isPending}
-              variant="outline"
-              size="sm"
-            >
-              {refreshDNSMutation.isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Checking...
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Refresh Status
-                </>
-              )}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => refreshDNSMutation.mutate()}
+                disabled={refreshDNSMutation.isPending}
+                variant="outline"
+                size="sm"
+              >
+                {refreshDNSMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Checking...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Refresh Status
+                  </>
+                )}
+              </Button>
+
+              {dnsStatus?.verificationRecordValid &&
+                dnsStatus?.dkimRecordValid &&
+                dnsStatus?.spfRecordValid &&
+                dnsStatus?.mxRecordsValid && (
+                  <Button
+                    onClick={() => verifyMailgunMutation.mutate()}
+                    disabled={verifyMailgunMutation.isPending}
+                    size="sm"
+                    variant="default"
+                  >
+                    {verifyMailgunMutation.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Verifying...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="mr-2 h-4 w-4" />
+                        Verify in Mailgun
+                      </>
+                    )}
+                  </Button>
+                )}
+            </div>
           </div>
         </CardHeader>
         <CardContent>
