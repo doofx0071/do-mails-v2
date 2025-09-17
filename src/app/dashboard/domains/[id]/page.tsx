@@ -25,6 +25,7 @@ import {
   Mail,
   Shield,
   Loader2,
+  Settings,
 } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
 import { getAuthHeaders } from '@/lib/supabase/auth'
