@@ -97,6 +97,10 @@ export async function GET(
       console.log(
         `📊 Direct extraction - Receiving records: ${receivingRecords.length}`
       )
+      console.log(
+        `🔍 Sending records:`,
+        JSON.stringify(sendingRecords, null, 2)
+      )
 
       const dnsRecords = {
         sending_dns_records: sendingRecords,

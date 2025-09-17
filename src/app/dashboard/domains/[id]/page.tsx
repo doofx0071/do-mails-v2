@@ -854,9 +854,11 @@ export default function DomainDetailPage() {
                           ? 'Loading DKIM value...'
                           : mailgunDNS?.dkimRecord?.value
                             ? mailgunDNS.dkimRecord.value
-                            : mailgunDNS?.success === false
-                              ? `Error: ${mailgunDNS?.error || 'Unknown error'}`
-                              : 'Get DKIM value from Mailgun dashboard'}
+                            : domain?.domain_name === 'kuyadoof.dev'
+                              ? 'k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtqhk7pp2VgdChPgQXuDWMxX4BQE3DbyOCOb7BtAG/zWhRuQdPc7CsMyFohiGu5Out/MBm4C/08013OtvqeiS0X2Rje47pE8QmXkYgWAieFeEl/eNgI0Zvl/2pvB2Cz08ok6C3z1a/f5yOG6hFq3iXRwjEKdbnOlRYLQs8ymzluRHEVECzsxQlYD5zhAVBmkRjswDw76RPH3HP/ofpgns+Iahwsq1GKJ3tjDXnIyhEQ4x4uAF2dpo/uYl9yln1PaOTzbAW9nn8WgWSjVB7lhCYx/ToAw+x8G8zaQfTAqvq1ATd0LixyTPP4M0JThcrvZKU7UBIfTke1h7+/QqODj99wIDAQAB'
+                              : mailgunDNS?.success === false
+                                ? `Error: ${mailgunDNS?.error || 'Unknown error'}`
+                                : 'Get DKIM value from Mailgun dashboard'}
                       </code>
                       <Button
                         size="sm"
@@ -864,7 +866,9 @@ export default function DomainDetailPage() {
                         onClick={() =>
                           copyToClipboard(
                             mailgunDNS?.dkimRecord?.value ||
-                              'Visit Mailgun dashboard for DKIM value',
+                              (domain?.domain_name === 'kuyadoof.dev'
+                                ? 'k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtqhk7pp2VgdChPgQXuDWMxX4BQE3DbyOCOb7BtAG/zWhRuQdPc7CsMyFohiGu5Out/MBm4C/08013OtvqeiS0X2Rje47pE8QmXkYgWAieFeEl/eNgI0Zvl/2pvB2Cz08ok6C3z1a/f5yOG6hFq3iXRwjEKdbnOlRYLQs8ymzluRHEVECzsxQlYD5zhAVBmkRjswDw76RPH3HP/ofpgns+Iahwsq1GKJ3tjDXnIyhEQ4x4uAF2dpo/uYl9yln1PaOTzbAW9nn8WgWSjVB7lhCYx/ToAw+x8G8zaQfTAqvq1ATd0LixyTPP4M0JThcrvZKU7UBIfTke1h7+/QqODj99wIDAQAb'
+                                : 'Visit Mailgun dashboard for DKIM value'),
                             'DKIM record'
                           )
                         }
