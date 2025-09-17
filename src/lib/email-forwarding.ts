@@ -47,32 +47,28 @@ export class EmailForwarder {
         `📧 Forwarding email from ${originalEmail.from} to ${forwardToEmail}`
       )
 
-      // Prepare forwarding email
-      const forwardedSubject = `Fwd: ${originalEmail.subject}`
-
-      // Create forwarded email body
-      const forwardedBodyText = this.createForwardedBodyText(originalEmail)
-      const forwardedBodyHtml = this.createForwardedBodyHtml(originalEmail)
-
       // Extract domain from the original recipient email to use as sender domain
       const recipientDomain = originalEmail.to.split('@')[1]
       const senderDomain = fromDomain || recipientDomain || this.mailgunDomain
 
-      // Use a system sender that's authorized in Mailgun
-      const systemSender = `noreply@${senderDomain}`
-
-      // Prepare form data for Mailgun API
+      // Prepare form data for Mailgun API - transparent forwarding
       const formData = new FormData()
-      formData.append('from', systemSender)
-      formData.append('to', forwardToEmail)
-      formData.append('subject', forwardedSubject)
-      formData.append('text', forwardedBodyText)
 
-      if (forwardedBodyHtml) {
-        formData.append('html', forwardedBodyHtml)
+      // Use original sender's email and name for transparent forwarding
+      formData.append('from', originalEmail.from)
+      formData.append('to', forwardToEmail)
+      formData.append('subject', originalEmail.subject) // Keep original subject
+
+      // Use original email content directly
+      if (originalEmail.bodyText) {
+        formData.append('text', originalEmail.bodyText)
       }
 
-      // Set Reply-To to original sender for easy replies
+      if (originalEmail.bodyHtml) {
+        formData.append('html', originalEmail.bodyHtml)
+      }
+
+      // Set Reply-To to original sender (same as From for transparent forwarding)
       formData.append('h:Reply-To', originalEmail.from)
 
       // Add reference headers for threading
@@ -105,63 +101,6 @@ export class EmailForwarder {
       console.error('❌ Error forwarding email:', error)
       return false
     }
-  }
-
-  /**
-   * Create plain text body for forwarded email
-   */
-  private createForwardedBodyText(originalEmail: EmailMessage): string {
-    const separator = '\n---------- Forwarded message ----------'
-    const headers = [
-      `From: ${originalEmail.from}`,
-      `Subject: ${originalEmail.subject}`,
-      `To: ${originalEmail.to}`,
-      `Date: ${new Date().toISOString()}`,
-    ].join('\n')
-
-    const originalBody = originalEmail.bodyText || '[No plain text content]'
-
-    return `${separator}\n${headers}\n\n${originalBody}`
-  }
-
-  /**
-   * Create HTML body for forwarded email
-   */
-  private createForwardedBodyHtml(originalEmail: EmailMessage): string | null {
-    if (!originalEmail.bodyHtml) return null
-
-    const separator =
-      '<div style="border-top: 1px solid #ccc; margin: 20px 0; padding-top: 10px;">'
-    const headers = `
-      <div style="color: #666; font-size: 12px; margin-bottom: 15px;">
-        <strong>---------- Forwarded message ----------</strong><br>
-        <strong>From:</strong> ${this.escapeHtml(originalEmail.from)}<br>
-        <strong>Subject:</strong> ${this.escapeHtml(originalEmail.subject)}<br>
-        <strong>To:</strong> ${this.escapeHtml(originalEmail.to)}<br>
-        <strong>Date:</strong> ${new Date().toISOString()}
-      </div>
-    `
-
-    return `${separator}${headers}${originalEmail.bodyHtml}</div>`
-  }
-
-  /**
-   * Escape HTML special characters
-   */
-  private escapeHtml(text: string): string {
-    const div =
-      typeof document !== 'undefined' ? document.createElement('div') : null
-    if (div) {
-      div.textContent = text
-      return div.innerHTML
-    }
-    // Fallback for server-side
-    return text
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;')
   }
 }
 
