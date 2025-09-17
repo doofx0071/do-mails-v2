@@ -351,6 +351,74 @@ export class MailgunAPI {
   }
 
   /**
+   * Set up inbound route for catch-all email forwarding
+   */
+  async setupInboundRoute(
+    domainName: string,
+    webhookUrl: string,
+    priority: number = 0
+  ): Promise<any> {
+    console.log(`📬 Setting up inbound route for domain ${domainName}...`)
+
+    try {
+      const params = new URLSearchParams({
+        priority: priority.toString(),
+        description: `Catch-all for ${domainName}`,
+        expression: `match_recipient(".*@${domainName}")`,
+        action: `forward("${webhookUrl}")`,
+      })
+
+      const result = await this.makeRequest('/routes', {
+        method: 'POST',
+        body: params,
+      })
+
+      console.log(
+        `✅ Inbound route created for ${domainName}:`,
+        result.route?.id
+      )
+      return result
+    } catch (error) {
+      console.error(
+        `❌ Failed to create inbound route for ${domainName}:`,
+        error
+      )
+      throw error
+    }
+  }
+
+  /**
+   * List all inbound routes
+   */
+  async listInboundRoutes(): Promise<any> {
+    try {
+      return await this.makeRequest('/routes')
+    } catch (error) {
+      console.error('Failed to list inbound routes:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Delete inbound route by ID
+   */
+  async deleteInboundRoute(routeId: string): Promise<any> {
+    console.log(`🗑️ Deleting inbound route ${routeId}...`)
+
+    try {
+      const result = await this.makeRequest(`/routes/${routeId}`, {
+        method: 'DELETE',
+      })
+
+      console.log(`✅ Inbound route ${routeId} deleted successfully`)
+      return result
+    } catch (error) {
+      console.error(`❌ Failed to delete inbound route ${routeId}:`, error)
+      throw error
+    }
+  }
+
+  /**
    * Send test email through Mailgun
    */
   async sendTestEmail(

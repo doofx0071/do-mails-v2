@@ -219,6 +219,37 @@ export default function DomainDetailPage() {
     },
   })
 
+  // Setup inbound route mutation
+  const setupInboundRouteMutation = useMutation({
+    mutationFn: async () => {
+      const headers = await getAuthHeaders()
+
+      const response = await fetch(
+        `/api/domains/${domainId}/setup-inbound-route`,
+        {
+          method: 'POST',
+          headers,
+        }
+      )
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to setup inbound route')
+      }
+
+      return response.json()
+    },
+    onSuccess: (data) => {
+      toast.success('Inbound route configured successfully!')
+      // Refresh DNS status after setup
+      queryClient.invalidateQueries({ queryKey: ['dns-status', domainId] })
+    },
+    onError: (error) => {
+      console.error('Inbound route setup error:', error)
+      toast.error(error.message || 'Failed to setup inbound route')
+    },
+  })
+
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text)
     toast({
@@ -453,24 +484,45 @@ export default function DomainDetailPage() {
                 dnsStatus?.dkimRecordValid &&
                 dnsStatus?.spfRecordValid &&
                 dnsStatus?.mxRecordsValid && (
-                  <Button
-                    onClick={() => verifyMailgunMutation.mutate()}
-                    disabled={verifyMailgunMutation.isPending}
-                    size="sm"
-                    variant="default"
-                  >
-                    {verifyMailgunMutation.isPending ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Verifying...
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle className="mr-2 h-4 w-4" />
-                        Verify in Mailgun
-                      </>
-                    )}
-                  </Button>
+                  <>
+                    <Button
+                      onClick={() => verifyMailgunMutation.mutate()}
+                      disabled={verifyMailgunMutation.isPending}
+                      size="sm"
+                      variant="default"
+                    >
+                      {verifyMailgunMutation.isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Verifying...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="mr-2 h-4 w-4" />
+                          Verify in Mailgun
+                        </>
+                      )}
+                    </Button>
+
+                    <Button
+                      onClick={() => setupInboundRouteMutation.mutate()}
+                      disabled={setupInboundRouteMutation.isPending}
+                      size="sm"
+                      variant="outline"
+                    >
+                      {setupInboundRouteMutation.isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Setting up...
+                        </>
+                      ) : (
+                        <>
+                          <Mail className="mr-2 h-4 w-4" />
+                          Setup Email Forwarding
+                        </>
+                      )}
+                    </Button>
+                  </>
                 )}
             </div>
           </div>

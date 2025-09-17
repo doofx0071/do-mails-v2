@@ -157,6 +157,19 @@ export async function POST(request: NextRequest) {
             '✅ Mailgun webhook configured for',
             domain_name.toLowerCase()
           )
+
+          // Set up inbound route for catch-all email forwarding
+          console.log('📬 Setting up inbound route for catch-all emails...')
+          const inboundRoute = await mailgunAPI.setupInboundRoute(
+            domain_name.toLowerCase(),
+            webhookUrl
+          )
+          console.log(
+            '✅ Mailgun inbound route configured for',
+            domain_name.toLowerCase(),
+            'Route ID:',
+            inboundRoute.route?.id
+          )
         } else {
           console.warn(
             '⚠️ No webhook URL configured (NEXT_PUBLIC_APP_URL or APP_BASE_URL), skipping webhook setup'
