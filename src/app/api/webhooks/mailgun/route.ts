@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
     const webhookSignature = webhookData.signature
     const webhookTimestamp = webhookData.timestamp
     const webhookToken = webhookData.token
-    
+
     if (webhookSignature && webhookTimestamp && webhookToken) {
       // TODO: Implement proper signature verification
       // For now, skip verification to get emails working
@@ -270,12 +270,18 @@ export async function POST(request: NextRequest) {
     if (domainError) {
       if (domainError.code === 'PGRST116') {
         // No rows returned - check forwarding config file
-        console.log('Domain not found in database, checking forwarding config:', domainName)
-        
-        const forwardingConfig = await ForwardingConfigDBManager.getConfig(domainName)
+        console.log(
+          'Domain not found in database, checking forwarding config:',
+          domainName
+        )
+
+        const forwardingConfig =
+          await ForwardingConfigDBManager.getConfig(domainName)
         if (forwardingConfig && forwardingConfig.enabled) {
-          console.log(`✅ Found forwarding config for ${domainName}, proceeding with forwarding only`)
-          
+          console.log(
+            `✅ Found forwarding config for ${domainName}, proceeding with forwarding only`
+          )
+
           // Handle forwarding-only domain (no database storage)
           const emailData = {
             from: emailMessage.from,
@@ -283,25 +289,35 @@ export async function POST(request: NextRequest) {
             subject: emailMessage.subject,
             bodyText: emailMessage.bodyText,
             bodyHtml: emailMessage.bodyHtml,
-            messageId: normalizedMessageId
+            messageId: normalizedMessageId,
           }
-          
+
           try {
             const emailForwarder = new EmailForwarder()
-            const forwardingSuccess = await emailForwarder.forwardEmail(emailData, forwardingConfig.forward_to)
-            
+            const forwardingSuccess = await emailForwarder.forwardEmail(
+              emailData,
+              forwardingConfig.forward_to
+            )
+
             if (forwardingSuccess) {
-              console.log(`✅ Email forwarded successfully from ${recipientEmail} to ${forwardingConfig.forward_to}`)
-              return NextResponse.json({
-                success: true,
-                message: 'Email forwarded successfully',
-                forwarded_to: forwardingConfig.forward_to,
-                recipient_email: recipientEmail,
-                from: emailMessage.from,
-                subject: emailMessage.subject
-              }, { status: 200 })
+              console.log(
+                `✅ Email forwarded successfully from ${recipientEmail} to ${forwardingConfig.forward_to}`
+              )
+              return NextResponse.json(
+                {
+                  success: true,
+                  message: 'Email forwarded successfully',
+                  forwarded_to: forwardingConfig.forward_to,
+                  recipient_email: recipientEmail,
+                  from: emailMessage.from,
+                  subject: emailMessage.subject,
+                },
+                { status: 200 }
+              )
             } else {
-              console.error(`❌ Failed to forward email to ${forwardingConfig.forward_to}`)
+              console.error(
+                `❌ Failed to forward email to ${forwardingConfig.forward_to}`
+              )
               return NextResponse.json(
                 { error: 'Failed to forward email' },
                 { status: 500 }
@@ -310,12 +326,18 @@ export async function POST(request: NextRequest) {
           } catch (forwardingError) {
             console.error('❌ Error during email forwarding:', forwardingError)
             return NextResponse.json(
-              { error: 'Email forwarding failed', details: forwardingError instanceof Error ? forwardingError.message : String(forwardingError) },
+              {
+                error: 'Email forwarding failed',
+                details:
+                  forwardingError instanceof Error
+                    ? forwardingError.message
+                    : String(forwardingError),
+              },
               { status: 500 }
             )
           }
         }
-        
+
         // No domain found in database or forwarding config
         console.error('Domain not found or not verified:', domainName)
         return NextResponse.json(
@@ -553,10 +575,13 @@ export async function POST(request: NextRequest) {
 
       // Get formData reference for attachments
       let formDataRef: FormData | undefined
-      if (contentType.includes('multipart/form-data') || contentType.includes('application/x-www-form-urlencoded')) {
+      if (
+        contentType.includes('multipart/form-data') ||
+        contentType.includes('application/x-www-form-urlencoded')
+      ) {
         formDataRef = await request.clone().formData()
       }
-      
+
       for (let i = 1; i <= attachmentCount; i++) {
         const attachmentFile = formDataRef?.get(`attachment-${i}`) as File
         const attachmentName = webhookData[`attachment-${i}`] as string
@@ -647,22 +672,29 @@ export async function POST(request: NextRequest) {
 
     // Check if this domain has forwarding configured (ImprovMX-style)
     console.log('🔍 Checking forwarding configuration for domain:', domainName)
-    const forwardingEmail = await ForwardingConfigDBManager.getForwardingEmail(domainName)
-    
+    const forwardingEmail =
+      await ForwardingConfigDBManager.getForwardingEmail(domainName)
+
     if (forwardingEmail) {
-      console.log(`📧 Forwarding email from ${recipientEmail} to ${forwardingEmail}`)
-      
+      console.log(
+        `📧 Forwarding email from ${recipientEmail} to ${forwardingEmail}`
+      )
+
       try {
         const emailForwarder = new EmailForwarder()
-        const forwardingSuccess = await emailForwarder.forwardEmail({
-          from: emailMessage.from,
-          to: recipientEmail,
-          subject: emailMessage.subject,
-          bodyText: emailMessage.bodyText,
-          bodyHtml: emailMessage.bodyHtml,
-          messageId: normalizedMessageId
-        }, forwardingEmail)
-        
+        const forwardingSuccess = await emailForwarder.forwardEmail(
+          {
+            from: emailMessage.from,
+            to: recipientEmail,
+            subject: emailMessage.subject,
+            bodyText: emailMessage.bodyText,
+            bodyHtml: emailMessage.bodyHtml,
+            messageId: normalizedMessageId,
+          },
+          forwardingEmail,
+          domainName
+        )
+
         if (forwardingSuccess) {
           console.log('✅ Email forwarded successfully to', forwardingEmail)
         } else {
@@ -693,7 +725,8 @@ export async function POST(request: NextRequest) {
     )
   } catch (error: unknown) {
     console.error('💥 WEBHOOK ERROR:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error'
     const errorStack = error instanceof Error ? error.stack : undefined
     console.error('💥 Error details:', {
       message: errorMessage,
