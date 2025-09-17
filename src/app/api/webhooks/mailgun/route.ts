@@ -683,12 +683,14 @@ export async function POST(request: NextRequest) {
         `📧 Forwarding email from ${recipientEmail} to ${forwardingEmail}`
       )
 
-      // Process forwarding asynchronously to avoid blocking webhook response
-      setImmediate(async () => {
-        try {
-          const startTime = Date.now()
-          const emailForwarder = new EmailForwarder()
-          const forwardingSuccess = await emailForwarder.forwardEmail(
+      // OPTIMIZED: Process forwarding immediately without delay
+      try {
+        const startTime = Date.now()
+        const emailForwarder = new EmailForwarder()
+
+        // Fire and forget - don't await to avoid blocking webhook response
+        emailForwarder
+          .forwardEmail(
             {
               from: emailMessage.from,
               to: recipientEmail,
@@ -700,19 +702,24 @@ export async function POST(request: NextRequest) {
             forwardingEmail,
             domainName
           )
+          .then((forwardingSuccess) => {
+            const processingTime = Date.now() - startTime
+            console.log(`⚡ Forwarding completed in ${processingTime}ms`)
 
-          const processingTime = Date.now() - startTime
-          console.log(`⚡ Forwarding completed in ${processingTime}ms`)
+            if (forwardingSuccess) {
+              console.log('✅ Email forwarded successfully to', forwardingEmail)
+            } else {
+              console.error('❌ Failed to forward email to', forwardingEmail)
+            }
+          })
+          .catch((forwardingError) => {
+            console.error('❌ Error during email forwarding:', forwardingError)
+          })
 
-          if (forwardingSuccess) {
-            console.log('✅ Email forwarded successfully to', forwardingEmail)
-          } else {
-            console.error('❌ Failed to forward email to', forwardingEmail)
-          }
-        } catch (forwardingError) {
-          console.error('❌ Error during email forwarding:', forwardingError)
-        }
-      })
+        console.log('🚀 Forwarding initiated, webhook responding immediately')
+      } catch (forwardingError) {
+        console.error('❌ Error initiating email forwarding:', forwardingError)
+      }
     } else {
       console.log('ℹ️ No forwarding configured for domain:', domainName)
     }

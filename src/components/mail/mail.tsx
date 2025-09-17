@@ -9,6 +9,7 @@ import {
   File,
   Inbox,
   MessagesSquare,
+  PenTool,
   Search,
   Send,
   ShoppingCart,
@@ -131,6 +132,12 @@ export function Mail({
           <Nav
             isCollapsed={isCollapsed}
             links={[
+              {
+                title: 'Compose',
+                icon: PenTool,
+                variant: 'ghost',
+                href: '/dashboard/compose',
+              },
               {
                 title: 'Inbox',
                 label: inboxCount.toString(),
