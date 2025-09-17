@@ -115,6 +115,25 @@ export default function DomainDetailPage() {
     enabled: !!domain,
   })
 
+  // Fetch Mailgun DNS records
+  const { data: mailgunDNS, isLoading: mailgunDNSLoading } = useQuery({
+    queryKey: ['mailgun-dns', domainId],
+    queryFn: async () => {
+      const headers = await getAuthHeaders()
+
+      const response = await fetch(`/api/domains/${domainId}/mailgun-dns`, {
+        headers,
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch Mailgun DNS records')
+      }
+
+      return response.json()
+    },
+    enabled: !!domain,
+  })
+
   // Refresh DNS status mutation
   const refreshDNSMutation = useMutation({
     mutationFn: async () => {
@@ -718,6 +737,67 @@ export default function DomainDetailPage() {
                   </div>
                 </div>
 
+                {/* Verification Record */}
+                <div
+                  className={`rounded-lg border p-4 ${
+                    dnsStatus?.verificationRecordValid
+                      ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950'
+                      : 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950'
+                  }`}
+                >
+                  <div className="mb-2 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {dnsStatus?.verificationRecordValid ? (
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                      ) : (
+                        <XCircle className="h-4 w-4 text-red-600" />
+                      )}
+                      <span className="font-medium">Verification Record</span>
+                    </div>
+                    <Badge
+                      variant={
+                        dnsStatus?.verificationRecordValid
+                          ? 'default'
+                          : 'destructive'
+                      }
+                      className="text-xs"
+                    >
+                      {dnsStatus?.verificationRecordValid
+                        ? 'Verified'
+                        : 'Unverified'}
+                    </Badge>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <div className="grid grid-cols-2 gap-2 font-mono">
+                      <span className="text-muted-foreground">Type: TXT</span>
+                      <span className="text-muted-foreground">
+                        Host: _domails-verify
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <code className="break-all text-xs">
+                        {domain?.verification_token || 'Loading...'}
+                      </code>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() =>
+                          copyToClipboard(
+                            domain?.verification_token || 'Loading...',
+                            'Verification token'
+                          )
+                        }
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      <strong>Required for domain ownership.</strong> Add this
+                      TXT record to prove you own the domain.
+                    </p>
+                  </div>
+                </div>
+
                 {/* DKIM Record - Required for Replies */}
                 <div
                   className={`rounded-lg border p-4 ${
@@ -753,13 +833,17 @@ export default function DomainDetailPage() {
                     </div>
                     <div className="flex items-center justify-between">
                       <code className="break-all text-xs">
-                        Get from Mailgun dashboard
+                        {mailgunDNS?.dkimRecord?.value ||
+                          'Loading DKIM value...'}
                       </code>
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={() =>
-                          copyToClipboard('pic._domainkey', 'DKIM host')
+                          copyToClipboard(
+                            mailgunDNS?.dkimRecord?.value || 'Loading...',
+                            'DKIM record'
+                          )
                         }
                       >
                         <Copy className="h-3 w-3" />
