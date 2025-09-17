@@ -209,7 +209,7 @@ export async function POST(request: NextRequest) {
 
     const emailMessage = {
       messageId,
-      from: fromEmails[0] || fromAddress,
+      from: fromAddress, // Keep original format with name: "Pam Plona <pplona746@gmail.com>"
       to: toEmails,
       cc: ccEmails,
       bcc: bccEmails,
