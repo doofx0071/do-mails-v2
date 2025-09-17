@@ -54,18 +54,9 @@ export class EmailForwarder {
       // Prepare form data for Mailgun API - transparent forwarding
       const formData = new FormData()
 
-      // Extract original sender name and email
-      const originalFromMatch = originalEmail.from.match(/^(.+?)\s*<(.+)>$/)
-      const originalSenderName = originalFromMatch
-        ? originalFromMatch[1].trim()
-        : originalEmail.from.split('@')[0]
-      const originalSenderEmail = originalFromMatch
-        ? originalFromMatch[2].trim()
-        : originalEmail.from
-
-      // Use system sender with original sender's name for better deliverability
-      const systemSender = `"${originalSenderName}" <forwarding@${senderDomain}>`
-      formData.append('from', systemSender)
+      // Use original sender directly for transparent forwarding (like ImprovMX)
+      // This preserves the exact sender format: "Name <email@domain.com>" or "email@domain.com"
+      formData.append('from', originalEmail.from)
       formData.append('to', forwardToEmail)
       formData.append('subject', originalEmail.subject) // Keep original subject
 
