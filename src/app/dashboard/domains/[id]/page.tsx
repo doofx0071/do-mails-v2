@@ -53,12 +53,15 @@ interface DNSStatus {
   mxRecordsValid: boolean
   spfRecordValid: boolean
   verificationRecordValid: boolean
+  dkimRecordValid: boolean
+  trackingRecordValid: boolean
   allRecordsValid: boolean
   details: {
     mxRecords: string[]
     txtRecords: string[]
     expectedVerificationToken?: string
     foundVerificationToken?: boolean
+    dkimRecords?: string[]
   }
 }
 
@@ -560,32 +563,71 @@ export default function DomainDetailPage() {
         </Card>
       </div>
 
-      {/* Required DNS Records Setup */}
+      {/* DNS Records Setup with Real-time Status */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center">
-            <Settings className="mr-2 h-5 w-5" />
-            Required DNS Records
-          </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Add these DNS records to your domain provider to enable email
-            forwarding
-          </p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <Settings className="mr-2 h-5 w-5" />
+              <div>
+                <CardTitle>DNS Records Setup</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Real-time verification status of your DNS records
+                </p>
+              </div>
+            </div>
+            <Button
+              onClick={() => refreshDNSMutation.mutate()}
+              disabled={refreshDNSMutation.isPending}
+              variant="outline"
+              size="sm"
+            >
+              {refreshDNSMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Checking...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Refresh Status
+                </>
+              )}
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
-            {/* Required Records */}
+            {/* Core Email Records */}
             <div>
-              <h4 className="mb-3 font-semibold text-green-800 dark:text-green-200">
-                ✅ Required for Email Platform
+              <h4 className="mb-3 font-semibold text-blue-800 dark:text-blue-200">
+                📧 Core Email Records
               </h4>
               <div className="space-y-3">
                 {/* MX Records */}
-                <div className="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-950">
+                <div
+                  className={`rounded-lg border p-4 ${
+                    dnsStatus?.mxRecordsValid
+                      ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950'
+                      : 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950'
+                  }`}
+                >
                   <div className="mb-2 flex items-center justify-between">
-                    <span className="font-medium">MX Records</span>
-                    <Badge variant="outline" className="text-xs">
-                      Required
+                    <div className="flex items-center gap-2">
+                      {dnsStatus?.mxRecordsValid ? (
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                      ) : (
+                        <XCircle className="h-4 w-4 text-red-600" />
+                      )}
+                      <span className="font-medium">MX Records</span>
+                    </div>
+                    <Badge
+                      variant={
+                        dnsStatus?.mxRecordsValid ? 'default' : 'destructive'
+                      }
+                      className="text-xs"
+                    >
+                      {dnsStatus?.mxRecordsValid ? 'Verified' : 'Unverified'}
                     </Badge>
                   </div>
                   <div className="space-y-2 text-sm">
@@ -626,11 +668,29 @@ export default function DomainDetailPage() {
                 </div>
 
                 {/* SPF Record */}
-                <div className="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-950">
+                <div
+                  className={`rounded-lg border p-4 ${
+                    dnsStatus?.spfRecordValid
+                      ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950'
+                      : 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950'
+                  }`}
+                >
                   <div className="mb-2 flex items-center justify-between">
-                    <span className="font-medium">SPF Record</span>
-                    <Badge variant="outline" className="text-xs">
-                      Required
+                    <div className="flex items-center gap-2">
+                      {dnsStatus?.spfRecordValid ? (
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                      ) : (
+                        <XCircle className="h-4 w-4 text-red-600" />
+                      )}
+                      <span className="font-medium">SPF Record</span>
+                    </div>
+                    <Badge
+                      variant={
+                        dnsStatus?.spfRecordValid ? 'default' : 'destructive'
+                      }
+                      className="text-xs"
+                    >
+                      {dnsStatus?.spfRecordValid ? 'Verified' : 'Unverified'}
                     </Badge>
                   </div>
                   <div className="space-y-2 text-sm">
@@ -659,11 +719,29 @@ export default function DomainDetailPage() {
                 </div>
 
                 {/* DKIM Record - Required for Replies */}
-                <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950">
+                <div
+                  className={`rounded-lg border p-4 ${
+                    dnsStatus?.dkimRecordValid
+                      ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950'
+                      : 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950'
+                  }`}
+                >
                   <div className="mb-2 flex items-center justify-between">
-                    <span className="font-medium">DKIM Record</span>
-                    <Badge variant="destructive" className="text-xs">
-                      Required for Replies
+                    <div className="flex items-center gap-2">
+                      {dnsStatus?.dkimRecordValid ? (
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                      ) : (
+                        <XCircle className="h-4 w-4 text-red-600" />
+                      )}
+                      <span className="font-medium">DKIM Record</span>
+                    </div>
+                    <Badge
+                      variant={
+                        dnsStatus?.dkimRecordValid ? 'default' : 'destructive'
+                      }
+                      className="text-xs"
+                    >
+                      {dnsStatus?.dkimRecordValid ? 'Verified' : 'Unverified'}
                     </Badge>
                   </div>
                   <div className="space-y-2 text-sm">
@@ -704,11 +782,29 @@ export default function DomainDetailPage() {
               </h4>
               <div className="space-y-3">
                 {/* Tracking Record */}
-                <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950">
+                <div
+                  className={`rounded-lg border p-4 ${
+                    dnsStatus?.trackingRecordValid
+                      ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950'
+                      : 'border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-950'
+                  }`}
+                >
                   <div className="mb-2 flex items-center justify-between">
-                    <span className="font-medium">Tracking Record</span>
-                    <Badge variant="secondary" className="text-xs">
-                      Optional
+                    <div className="flex items-center gap-2">
+                      {dnsStatus?.trackingRecordValid ? (
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                      ) : (
+                        <Clock className="h-4 w-4 text-gray-500" />
+                      )}
+                      <span className="font-medium">Tracking Record</span>
+                    </div>
+                    <Badge
+                      variant={
+                        dnsStatus?.trackingRecordValid ? 'default' : 'secondary'
+                      }
+                      className="text-xs"
+                    >
+                      {dnsStatus?.trackingRecordValid ? 'Verified' : 'Optional'}
                     </Badge>
                   </div>
                   <div className="space-y-2 text-sm">

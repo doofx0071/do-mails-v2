@@ -105,19 +105,56 @@ export async function GET(
       )
     }
 
+    // Check DKIM record
+    let dkimRecordValid = false
+    let dkimRecords: string[] = []
+    try {
+      const dkimDomain = `pic._domainkey.${domainName}`
+      const dkimResults = await dns.resolveTxt(dkimDomain)
+      dkimRecords = dkimResults.map((txt) => txt.join(''))
+
+      // Check for DKIM record (should contain k=rsa and p=)
+      dkimRecordValid = dkimRecords.some(
+        (record) => record.includes('k=rsa') && record.includes('p=')
+      )
+    } catch (error) {
+      console.log(
+        `No DKIM records found for pic._domainkey.${domainName}:`,
+        error
+      )
+    }
+
+    // Check tracking CNAME record (optional)
+    let trackingRecordValid = false
+    try {
+      const trackingDomain = `email.${domainName}`
+      const trackingResults = await dns.resolveCname(trackingDomain)
+
+      // Check if CNAME points to mailgun.org
+      trackingRecordValid = trackingResults.includes('mailgun.org')
+    } catch (error) {
+      console.log(`No tracking CNAME found for email.${domainName}:`, error)
+    }
+
     const allRecordsValid =
-      mxRecordsValid && spfRecordValid && verificationRecordValid
+      mxRecordsValid &&
+      spfRecordValid &&
+      verificationRecordValid &&
+      dkimRecordValid
 
     const dnsStatus = {
       domain: domainName,
       mxRecordsValid,
       spfRecordValid,
       verificationRecordValid,
+      dkimRecordValid,
+      trackingRecordValid,
       allRecordsValid,
       details: {
         mxRecords,
         txtRecords,
         expectedVerificationToken: verificationToken,
+        dkimRecords,
         foundVerificationToken: verificationRecordValid,
       },
     }
