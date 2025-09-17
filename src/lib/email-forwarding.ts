@@ -54,8 +54,9 @@ export class EmailForwarder {
       // Prepare form data for Mailgun API - transparent forwarding
       const formData = new FormData()
 
-      // Use original sender's email and name for transparent forwarding
-      formData.append('from', originalEmail.from)
+      // Use system sender to avoid SPF/DKIM issues, but set Reply-To for transparency
+      const systemSender = `forwarding@${senderDomain}`
+      formData.append('from', systemSender)
       formData.append('to', forwardToEmail)
       formData.append('subject', originalEmail.subject) // Keep original subject
 
@@ -68,8 +69,12 @@ export class EmailForwarder {
         formData.append('html', originalEmail.bodyHtml)
       }
 
-      // Set Reply-To to original sender (same as From for transparent forwarding)
+      // Set Reply-To to original sender for transparent replies
       formData.append('h:Reply-To', originalEmail.from)
+
+      // Add custom headers to preserve original sender info
+      formData.append('h:X-Original-From', originalEmail.from)
+      formData.append('h:X-Forwarded-For', originalEmail.to)
 
       // Add reference headers for threading
       if (originalEmail.messageId) {
@@ -96,6 +101,12 @@ export class EmailForwarder {
 
       const result = await response.json()
       console.log('✅ Email forwarded successfully:', result.id)
+      console.log('📧 Mailgun response details:', {
+        id: result.id,
+        message: result.message,
+        status: response.status,
+        headers: Object.fromEntries(response.headers.entries()),
+      })
       return true
     } catch (error) {
       console.error('❌ Error forwarding email:', error)
