@@ -378,31 +378,16 @@ export default function DomainDetailPage() {
             )}
             <div className="col-span-1 md:col-span-2">
               <label className="text-sm font-medium text-muted-foreground">
-                Verification Token
+                Default Forward Email
               </label>
-              <div className="mt-1 flex items-center gap-2">
-                <div className="flex-1 break-all rounded border bg-muted/50 p-2 font-mono text-sm">
-                  {domain.verification_token}
-                </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() =>
-                    copyToClipboard(
-                      domain.verification_token,
-                      'Verification token'
-                    )
-                  }
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
+              <div className="mt-1">
+                {domain.default_forward_email || (
+                  <span className="italic text-muted-foreground">
+                    Catch-all enabled - emails forwarded to all configured
+                    addresses
+                  </span>
+                )}
               </div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Add this as a TXT record for:{' '}
-                <code className="rounded bg-muted px-1">
-                  _domails-verify.{domain.domain_name}
-                </code>
-              </p>
             </div>
           </div>
         </CardContent>
@@ -430,174 +415,6 @@ export default function DomainDetailPage() {
           </div>
         </CardContent>
       </Card>
-
-      {/* DNS Status Overview */}
-      {dnsStatus && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Shield className="mr-2 h-5 w-5" />
-              DNS Status Overview
-            </CardTitle>
-            <CardDescription>
-              Real-time status of your DNS records
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              <div className="flex items-center space-x-2">
-                {dnsStatus.mxRecordsValid ? (
-                  <CheckCircle className="h-5 w-5 text-green-600" />
-                ) : (
-                  <XCircle className="h-5 w-5 text-red-600" />
-                )}
-                <span className="font-medium">MX Records</span>
-                <Badge
-                  variant={dnsStatus.mxRecordsValid ? 'default' : 'destructive'}
-                >
-                  {dnsStatus.mxRecordsValid ? 'Valid' : 'Invalid'}
-                </Badge>
-              </div>
-              <div className="flex items-center space-x-2">
-                {dnsStatus.spfRecordValid ? (
-                  <CheckCircle className="h-5 w-5 text-green-600" />
-                ) : (
-                  <XCircle className="h-5 w-5 text-red-600" />
-                )}
-                <span className="font-medium">SPF Record</span>
-                <Badge
-                  variant={dnsStatus.spfRecordValid ? 'default' : 'destructive'}
-                >
-                  {dnsStatus.spfRecordValid ? 'Valid' : 'Invalid'}
-                </Badge>
-              </div>
-              <div className="flex items-center space-x-2">
-                {dnsStatus.verificationRecordValid ? (
-                  <CheckCircle className="h-5 w-5 text-green-600" />
-                ) : (
-                  <XCircle className="h-5 w-5 text-red-600" />
-                )}
-                <span className="font-medium">Verification</span>
-                <Badge
-                  variant={
-                    dnsStatus.verificationRecordValid
-                      ? 'default'
-                      : 'destructive'
-                  }
-                >
-                  {dnsStatus.verificationRecordValid ? 'Valid' : 'Invalid'}
-                </Badge>
-              </div>
-            </div>
-
-            {dnsStatus.allRecordsValid && (
-              <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20">
-                <div className="flex items-center space-x-2 text-green-800 dark:text-green-200">
-                  <CheckCircle className="h-5 w-5" />
-                  <span className="font-medium">
-                    All DNS records are properly configured!
-                  </span>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* DNS Records Details */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* MX Records */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Mail className="mr-2 h-5 w-5" />
-              MX Records
-            </CardTitle>
-            <CardDescription>
-              Mail exchange records for email delivery
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {dnsLoading ? (
-              <div className="flex items-center justify-center p-4">
-                <Loader2 className="h-6 w-6 animate-spin" />
-                <span className="ml-2">Checking DNS...</span>
-              </div>
-            ) : dnsStatus?.details.mxRecords.length ? (
-              <div className="space-y-3">
-                {dnsStatus.details.mxRecords.map((record, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between rounded-lg border bg-muted/50 p-3"
-                  >
-                    <div className="break-all font-mono text-sm">{record}</div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => copyToClipboard(record, 'MX Record')}
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="p-4 text-center text-muted-foreground">
-                <AlertCircle className="mx-auto mb-2 h-8 w-8" />
-                <p>No MX records found</p>
-                <p className="text-sm">
-                  Add the required MX records to your DNS provider
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* TXT Records */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Shield className="mr-2 h-5 w-5" />
-              TXT Records
-            </CardTitle>
-            <CardDescription>SPF and verification records</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {dnsLoading ? (
-              <div className="flex items-center justify-center p-4">
-                <Loader2 className="h-6 w-6 animate-spin" />
-                <span className="ml-2">Checking DNS...</span>
-              </div>
-            ) : dnsStatus?.details.txtRecords.length ? (
-              <div className="space-y-3">
-                {dnsStatus.details.txtRecords.map((record, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between rounded-lg border bg-muted/50 p-3"
-                  >
-                    <div className="break-all font-mono text-sm">{record}</div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => copyToClipboard(record, 'TXT Record')}
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="p-4 text-center text-muted-foreground">
-                <AlertCircle className="mx-auto mb-2 h-8 w-8" />
-                <p>No TXT records found</p>
-                <p className="text-sm">
-                  Add the required TXT records to your DNS provider
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
 
       {/* DNS Records Setup with Real-time Status */}
       <Card>
@@ -871,9 +688,7 @@ export default function DomainDetailPage() {
                     <div className="grid grid-cols-2 gap-2 font-mono">
                       <span className="text-muted-foreground">Type: TXT</span>
                       <span className="text-muted-foreground">
-                        Host:{' '}
-                        {mailgunDNS?.dkimRecord?.host ||
-                          `pic._domainkey.${domain?.domain_name || 'yourdomain.com'}`}
+                        Host: pic._domainkey
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
