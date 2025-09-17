@@ -54,8 +54,17 @@ export class EmailForwarder {
       // Prepare form data for Mailgun API - transparent forwarding
       const formData = new FormData()
 
-      // Use system sender to avoid SPF/DKIM issues, but set Reply-To for transparency
-      const systemSender = `forwarding@${senderDomain}`
+      // Extract original sender name and email
+      const originalFromMatch = originalEmail.from.match(/^(.+?)\s*<(.+)>$/)
+      const originalSenderName = originalFromMatch
+        ? originalFromMatch[1].trim()
+        : originalEmail.from.split('@')[0]
+      const originalSenderEmail = originalFromMatch
+        ? originalFromMatch[2].trim()
+        : originalEmail.from
+
+      // Use system sender with original sender's name for better deliverability
+      const systemSender = `"${originalSenderName}" <forwarding@${senderDomain}>`
       formData.append('from', systemSender)
       formData.append('to', forwardToEmail)
       formData.append('subject', originalEmail.subject) // Keep original subject
@@ -72,9 +81,17 @@ export class EmailForwarder {
       // Set Reply-To to original sender for transparent replies
       formData.append('h:Reply-To', originalEmail.from)
 
-      // Add custom headers to preserve original sender info
+      // Add custom headers to preserve original sender info and improve deliverability
       formData.append('h:X-Original-From', originalEmail.from)
       formData.append('h:X-Forwarded-For', originalEmail.to)
+      formData.append('h:X-Forwarded-By', `do-mails via ${senderDomain}`)
+
+      // Add headers to improve spam score
+      formData.append(
+        'h:List-Unsubscribe',
+        `<mailto:unsubscribe@${senderDomain}>`
+      )
+      formData.append('h:Precedence', 'bulk')
 
       // Add reference headers for threading
       if (originalEmail.messageId) {
