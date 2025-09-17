@@ -60,6 +60,9 @@ export class EmailForwarder {
       formData.append('to', forwardToEmail)
       formData.append('subject', originalEmail.subject) // Keep original subject
 
+      // Add original recipient in To header for transparency
+      formData.append('h:X-Original-To', originalEmail.to)
+
       // Use original email content directly
       if (originalEmail.bodyText) {
         formData.append('text', originalEmail.bodyText)
@@ -69,8 +72,8 @@ export class EmailForwarder {
         formData.append('html', originalEmail.bodyHtml)
       }
 
-      // Set Reply-To to original sender for transparent replies
-      formData.append('h:Reply-To', originalEmail.from)
+      // Don't set Reply-To since From is already the original sender
+      // This reduces duplicate header display in Gmail
 
       // Add custom headers to preserve original sender info and improve deliverability
       formData.append('h:X-Original-From', originalEmail.from)
