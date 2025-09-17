@@ -84,8 +84,12 @@ export async function GET(
 
       // Get DNS records from Mailgun
       console.log(`📋 Getting DNS records for ${domainName}...`)
-      const dnsRecords = await mailgunAPI.getDomainDNSRecords(domainName)
 
+      // Get the raw domain response first to see the structure
+      const rawDomain = await mailgunAPI.getDomain(domainName)
+      console.log(`🔍 Raw domain response:`, JSON.stringify(rawDomain, null, 2))
+
+      const dnsRecords = await mailgunAPI.getDomainDNSRecords(domainName)
       console.log(
         `📊 DNS records response:`,
         JSON.stringify(dnsRecords, null, 2)
