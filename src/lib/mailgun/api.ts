@@ -393,10 +393,19 @@ export class MailgunAPI {
         JSON.stringify(domainResponse, null, 2)
       )
 
+      // Extract the domain object
+      const domain = domainResponse.domain
+      console.log(`🔍 Domain object:`, JSON.stringify(domain, null, 2))
+
+      const sendingRecords = domain?.sending_dns_records || []
+      const receivingRecords = domain?.receiving_dns_records || []
+
+      console.log(`📊 Sending records found: ${sendingRecords.length}`)
+      console.log(`📊 Receiving records found: ${receivingRecords.length}`)
+
       return {
-        sending_dns_records: domainResponse.domain?.sending_dns_records || [],
-        receiving_dns_records:
-          domainResponse.domain?.receiving_dns_records || [],
+        sending_dns_records: sendingRecords,
+        receiving_dns_records: receivingRecords,
       }
     } catch (error) {
       console.error(
