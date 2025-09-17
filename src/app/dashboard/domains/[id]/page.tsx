@@ -116,20 +116,34 @@ export default function DomainDetailPage() {
   })
 
   // Fetch Mailgun DNS records
-  const { data: mailgunDNS, isLoading: mailgunDNSLoading } = useQuery({
+  const {
+    data: mailgunDNS,
+    isLoading: mailgunDNSLoading,
+    error: mailgunDNSError,
+  } = useQuery({
     queryKey: ['mailgun-dns', domainId],
     queryFn: async () => {
+      console.log('🔍 Fetching Mailgun DNS records for domain:', domainId)
       const headers = await getAuthHeaders()
+      console.log('🔑 Auth headers:', headers)
 
       const response = await fetch(`/api/domains/${domainId}/mailgun-dns`, {
         headers,
       })
 
+      console.log('📡 Mailgun DNS API response status:', response.status)
+
       if (!response.ok) {
-        throw new Error('Failed to fetch Mailgun DNS records')
+        const errorText = await response.text()
+        console.error('❌ Mailgun DNS API error:', errorText)
+        throw new Error(
+          `Failed to fetch Mailgun DNS records: ${response.status} ${errorText}`
+        )
       }
 
-      return response.json()
+      const data = await response.json()
+      console.log('✅ Mailgun DNS data received:', data)
+      return data
     },
     enabled: !!domain,
   })
@@ -860,6 +874,12 @@ export default function DomainDetailPage() {
                           dashboard → Domain Settings → Copy the DKIM TXT record
                           value for pic._domainkey.{domain?.domain_name}
                         </p>
+                        {mailgunDNSError && (
+                          <p className="mt-1 text-xs text-red-600 dark:text-red-400">
+                            🚨 <strong>API Error:</strong>{' '}
+                            {mailgunDNSError.message}
+                          </p>
+                        )}
                       </div>
                     )}
                     <p className="text-xs text-muted-foreground">
