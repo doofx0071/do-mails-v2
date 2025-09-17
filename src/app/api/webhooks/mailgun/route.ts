@@ -670,27 +670,46 @@ export async function POST(request: NextRequest) {
       subject: emailMessage.subject,
     })
 
-    // PRIORITY 2: Optimized forwarding with parallel processing
-    console.log('🔍 Checking forwarding configuration for domain:', domainName)
+    // CRITICAL OPTIMIZATION: Return response immediately, process forwarding in background
+    console.log(
+      '🚀 Webhook responding immediately, processing forwarding in background'
+    )
 
-    // Use Promise.all for parallel processing to reduce latency
-    const [forwardingEmail] = await Promise.all([
-      ForwardingConfigDBManager.getForwardingEmail(domainName),
-    ])
+    // Prepare immediate response
+    const responseData = {
+      success: true,
+      message: 'Email received and processing',
+      message_id: storedMessage.id,
+      thread_id: threadId,
+      domain_id: domain.id,
+      recipient_email: recipientEmail,
+      from: emailMessage.from,
+      subject: emailMessage.subject,
+      received_at: emailMessage.receivedAt,
+      attachments_processed: attachmentIds.length,
+      attachment_ids: attachmentIds,
+    }
 
-    if (forwardingEmail) {
-      console.log(
-        `📧 Forwarding email from ${recipientEmail} to ${forwardingEmail}`
-      )
-
-      // OPTIMIZED: Process forwarding immediately without delay
+    // Process forwarding in background - don't block webhook response
+    setImmediate(async () => {
       try {
+        console.log(
+          '🔄 Starting background forwarding process for domain:',
+          domainName
+        )
         const startTime = Date.now()
-        const emailForwarder = new EmailForwarder()
 
-        // Fire and forget - don't await to avoid blocking webhook response
-        emailForwarder
-          .forwardEmail(
+        // Get forwarding configuration in background
+        const forwardingEmail =
+          await ForwardingConfigDBManager.getForwardingEmail(domainName)
+
+        if (forwardingEmail) {
+          console.log(
+            `📧 Forwarding email from ${recipientEmail} to ${forwardingEmail}`
+          )
+
+          const emailForwarder = new EmailForwarder()
+          const forwardingSuccess = await emailForwarder.forwardEmail(
             {
               from: emailMessage.from,
               to: recipientEmail,
@@ -702,44 +721,27 @@ export async function POST(request: NextRequest) {
             forwardingEmail,
             domainName
           )
-          .then((forwardingSuccess) => {
-            const processingTime = Date.now() - startTime
-            console.log(`⚡ Forwarding completed in ${processingTime}ms`)
 
-            if (forwardingSuccess) {
-              console.log('✅ Email forwarded successfully to', forwardingEmail)
-            } else {
-              console.error('❌ Failed to forward email to', forwardingEmail)
-            }
-          })
-          .catch((forwardingError) => {
-            console.error('❌ Error during email forwarding:', forwardingError)
-          })
+          const processingTime = Date.now() - startTime
+          console.log(
+            `⚡ Background forwarding completed in ${processingTime}ms`
+          )
 
-        console.log('🚀 Forwarding initiated, webhook responding immediately')
+          if (forwardingSuccess) {
+            console.log('✅ Email forwarded successfully to', forwardingEmail)
+          } else {
+            console.error('❌ Failed to forward email to', forwardingEmail)
+          }
+        } else {
+          console.log('ℹ️ No forwarding configured for domain:', domainName)
+        }
       } catch (forwardingError) {
-        console.error('❌ Error initiating email forwarding:', forwardingError)
+        console.error('❌ Error during background forwarding:', forwardingError)
       }
-    } else {
-      console.log('ℹ️ No forwarding configured for domain:', domainName)
-    }
+    })
 
-    return NextResponse.json(
-      {
-        success: true,
-        message: 'Email processed successfully',
-        message_id: storedMessage.id,
-        thread_id: threadId,
-        domain_id: domain.id,
-        recipient_email: recipientEmail,
-        from: emailMessage.from,
-        subject: emailMessage.subject,
-        received_at: emailMessage.receivedAt,
-        attachments_processed: attachmentIds.length,
-        attachment_ids: attachmentIds,
-      },
-      { status: 200 }
-    )
+    // Return immediate response
+    return NextResponse.json(responseData, { status: 200 })
   } catch (error: unknown) {
     console.error('💥 WEBHOOK ERROR:', error)
     const errorMessage =
