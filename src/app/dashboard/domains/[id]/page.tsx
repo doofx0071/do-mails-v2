@@ -368,6 +368,29 @@ export default function DomainDetailPage() {
         </CardContent>
       </Card>
 
+      {/* DKIM Warning for Reply Feature */}
+      <Card className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950">
+        <CardContent className="pt-6">
+          <div className="flex items-start space-x-3">
+            <AlertCircle className="mt-0.5 h-5 w-5 text-amber-600 dark:text-amber-400" />
+            <div>
+              <h3 className="font-semibold text-amber-800 dark:text-amber-200">
+                Reply Feature Requires DKIM
+              </h3>
+              <p className="mt-1 text-sm text-amber-700 dark:text-amber-300">
+                To reply from{' '}
+                <code className="rounded bg-amber-100 px-1 dark:bg-amber-900">
+                  @{domain.domain_name}
+                </code>{' '}
+                without being marked as spam, you must add the DKIM record to
+                your DNS. See the "Required DNS Records" section below for
+                details.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* DNS Status Overview */}
       {dnsStatus && (
         <Card>
@@ -553,7 +576,7 @@ export default function DomainDetailPage() {
             {/* Required Records */}
             <div>
               <h4 className="mb-3 font-semibold text-green-800 dark:text-green-200">
-                ✅ Required (Like ImprovMX)
+                ✅ Required for Email Platform
               </h4>
               <div className="space-y-3">
                 {/* MX Records */}
@@ -633,21 +656,13 @@ export default function DomainDetailPage() {
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
 
-            {/* Optional Records */}
-            <div>
-              <h4 className="mb-3 font-semibold text-orange-800 dark:text-orange-200">
-                🔧 Optional (Advanced Features)
-              </h4>
-              <div className="space-y-3">
-                {/* DKIM Record */}
-                <div className="rounded-lg border border-orange-200 bg-orange-50 p-4 dark:border-orange-800 dark:bg-orange-950">
+                {/* DKIM Record - Required for Replies */}
+                <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950">
                   <div className="mb-2 flex items-center justify-between">
                     <span className="font-medium">DKIM Record</span>
-                    <Badge variant="secondary" className="text-xs">
-                      Optional
+                    <Badge variant="destructive" className="text-xs">
+                      Required for Replies
                     </Badge>
                   </div>
                   <div className="space-y-2 text-sm">
@@ -657,13 +672,36 @@ export default function DomainDetailPage() {
                         Host: pic._domainkey
                       </span>
                     </div>
+                    <div className="flex items-center justify-between">
+                      <code className="break-all text-xs">
+                        Get from Mailgun dashboard
+                      </code>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() =>
+                          copyToClipboard('pic._domainkey', 'DKIM host')
+                        }
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                    </div>
                     <p className="text-xs text-muted-foreground">
-                      Required for sending emails from your domain. Get the DKIM
-                      value from Mailgun dashboard.
+                      <strong>Required to reply from your domain.</strong>{' '}
+                      Without this, replies will be marked as spam. Get the DKIM
+                      value from your Mailgun dashboard.
                     </p>
                   </div>
                 </div>
+              </div>
+            </div>
 
+            {/* Optional Records */}
+            <div>
+              <h4 className="mb-3 font-semibold text-blue-800 dark:text-blue-200">
+                🔧 Optional (Analytics Features)
+              </h4>
+              <div className="space-y-3">
                 {/* Tracking Record */}
                 <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950">
                   <div className="mb-2 flex items-center justify-between">

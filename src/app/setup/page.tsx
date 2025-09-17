@@ -309,22 +309,22 @@ export default function SetupPage() {
               </CardContent>
             </Card>
 
-            {/* DKIM Records - Optional for Advanced Features */}
+            {/* DKIM Records - Required for Reply Functionality */}
             {setupResult.dns_instructions.dkim_records &&
               setupResult.dns_instructions.dkim_records.length > 0 && (
-                <Card className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950">
+                <Card className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-lg">
                       DKIM Records
-                      <Badge variant="secondary" className="text-xs">
-                        Optional
+                      <Badge variant="destructive" className="text-xs">
+                        Required for Replies
                       </Badge>
                     </CardTitle>
                     <p className="text-sm text-muted-foreground">
-                      <strong>Optional:</strong> Add these TXT records for
-                      advanced email authentication (DKIM). Required only if you
-                      plan to send emails from your domain or need advanced
-                      anti-spam protection.
+                      <strong>Required for Reply Feature:</strong> Add these TXT
+                      records for email authentication (DKIM). Without these,
+                      replies sent from your domain will be marked as spam or
+                      rejected by email providers.
                     </p>
                   </CardHeader>
                   <CardContent>
@@ -449,16 +449,23 @@ export default function SetupPage() {
           </div>
 
           <div className="mt-8 text-center">
-            <div className="mb-6 rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-950">
-              <h3 className="mb-2 font-semibold text-green-800 dark:text-green-200">
-                🎯 Quick Start (Like ImprovMX)
+            <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950">
+              <h3 className="mb-2 font-semibold text-blue-800 dark:text-blue-200">
+                📧 Complete Email Platform Setup
               </h3>
-              <p className="text-sm text-green-700 dark:text-green-300">
-                <strong>For basic email forwarding, you only need:</strong> MX
-                Records + TXT Records (SPF + Verification).
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                <strong>
+                  For full functionality (receive + reply from your domain):
+                </strong>
+                <br />• <strong>Required:</strong> MX Records + TXT Records (SPF
+                + Verification + DKIM)
+                <br />• <strong>Optional:</strong> Tracking Records (for email
+                analytics)
                 <br />
-                The DKIM and Tracking records are optional for advanced
-                features.
+                <em>
+                  DKIM is required to reply from your custom domain without
+                  being marked as spam.
+                </em>
               </p>
             </div>
             <p className="mb-4 text-gray-600 dark:text-gray-400">
