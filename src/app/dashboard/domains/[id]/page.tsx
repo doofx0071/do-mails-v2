@@ -845,7 +845,9 @@ export default function DomainDetailPage() {
                     <div className="grid grid-cols-2 gap-2 font-mono">
                       <span className="text-muted-foreground">Type: TXT</span>
                       <span className="text-muted-foreground">
-                        Host: {mailgunDNS?.dkimRecord?.host || 'pic._domainkey'}
+                        Host:{' '}
+                        {mailgunDNS?.dkimRecord?.host ||
+                          `pic._domainkey.${domain?.domain_name || 'yourdomain.com'}`}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
@@ -876,25 +878,18 @@ export default function DomainDetailPage() {
                         <Copy className="h-3 w-3" />
                       </Button>
                     </div>
-                    {!mailgunDNSLoading && !mailgunDNS?.dkimRecord?.value && (
-                      <div className="mt-2 rounded bg-amber-50 p-2 dark:bg-amber-950">
-                        <p className="text-xs text-amber-700 dark:text-amber-300">
-                          💡 <strong>Manual Setup:</strong> Visit your Mailgun
-                          dashboard → Domain Settings → Copy the DKIM TXT record
-                          value for pic._domainkey.{domain?.domain_name}
+                    {mailgunDNSError && (
+                      <div className="mt-2 rounded bg-red-50 p-2 dark:bg-red-950">
+                        <p className="text-xs text-red-600 dark:text-red-400">
+                          🚨 <strong>API Error:</strong>{' '}
+                          {mailgunDNSError.message}
                         </p>
-                        {mailgunDNSError && (
-                          <p className="mt-1 text-xs text-red-600 dark:text-red-400">
-                            🚨 <strong>API Error:</strong>{' '}
-                            {mailgunDNSError.message}
-                          </p>
-                        )}
                       </div>
                     )}
                     <p className="text-xs text-muted-foreground">
                       <strong>Required to reply from your domain.</strong>{' '}
-                      Without this, replies will be marked as spam. Get the DKIM
-                      value from your Mailgun dashboard.
+                      Without this, replies will be marked as spam. Add this TXT
+                      record to your DNS provider.
                     </p>
                   </div>
                 </div>
