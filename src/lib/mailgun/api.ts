@@ -387,10 +387,16 @@ export class MailgunAPI {
    */
   async getDomainDNSRecords(domainName: string): Promise<any> {
     try {
-      const domain = await this.getDomain(domainName)
+      const domainResponse = await this.getDomain(domainName)
+      console.log(
+        `🔍 Domain response structure:`,
+        JSON.stringify(domainResponse, null, 2)
+      )
+
       return {
-        sending_dns_records: domain.domain?.sending_dns_records || [],
-        receiving_dns_records: domain.domain?.receiving_dns_records || [],
+        sending_dns_records: domainResponse.domain?.sending_dns_records || [],
+        receiving_dns_records:
+          domainResponse.domain?.receiving_dns_records || [],
       }
     } catch (error) {
       console.error(
