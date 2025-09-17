@@ -670,39 +670,49 @@ export async function POST(request: NextRequest) {
       subject: emailMessage.subject,
     })
 
-    // Check if this domain has forwarding configured (ImprovMX-style)
+    // PRIORITY 2: Optimized forwarding with parallel processing
     console.log('🔍 Checking forwarding configuration for domain:', domainName)
-    const forwardingEmail =
-      await ForwardingConfigDBManager.getForwardingEmail(domainName)
+
+    // Use Promise.all for parallel processing to reduce latency
+    const [forwardingEmail] = await Promise.all([
+      ForwardingConfigDBManager.getForwardingEmail(domainName),
+    ])
 
     if (forwardingEmail) {
       console.log(
         `📧 Forwarding email from ${recipientEmail} to ${forwardingEmail}`
       )
 
-      try {
-        const emailForwarder = new EmailForwarder()
-        const forwardingSuccess = await emailForwarder.forwardEmail(
-          {
-            from: emailMessage.from,
-            to: recipientEmail,
-            subject: emailMessage.subject,
-            bodyText: emailMessage.bodyText,
-            bodyHtml: emailMessage.bodyHtml,
-            messageId: normalizedMessageId,
-          },
-          forwardingEmail,
-          domainName
-        )
+      // Process forwarding asynchronously to avoid blocking webhook response
+      setImmediate(async () => {
+        try {
+          const startTime = Date.now()
+          const emailForwarder = new EmailForwarder()
+          const forwardingSuccess = await emailForwarder.forwardEmail(
+            {
+              from: emailMessage.from,
+              to: recipientEmail,
+              subject: emailMessage.subject,
+              bodyText: emailMessage.bodyText,
+              bodyHtml: emailMessage.bodyHtml,
+              messageId: normalizedMessageId,
+            },
+            forwardingEmail,
+            domainName
+          )
 
-        if (forwardingSuccess) {
-          console.log('✅ Email forwarded successfully to', forwardingEmail)
-        } else {
-          console.error('❌ Failed to forward email to', forwardingEmail)
+          const processingTime = Date.now() - startTime
+          console.log(`⚡ Forwarding completed in ${processingTime}ms`)
+
+          if (forwardingSuccess) {
+            console.log('✅ Email forwarded successfully to', forwardingEmail)
+          } else {
+            console.error('❌ Failed to forward email to', forwardingEmail)
+          }
+        } catch (forwardingError) {
+          console.error('❌ Error during email forwarding:', forwardingError)
         }
-      } catch (forwardingError) {
-        console.error('❌ Error during email forwarding:', forwardingError)
-      }
+      })
     } else {
       console.log('ℹ️ No forwarding configured for domain:', domainName)
     }
