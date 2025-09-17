@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     console.log(`🧪 Testing Mailgun domain API for: ${domain}`)
 
     const mailgunAPI = new MailgunAPI()
-    
+
     if (!mailgunAPI.isConfigured()) {
       return NextResponse.json(
         { error: 'Mailgun is not configured' },
@@ -21,16 +21,30 @@ export async function GET(request: NextRequest) {
       // Get raw domain info
       console.log(`📋 Getting domain info for ${domain}...`)
       const domainInfo = await mailgunAPI.getDomain(domain)
-      
-      console.log(`✅ Domain info received:`, JSON.stringify(domainInfo, null, 2))
+
+      console.log(
+        `✅ Domain info received:`,
+        JSON.stringify(domainInfo, null, 2)
+      )
+
+      // Test the getDomainDNSRecords method
+      console.log(`🧪 Testing getDomainDNSRecords method...`)
+      const dnsRecords = await mailgunAPI.getDomainDNSRecords(domain)
+      console.log(
+        `📊 DNS records from method:`,
+        JSON.stringify(dnsRecords, null, 2)
+      )
 
       // Extract sending DNS records
-      const sendingRecords = domainInfo.domain?.sending_dns_records || []
+      const sendingRecords = dnsRecords.sending_dns_records || []
       console.log(`📊 Found ${sendingRecords.length} sending DNS records`)
 
       // Look for DKIM record specifically
-      const dkimRecord = sendingRecords.find(record => 
-        record.record_type === 'TXT' && record.name && record.name.includes('_domainkey')
+      const dkimRecord = sendingRecords.find(
+        (record) =>
+          record.record_type === 'TXT' &&
+          record.name &&
+          record.name.includes('_domainkey')
       )
 
       console.log(`🔍 DKIM record search result:`, dkimRecord)
@@ -39,27 +53,26 @@ export async function GET(request: NextRequest) {
         success: true,
         domain,
         domainInfo,
+        dnsRecords,
         sendingRecords,
         dkimRecord,
         debug: {
           totalSendingRecords: sendingRecords.length,
-          recordTypes: sendingRecords.map(r => r.record_type),
-          recordNames: sendingRecords.map(r => r.name),
-        }
+          recordTypes: sendingRecords.map((r) => r.record_type),
+          recordNames: sendingRecords.map((r) => r.name),
+        },
       })
-
     } catch (error) {
       console.error(`❌ Error getting domain info:`, error)
       return NextResponse.json(
-        { 
+        {
           error: 'Failed to get domain info',
           details: error instanceof Error ? error.message : 'Unknown error',
-          domain
+          domain,
         },
         { status: 500 }
       )
     }
-
   } catch (error) {
     console.error('Error in Mailgun domain test API:', error)
     return NextResponse.json(
