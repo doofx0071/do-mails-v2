@@ -82,18 +82,26 @@ export async function GET(
         })
       }
 
-      // Get DNS records from Mailgun
-      console.log(`📋 Getting DNS records for ${domainName}...`)
-
-      // Get the raw domain response first to see the structure
+      // Get DNS records from Mailgun - use raw domain response directly
+      console.log(`📋 Getting domain info for ${domainName}...`)
       const rawDomain = await mailgunAPI.getDomain(domainName)
       console.log(`🔍 Raw domain response:`, JSON.stringify(rawDomain, null, 2))
 
-      const dnsRecords = await mailgunAPI.getDomainDNSRecords(domainName)
+      // Extract DNS records directly from raw response
+      const sendingRecords = rawDomain.domain?.sending_dns_records || []
+      const receivingRecords = rawDomain.domain?.receiving_dns_records || []
+
       console.log(
-        `📊 DNS records response:`,
-        JSON.stringify(dnsRecords, null, 2)
+        `📊 Direct extraction - Sending records: ${sendingRecords.length}`
       )
+      console.log(
+        `📊 Direct extraction - Receiving records: ${receivingRecords.length}`
+      )
+
+      const dnsRecords = {
+        sending_dns_records: sendingRecords,
+        receiving_dns_records: receivingRecords,
+      }
 
       // Extract DKIM record
       let dkimRecord = null
