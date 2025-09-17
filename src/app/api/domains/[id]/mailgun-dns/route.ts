@@ -138,6 +138,11 @@ export async function GET(
         }
       }
 
+      console.log(`🎯 Final result for ${domainName}:`)
+      console.log(`   DKIM Record:`, dkimRecord)
+      console.log(`   Tracking Record:`, trackingRecord)
+      console.log(`   Verification Token:`, domain.verification_token)
+
       return NextResponse.json({
         success: true,
         domain: domainName,
