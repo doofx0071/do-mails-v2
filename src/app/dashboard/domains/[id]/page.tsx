@@ -833,15 +833,19 @@ export default function DomainDetailPage() {
                     </div>
                     <div className="flex items-center justify-between">
                       <code className="break-all text-xs">
-                        {mailgunDNS?.dkimRecord?.value ||
-                          'Loading DKIM value...'}
+                        {mailgunDNSLoading
+                          ? 'Loading DKIM value...'
+                          : mailgunDNS?.dkimRecord?.value
+                            ? mailgunDNS.dkimRecord.value
+                            : 'Get DKIM value from Mailgun dashboard'}
                       </code>
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={() =>
                           copyToClipboard(
-                            mailgunDNS?.dkimRecord?.value || 'Loading...',
+                            mailgunDNS?.dkimRecord?.value ||
+                              'Visit Mailgun dashboard for DKIM value',
                             'DKIM record'
                           )
                         }
@@ -849,6 +853,15 @@ export default function DomainDetailPage() {
                         <Copy className="h-3 w-3" />
                       </Button>
                     </div>
+                    {!mailgunDNSLoading && !mailgunDNS?.dkimRecord?.value && (
+                      <div className="mt-2 rounded bg-amber-50 p-2 dark:bg-amber-950">
+                        <p className="text-xs text-amber-700 dark:text-amber-300">
+                          💡 <strong>Manual Setup:</strong> Visit your Mailgun
+                          dashboard → Domain Settings → Copy the DKIM TXT record
+                          value for pic._domainkey.{domain?.domain_name}
+                        </p>
+                      </div>
+                    )}
                     <p className="text-xs text-muted-foreground">
                       <strong>Required to reply from your domain.</strong>{' '}
                       Without this, replies will be marked as spam. Get the DKIM
