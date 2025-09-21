@@ -46,7 +46,7 @@ type ComposeFormData = z.infer<typeof composeSchema>
 
 interface ComposeEmailDialogProps {
   open: boolean
-  onOpenChange: (open: boolean) => void
+  onOpenChange: (open: boolean, emailSent?: boolean) => void
   selectedAccount?: string | null
   replyTo?: {
     to: string
@@ -73,6 +73,8 @@ export function ComposeEmailDialog({
   const [availableAddresses, setAvailableAddresses] = useState<DomainAddress[]>([])
   const [customFromAddress, setCustomFromAddress] = useState('')
   const [showCustomFromInput, setShowCustomFromInput] = useState(false)
+  const [retryCount, setRetryCount] = useState(0)
+  const [lastError, setLastError] = useState<string | null>(null)
   const { toast } = useToast()
 
   const form = useForm<ComposeFormData>({
@@ -171,8 +173,8 @@ export function ComposeEmailDialog({
           
           setAvailableAddresses(uniqueAddresses)
           
-          // Set first address as default (prioritize recent or reply address)
-          if (uniqueAddresses.length > 0 && !form.getValues('from_address')) {
+          // Set first address as default only if not in reply mode
+          if (uniqueAddresses.length > 0 && !form.getValues('from_address') && !replyTo) {
             form.setValue('from_address', uniqueAddresses[0].address)
           }
         }
@@ -184,29 +186,46 @@ export function ComposeEmailDialog({
     if (open && selectedAccount) {
       fetchAddresses()
     }
-  }, [open, selectedAccount, form])
+  }, [open, selectedAccount, form, replyTo])
 
-  // Set reply defaults
+  // Set reply defaults - this should run AFTER addresses are fetched
   useEffect(() => {
-    if (replyTo) {
+    if (replyTo && availableAddresses.length > 0) {
       form.setValue('to_addresses', replyTo.to)
       form.setValue('subject', replyTo.subject.startsWith('Re:') ? replyTo.subject : `Re: ${replyTo.subject}`)
       
-      // If reply has a specific fromAddress, use that
+      // If reply has a specific fromAddress, use that and ensure it's in the list
       if (replyTo.fromAddress) {
+        // Check if the reply address is already in availableAddresses
+        const existingAddress = availableAddresses.find(addr => addr.address === replyTo.fromAddress)
+        
+        if (!existingAddress) {
+          // Add the reply address to the beginning of the list
+          const domain = replyTo.fromAddress.split('@')[1]
+          const replyAddressObj = {
+            domain: domain,
+            address: replyTo.fromAddress,
+            forwardEmail: selectedAccount || '',
+          }
+          setAvailableAddresses([replyAddressObj, ...availableAddresses])
+        }
+        
         form.setValue('from_address', replyTo.fromAddress)
+        console.log('✅ Reply from address set to:', replyTo.fromAddress)
       }
     }
-  }, [replyTo, form])
+  }, [replyTo, availableAddresses, form, selectedAccount])
 
   const onSubmit = async (values: ComposeFormData) => {
-    try {
-      setSending(true)
-      const token = localStorage.getItem('auth_token')
-      
-      if (!token) {
-        throw new Error('No auth token found')
-      }
+    const attemptSend = async (attempt: number = 0): Promise<void> => {
+      try {
+        setSending(true)
+        setLastError(null)
+        const token = localStorage.getItem('auth_token')
+        
+        if (!token) {
+          throw new Error('Authentication required. Please log in again.')
+        }
 
       // Parse email addresses
       const toAddresses = values.to_addresses
@@ -268,27 +287,63 @@ export function ComposeEmailDialog({
 
       if (!sendResponse.ok) {
         const errorData = await sendResponse.json()
-        throw new Error(errorData.error || 'Failed to send email')
+        const errorMessage = errorData.error || 'Failed to send email'
+        
+        // Check if this is a retryable error
+        const isRetryableError = sendResponse.status >= 500 || 
+                                sendResponse.status === 429 || 
+                                errorMessage.toLowerCase().includes('timeout') ||
+                                errorMessage.toLowerCase().includes('network')
+        
+        if (isRetryableError && attempt < 2) {
+          // Retry up to 3 times (attempt 0, 1, 2)
+          console.log(`Retrying send attempt ${attempt + 1}/3...`)
+          await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1))) // Exponential backoff
+          return attemptSend(attempt + 1)
+        }
+        
+        throw new Error(errorMessage)
       }
 
+      // Success
       toast({
         title: 'Email sent!',
         description: `Your email has been sent successfully.`,
       })
 
-      // Reset form and close dialog
+      // Reset form and close dialog - signal that email was sent
       form.reset()
-      onOpenChange(false)
+      setRetryCount(0)
+      onOpenChange(false, true)
+      
     } catch (error) {
       console.error('Send error:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      setLastError(errorMessage)
+      
+      // Show error with retry option for certain errors
+      const canRetry = attempt < 2 && (
+        errorMessage.toLowerCase().includes('network') ||
+        errorMessage.toLowerCase().includes('timeout') ||
+        errorMessage.toLowerCase().includes('server error')
+      )
+      
       toast({
         title: 'Failed to send email',
-        description: error instanceof Error ? error.message : 'Unknown error occurred',
+        description: canRetry ? `${errorMessage}. Click 'Send Email' to retry.` : errorMessage,
         variant: 'destructive',
       })
+      
+      if (attempt >= 2) {
+        setRetryCount(attempt + 1)
+      }
     } finally {
       setSending(false)
     }
+    }
+    
+    // Start the send process
+    await attemptSend(0)
   }
 
   return (
@@ -330,7 +385,10 @@ export function ComposeEmailDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {availableAddresses.map((addr) => (
+                        {(replyTo && replyTo.fromAddress 
+                          ? availableAddresses.filter(addr => addr.address === replyTo.fromAddress)
+                          : availableAddresses
+                        ).map((addr) => (
                           <SelectItem key={addr.address} value={addr.address}>
                             <div className="flex flex-col">
                               <span>{addr.address}</span>
@@ -340,11 +398,13 @@ export function ComposeEmailDialog({
                             </div>
                           </SelectItem>
                         ))}
-                        <SelectItem value="custom">
-                          <div className="flex items-center gap-2 text-primary">
-                            <span>✏️ Enter custom address</span>
-                          </div>
-                        </SelectItem>
+                        {!replyTo && (
+                          <SelectItem value="custom">
+                            <div className="flex items-center gap-2 text-primary">
+                              <span>✏️ Enter custom address</span>
+                            </div>
+                          </SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   ) : (

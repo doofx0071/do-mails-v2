@@ -80,6 +80,7 @@ interface MailProps {
   onRefresh?: () => void
   isRefreshing?: boolean
   lastRefreshTime?: Date
+  refreshError?: string
   defaultLayout?: number[]
   defaultCollapsed?: boolean
   navCollapsedSize: number
@@ -96,6 +97,7 @@ export function Mail({
   onRefresh,
   isRefreshing,
   lastRefreshTime,
+  refreshError,
   defaultLayout = [20, 32, 48],
   defaultCollapsed = false,
   navCollapsedSize,
@@ -235,10 +237,23 @@ export function Mail({
                         )} />
                         {isRefreshing ? 'Refreshing...' : 'Refresh'}
                       </Button>
-                      {lastRefreshTime && (
+                      {lastRefreshTime && !refreshError && (
                         <span className="text-xs text-muted-foreground">
                           Last updated {format(lastRefreshTime, 'HH:mm:ss')}
                         </span>
+                      )}
+                      {refreshError && (
+                        <div className="flex items-center gap-2 text-xs">
+                          <span className="text-red-600">Refresh failed</span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={onRefresh}
+                            className="h-6 px-2 text-xs text-red-600 hover:text-red-700"
+                          >
+                            Retry
+                          </Button>
+                        </div>
                       )}
                     </div>
                   )}
@@ -272,6 +287,7 @@ export function Mail({
                   items={threads}
                   onEmailSelect={handleEmailSelect}
                   pagination={pagination}
+                  isRefreshing={isRefreshing}
                 />
               </TabsContent>
               <TabsContent
@@ -282,6 +298,7 @@ export function Mail({
                   items={threads.filter((item) => !item.isRead)}
                   onEmailSelect={handleEmailSelect}
                   pagination={pagination}
+                  isRefreshing={isRefreshing}
                 />
               </TabsContent>
             </Tabs>

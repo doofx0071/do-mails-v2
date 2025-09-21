@@ -21,6 +21,7 @@ export default function MailPage() {
   const [accounts, setAccounts] = useState<Account[]>([])
   const [selectedAccount, setSelectedAccount] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
   const [hasMore, setHasMore] = useState(false)
@@ -97,7 +98,10 @@ export default function MailPage() {
   // Fetch emails from API filtered by selected account
   const fetchEmails = useCallback(async (page: number = 1, silent = false) => {
     try {
-      if (!silent) setLoading(true)
+      if (!silent) {
+        setLoading(true)
+        setError(null)
+      }
       const token = localStorage.getItem('auth_token')
       if (!token || !selectedAccount) {
         if (!silent) setLoading(false)
@@ -147,26 +151,35 @@ export default function MailPage() {
 
         setThreads(transformedThreads)
         setLastRefreshTime(new Date())
+        setError(null) // Clear any previous errors on success
         
         if (silent) {
           console.log('📧 Silent refresh completed')
         }
       } else {
+        const errorMsg = response.status === 401 ? 'Session expired. Please log in again.' : 
+                        response.status === 403 ? 'Access denied to email threads.' :
+                        `Failed to load emails (${response.status})`
         console.error('Failed to fetch threads:', response.status)
+        
         if (!silent) {
+          setError(errorMsg)
           toast({
             title: 'Error',
-            description: 'Failed to load email threads',
+            description: errorMsg,
             variant: 'destructive',
           })
         }
       }
     } catch (error) {
       console.error('Failed to fetch emails:', error)
+      const errorMsg = error instanceof Error ? error.message : 'Network error. Check your connection.'
+      
       if (!silent) {
+        setError(errorMsg)
         toast({
           title: 'Error', 
-          description: 'Failed to load email threads',
+          description: errorMsg,
           variant: 'destructive',
         })
       }
@@ -249,13 +262,13 @@ export default function MailPage() {
   }
 
   // Handle compose dialog close
-  const handleComposeClose = (open: boolean) => {
+  const handleComposeClose = (open: boolean, emailSent?: boolean) => {
     setComposeOpen(open)
     if (!open) {
       setReplyData(undefined)
-      // Refresh threads after sending to show the new message
-      if (selectedAccount) {
-        fetchEmails(currentPage)
+      // Only refresh threads if an email was actually sent
+      if (emailSent && selectedAccount) {
+        fetchEmails(currentPage, true) // Silent refresh
       }
     }
   }
@@ -266,7 +279,7 @@ export default function MailPage() {
     
     setIsRefreshing(true)
     try {
-      await fetchEmails(currentPage, false) // Not silent, show loading
+      await fetchEmails(currentPage, true) // Silent refresh - don't show main loading component
       toast({
         title: 'Refreshed',
         description: 'Email list updated successfully',
@@ -276,6 +289,36 @@ export default function MailPage() {
     }
   }, [selectedAccount, currentPage, fetchEmails, isRefreshing, toast])
 
+
+  if (error && !threads.length) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-center max-w-md">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+            <RefreshCw className="h-6 w-6 text-red-600" />
+          </div>
+          <h3 className="text-lg font-medium mb-2">Failed to load emails</h3>
+          <p className="text-muted-foreground mb-4">{error}</p>
+          <div className="space-y-2">
+            <Button onClick={() => fetchEmails(currentPage)} className="w-full">
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Try Again
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setSelectedAccount(null)
+                setError(null)
+              }}
+              className="w-full"
+            >
+              Switch Account
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   if (loading) {
     return (
@@ -301,6 +344,7 @@ export default function MailPage() {
           onRefresh={handleManualRefresh}
           isRefreshing={isRefreshing}
           lastRefreshTime={lastRefreshTime}
+          refreshError={error && threads.length > 0 ? error : undefined}
           defaultLayout={[20, 32, 48]}
           defaultCollapsed={false}
           navCollapsedSize={4}

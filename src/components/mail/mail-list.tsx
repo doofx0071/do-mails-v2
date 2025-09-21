@@ -21,6 +21,7 @@ interface MailListProps {
   items: EmailThread[]
   onEmailSelect?: (thread: EmailThread) => void
   pagination?: PaginationInfo
+  isRefreshing?: boolean
 }
 
 function formatEmailTime(date: Date): string {
@@ -33,7 +34,7 @@ function formatEmailTime(date: Date): string {
   }
 }
 
-export function MailList({ items, onEmailSelect, pagination }: MailListProps) {
+export function MailList({ items, onEmailSelect, pagination, isRefreshing }: MailListProps) {
   const [mail, setMail] = useMail()
 
   if (items.length === 0) {
@@ -53,7 +54,17 @@ export function MailList({ items, onEmailSelect, pagination }: MailListProps) {
   }
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col relative">
+      {isRefreshing && (
+        <div className="absolute top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm border-b">
+          <div className="flex items-center justify-center py-2 px-4">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full" />
+              Refreshing...
+            </div>
+          </div>
+        </div>
+      )}
       <ScrollArea className="flex-1">
         <div className="flex flex-col gap-0">
           {items.map((item) => (
