@@ -241,6 +241,23 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    // Validate that we have a proper sender address for Mailgun domain
+    if (domain.domain_name !== mailgunDomain && !actualSender.includes(mailgunDomain)) {
+      return NextResponse.json(
+        { 
+          error: `❌ Email Configuration Error: Cannot send from domain "${domain.domain_name}" because it's not the configured Mailgun domain "${mailgunDomain}". 
+          
+To fix this, either:
+          1. Add "${mailgunDomain}" to your Mailgun account and verify it
+          2. OR change MAILGUN_DOMAIN environment variable to "${domain.domain_name}"
+          3. OR ensure MAILGUN_DEFAULT_SENDER is set to use ${mailgunDomain}
+          
+Current attempt: Send from "${actualSender}" on domain "${actualDomain}"` 
+        },
+        { status: 400 }
+      )
+    }
+
     // Prepare email request
     const emailRequest = {
       from: actualSender,
@@ -273,16 +290,29 @@ export async function POST(request: NextRequest) {
       let errorMessage = 'Failed to send email'
       if (error.message.includes('Not Found')) {
         if (domain.domain_name !== mailgunDomain) {
-          errorMessage = `Email sending failed. Domain "${domain.domain_name}" is not configured in Mailgun. Only the configured Mailgun domain "${mailgunDomain}" can send emails. The email will be sent from "${actualSender}" with reply-to set to "${from_address}" for proper routing.`
+          errorMessage = `❌ Mailgun Configuration Issue: 
+
+The Mailgun domain "${mailgunDomain}" is not properly configured. 
+
+To fix this:
+1. Log in to your Mailgun dashboard
+2. Add domain "${mailgunDomain}" to your Mailgun account
+3. Verify the domain with DNS records
+4. OR update MAILGUN_DOMAIN environment variable to use a verified domain
+
+Current setup:
+- User domain: ${domain.domain_name} 
+- Mailgun domain: ${mailgunDomain}
+- Attempted sender: ${actualSender}`
         } else {
-          errorMessage = `Email sending failed. The domain "${mailgunDomain}" may not be configured in Mailgun, or check your API settings.`
+          errorMessage = `❌ Mailgun Domain Error: The domain "${mailgunDomain}" is not configured in your Mailgun account. Please add and verify this domain in Mailgun dashboard.`
         }
       } else if (error.message.includes('Unauthorized')) {
-        errorMessage = 'Email sending failed. Invalid API key or unauthorized access.'
+        errorMessage = `❌ Mailgun API Error: Invalid API key. Please check your MAILGUN_API_KEY environment variable.`
       } else if (error.message.includes('Forbidden')) {
-        errorMessage = 'Email sending failed. Domain not authorized for sending emails.'
+        errorMessage = `❌ Mailgun Permission Error: Domain not authorized for sending emails. Check domain verification status in Mailgun.`
       } else {
-        errorMessage = `Email sending failed: ${error.message}`
+        errorMessage = `❌ Mailgun Error: ${error.message}\n\nDebug info:\n- Domain: ${mailgunDomain}\n- Sender: ${actualSender}\n- API Key: ${process.env.MAILGUN_API_KEY ? 'Set' : 'Missing'}`
       }
       
       return NextResponse.json(
