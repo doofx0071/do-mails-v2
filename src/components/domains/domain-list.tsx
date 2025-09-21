@@ -26,6 +26,7 @@ import {
 import { AddDomainForwardingDialog } from './add-domain-forwarding-dialog'
 import { VerifyDomainDialog } from './verify-domain-dialog'
 import { DeleteDomainDialog } from './delete-domain-dialog'
+import { MailgunSetupDialog } from './mailgun-setup-dialog'
 import { useToast } from '@/components/ui/use-toast'
 
 interface Domain {
@@ -48,6 +49,9 @@ export function DomainList() {
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [verifyingDomain, setVerifyingDomain] = useState<Domain | null>(null)
   const [deletingDomain, setDeletingDomain] = useState<Domain | null>(null)
+  const [mailgunSetupDomain, setMailgunSetupDomain] = useState<Domain | null>(
+    null
+  )
   const { toast } = useToast()
   const queryClient = useQueryClient()
   const router = useRouter()
@@ -384,6 +388,18 @@ export function DomainList() {
                       </Button>
                     )}
 
+                    {/* Mailgun Setup Button - Show for verified domains */}
+                    {domain.verification_status === 'verified' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setMailgunSetupDomain(domain)}
+                        className="border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100"
+                      >
+                        📧 Mailgun Setup
+                      </Button>
+                    )}
+
                     {/* Delete Button */}
                     <Button
                       variant="outline"
@@ -414,6 +430,16 @@ export function DomainList() {
         onVerify={handleVerifyConfirm}
         isVerifying={verifyDomainMutation.isPending}
       />
+
+      {/* Mailgun Setup Dialog */}
+      {mailgunSetupDomain && (
+        <MailgunSetupDialog
+          domainId={mailgunSetupDomain.id}
+          domainName={mailgunSetupDomain.domain_name}
+          open={!!mailgunSetupDomain}
+          onOpenChange={(open) => !open && setMailgunSetupDomain(null)}
+        />
+      )}
 
       <DeleteDomainDialog
         domain={deletingDomain}

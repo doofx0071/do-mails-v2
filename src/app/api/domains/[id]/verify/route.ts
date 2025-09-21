@@ -5,6 +5,7 @@ import {
   verifyAuth,
   createUserClient,
 } from '@/lib/supabase/server'
+import { MailgunAPI } from '@/lib/mailgun/api'
 
 // Initialize domain verification service
 const domainVerifier = new DomainVerification({
@@ -135,6 +136,70 @@ export async function POST(
           )
         }
 
+        // 🚀 NEW: Automatically add verified domain to Mailgun
+        let mailgunSetupResult = null
+        try {
+          console.log(
+            `🔧 Auto-adding verified domain ${domain.domain_name} to Mailgun...`
+          )
+
+          const mailgunAPI = new MailgunAPI()
+          if (mailgunAPI.isConfigured()) {
+            // Add domain to Mailgun with wildcard enabled for catch-all
+            mailgunSetupResult = await mailgunAPI.addDomain(
+              domain.domain_name.toLowerCase(),
+              {
+                wildcard: true,
+                spam_action: 'disabled',
+              }
+            )
+
+            // Set up webhook for the domain
+            const webhookUrl = process.env.NEXT_PUBLIC_APP_URL
+              ? `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/mailgun`
+              : process.env.APP_BASE_URL
+                ? `${process.env.APP_BASE_URL}/api/webhooks/mailgun`
+                : null
+
+            if (webhookUrl) {
+              console.log('🎣 Setting up webhook for verified domain...')
+              await mailgunAPI.setupWebhook(
+                domain.domain_name.toLowerCase(),
+                webhookUrl
+              )
+
+              // Set up inbound route for catch-all email forwarding
+              console.log('📬 Setting up inbound route for verified domain...')
+              const inboundRoute = await mailgunAPI.setupInboundRoute(
+                domain.domain_name.toLowerCase(),
+                webhookUrl
+              )
+
+              // Update domain with Mailgun setup info
+              await supabase
+                .from('domains')
+                .update({
+                  mailgun_inbound_route_id: inboundRoute.route?.id,
+                  updated_at: new Date().toISOString(),
+                })
+                .eq('id', domainId)
+
+              console.log(
+                `✅ Mailgun setup completed for ${domain.domain_name}`
+              )
+            }
+          } else {
+            console.warn('⚠️ Mailgun not configured, skipping auto-setup')
+          }
+        } catch (mailgunError) {
+          console.error(
+            `⚠️ Failed to auto-setup Mailgun for ${domain.domain_name}:`,
+            mailgunError
+          )
+          // Don't fail the verification if Mailgun setup fails
+          mailgunSetupResult = { error: mailgunError.message }
+        }
+
         return NextResponse.json(
           {
             success: true,
@@ -150,6 +215,7 @@ export async function POST(
               verification_time: verificationResult.verificationTime,
               dns_records_found: verificationResult.dnsRecords,
             },
+            mailgun_setup: mailgunSetupResult,
           },
           {
             status: 200,
