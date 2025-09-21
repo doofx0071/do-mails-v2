@@ -11,18 +11,6 @@ export interface Domain {
   updated_at: string
 }
 
-export interface Alias {
-  id: string
-  alias_name: string
-  domain_id: string
-  user_id: string
-  is_active: boolean
-  created_at: string
-  updated_at: string
-  // Computed fields
-  full_address?: string
-  domain?: Domain
-}
 
 export interface EmailMessage {
   id: string
@@ -61,25 +49,7 @@ export interface EmailThread {
   updated_at: string
 }
 
-export interface ForwardingRule {
-  id: string
-  alias_id: string
-  forward_to_email: string
-  is_enabled: boolean
-  keep_copy: boolean
-  created_at: string
-  updated_at: string
-}
 
-export interface EmailSignature {
-  id: string
-  alias_id: string
-  signature_html: string
-  signature_text: string
-  is_default: boolean
-  created_at: string
-  updated_at: string
-}
 
 export interface EmailAttachment {
   id: string
@@ -118,24 +88,8 @@ export interface CreateDomainRequest {
   domain_name: string
 }
 
-export interface CreateAliasRequest {
-  alias_name: string
-  domain_id: string
-}
 
-export interface CreateForwardingRuleRequest {
-  alias_id: string
-  forward_to_email: string
-  is_enabled?: boolean
-  keep_copy?: boolean
-}
 
-export interface CreateSignatureRequest {
-  alias_id: string
-  signature_html: string
-  signature_text: string
-  is_default?: boolean
-}
 
 export interface SendEmailRequest {
   from: string

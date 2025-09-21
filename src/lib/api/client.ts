@@ -149,22 +149,6 @@ export const domainsAPI = {
   verify: (id: string) => apiClient.post<any>(`/domains/${id}/verify`),
 }
 
-// Aliases API
-export const aliasesAPI = {
-  list: (params?: { domain_id?: string; enabled?: string }) =>
-    apiClient.get<{ aliases: any[] }>('/aliases', params),
-
-  create: (data: {
-    domain_id: string
-    alias_name: string
-    is_enabled?: boolean
-  }) => apiClient.post<any>('/aliases', data),
-
-  get: (id: string) => apiClient.get<any>(`/aliases/${id}`),
-
-  update: (id: string, data: { is_enabled?: boolean }) =>
-    apiClient.patch<any>(`/aliases/${id}`, data),
-}
 
 // Emails API
 export const emailsAPI = {

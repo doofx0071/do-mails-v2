@@ -25,14 +25,10 @@ interface UIState {
   verifyDomainDialogOpen: boolean
   setVerifyDomainDialogOpen: (open: boolean) => void
   
-  // Alias dialog state
-  addAliasDialogOpen: boolean
-  setAddAliasDialogOpen: (open: boolean) => void
 
   // Filters and search
   emailFilters: {
     archived: boolean | null
-    aliasId: string | null
     search: string
   }
   setEmailFilters: (filters: Partial<UIState['emailFilters']>) => void
@@ -45,13 +41,6 @@ interface UIState {
   setDomainFilters: (filters: Partial<UIState['domainFilters']>) => void
   resetDomainFilters: () => void
 
-  aliasFilters: {
-    domainId: string | null
-    enabled: boolean | null
-    search: string
-  }
-  setAliasFilters: (filters: Partial<UIState['aliasFilters']>) => void
-  resetAliasFilters: () => void
 
   // Notifications/Toast state
   notifications: Array<{
@@ -68,7 +57,6 @@ interface UIState {
   // Loading states for global operations
   globalLoading: {
     domains: boolean
-    aliases: boolean
     emails: boolean
   }
   setGlobalLoading: (key: keyof UIState['globalLoading'], loading: boolean) => void
@@ -76,7 +64,6 @@ interface UIState {
   // Error states
   globalErrors: {
     domains: string | null
-    aliases: string | null
     emails: string | null
   }
   setGlobalError: (key: keyof UIState['globalErrors'], error: string | null) => void
@@ -108,13 +95,10 @@ export const useUIStore = create<UIState>()(
       verifyDomainDialogOpen: false,
       setVerifyDomainDialogOpen: (open) => set({ verifyDomainDialogOpen: open }),
       
-      addAliasDialogOpen: false,
-      setAddAliasDialogOpen: (open) => set({ addAliasDialogOpen: open }),
 
       // Filters
       emailFilters: {
         archived: null,
-        aliasId: null,
         search: ''
       },
       setEmailFilters: (filters) => 
@@ -125,7 +109,6 @@ export const useUIStore = create<UIState>()(
         set({
           emailFilters: {
             archived: null,
-            aliasId: null,
             search: ''
           }
         }),
@@ -146,23 +129,6 @@ export const useUIStore = create<UIState>()(
           }
         }),
 
-      aliasFilters: {
-        domainId: null,
-        enabled: null,
-        search: ''
-      },
-      setAliasFilters: (filters) =>
-        set((state) => ({
-          aliasFilters: { ...state.aliasFilters, ...filters }
-        })),
-      resetAliasFilters: () =>
-        set({
-          aliasFilters: {
-            domainId: null,
-            enabled: null,
-            search: ''
-          }
-        }),
 
       // Notifications
       notifications: [],
@@ -192,7 +158,6 @@ export const useUIStore = create<UIState>()(
       // Loading states
       globalLoading: {
         domains: false,
-        aliases: false,
         emails: false
       },
       setGlobalLoading: (key, loading) =>
@@ -203,7 +168,6 @@ export const useUIStore = create<UIState>()(
       // Error states
       globalErrors: {
         domains: null,
-        aliases: null,
         emails: null
       },
       setGlobalError: (key, error) =>
@@ -214,7 +178,6 @@ export const useUIStore = create<UIState>()(
         set({
           globalErrors: {
             domains: null,
-            aliases: null,
             emails: null
           }
         })
@@ -226,8 +189,7 @@ export const useUIStore = create<UIState>()(
         theme: state.theme,
         sidebarOpen: state.sidebarOpen,
         emailFilters: state.emailFilters,
-        domainFilters: state.domainFilters,
-        aliasFilters: state.aliasFilters
+        domainFilters: state.domainFilters
       })
     }
   )

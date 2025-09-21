@@ -8,13 +8,11 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import {
   Mail,
   Globe,
-  AtSign,
   Settings,
   Menu,
   LogOut,
   User,
   LayoutDashboard,
-  Inbox,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react'
@@ -43,22 +41,10 @@ const navigation = [
     description: 'Beautiful mail interface with resizable panels',
   },
   {
-    name: 'Emails',
-    href: '/dashboard/emails',
-    icon: Inbox,
-    description: 'View and manage your email conversations',
-  },
-  {
     name: 'Domains',
     href: '/dashboard/domains',
     icon: Globe,
     description: 'Manage your custom domains',
-  },
-  {
-    name: 'Aliases',
-    href: '/dashboard/aliases',
-    icon: AtSign,
-    description: 'Create and manage email aliases',
   },
 ]
 
