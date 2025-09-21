@@ -254,14 +254,11 @@ export async function POST(request: NextRequest) {
       `🔧 Using Mailgun domain: ${mailgunDomain} (original: ${actualDomain})`
     )
 
-    // 🔧 FIX: Ensure baseUrl doesn't include /v3 (EmailProcessing adds it internally)
-    const mailgunBaseUrl = (
+    // Use the correct base URL from environment (should not include /v3)
+    const mailgunBaseUrl =
       process.env.MAILGUN_BASE_URL || 'https://api.mailgun.net'
-    ).replace('/v3', '') // Remove /v3 if present
 
-    console.log(
-      `🔧 Using Mailgun baseUrl: ${mailgunBaseUrl} (original: ${process.env.MAILGUN_BASE_URL})`
-    )
+    console.log(`🔧 Using Mailgun baseUrl: ${mailgunBaseUrl}`)
 
     const domainEmailProcessor = new EmailProcessing({
       mailgun: {

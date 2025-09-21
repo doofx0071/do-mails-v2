@@ -86,19 +86,11 @@ export async function GET(request: NextRequest) {
     // Test 3: EmailProcessing Class (used by sending endpoints)
     console.log('🧪 Test 3: EmailProcessing Class (Sending Endpoints)')
     try {
-      // 🔧 FIX: Correct the baseUrl issue
-      const correctedBaseUrl = (
-        process.env.MAILGUN_BASE_URL || 'https://api.mailgun.net'
-      ).replace('/v3', '')
-      console.log(
-        `Using corrected baseUrl: ${correctedBaseUrl} (original: ${process.env.MAILGUN_BASE_URL})`
-      )
-
       const emailProcessor = new EmailProcessing({
         mailgun: {
           apiKey: process.env.MAILGUN_API_KEY!,
           domain: domainName.toLowerCase(),
-          baseUrl: correctedBaseUrl, // Use corrected base URL
+          baseUrl: process.env.MAILGUN_BASE_URL || 'https://api.mailgun.net',
         },
         threading: {
           subjectNormalization: true,

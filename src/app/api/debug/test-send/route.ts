@@ -51,21 +51,14 @@ export async function POST(request: NextRequest) {
       console.log(`❌ Domain check failed: ${error.message}`)
     }
 
-    // Test 2: Try sending with exact domain case and corrected baseUrl
-    console.log(
-      '🔍 Step 2: Attempting send with exact domain case and corrected baseUrl...'
-    )
+    // Test 2: Try sending with exact domain case
+    console.log('🔍 Step 2: Attempting send with exact domain case...')
     try {
-      const correctedBaseUrl = (
-        process.env.MAILGUN_BASE_URL || 'https://api.mailgun.net'
-      ).replace('/v3', '')
-      console.log(`Using corrected baseUrl: ${correctedBaseUrl}`)
-
       const emailProcessor = new EmailProcessing({
         mailgun: {
           apiKey: process.env.MAILGUN_API_KEY!,
           domain: domain, // Exact case
-          baseUrl: correctedBaseUrl, // Corrected base URL
+          baseUrl: process.env.MAILGUN_BASE_URL || 'https://api.mailgun.net',
         },
         threading: {
           subjectNormalization: true,
@@ -98,20 +91,14 @@ export async function POST(request: NextRequest) {
       console.log(`❌ Send with exact case: ${error.message}`)
     }
 
-    // Test 3: Try sending with lowercase domain and corrected baseUrl
-    console.log(
-      '🔍 Step 3: Attempting send with lowercase domain and corrected baseUrl...'
-    )
+    // Test 3: Try sending with lowercase domain
+    console.log('🔍 Step 3: Attempting send with lowercase domain...')
     try {
-      const correctedBaseUrl = (
-        process.env.MAILGUN_BASE_URL || 'https://api.mailgun.net'
-      ).replace('/v3', '')
-
       const emailProcessor = new EmailProcessing({
         mailgun: {
           apiKey: process.env.MAILGUN_API_KEY!,
           domain: domain.toLowerCase(), // Lowercase
-          baseUrl: correctedBaseUrl, // Corrected base URL
+          baseUrl: process.env.MAILGUN_BASE_URL || 'https://api.mailgun.net',
         },
         threading: {
           subjectNormalization: true,

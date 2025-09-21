@@ -5,6 +5,7 @@ This guide documents all required environment variables for the do-Mails v2 appl
 ## Required Environment Variables
 
 ### Core Application
+
 ```bash
 # Next.js Application URL (required for webhooks)
 NEXT_PUBLIC_APP_URL=https://your-domain.com
@@ -17,6 +18,7 @@ NEXTAUTH_URL=https://your-domain.com
 ```
 
 ### Supabase Configuration
+
 ```bash
 # Supabase Project Configuration (required)
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
@@ -27,6 +29,7 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 ```
 
 ### Mailgun Configuration
+
 ```bash
 # Mailgun API Credentials (required)
 MAILGUN_API_KEY=your-mailgun-api-key
@@ -35,14 +38,15 @@ MAILGUN_DOMAIN=your-verified-domain.com
 # Mailgun Region Configuration
 MAILGUN_REGION=US  # or EU
 # OR set explicit base URL
-MAILGUN_BASE_URL=https://api.mailgun.net/v3  # US region
-# MAILGUN_BASE_URL=https://api.eu.mailgun.net/v3  # EU region
+MAILGUN_BASE_URL=https://api.mailgun.net  # US region
+# MAILGUN_BASE_URL=https://api.eu.mailgun.net  # EU region
 
 # Mailgun Webhook Security (recommended)
 MAILGUN_WEBHOOK_SIGNING_KEY=your-webhook-signing-key
 ```
 
 ### Optional Service-to-Service Authentication
+
 ```bash
 # Internal Service Key (for unauthenticated domain creation)
 INTERNAL_SERVICE_KEY=your-internal-service-secret
@@ -53,10 +57,12 @@ INTERNAL_SERVICE_KEY=your-internal-service-secret
 ### Mailgun Region Configuration
 
 **US Region** (default):
+
 - Base URL: `https://api.mailgun.net/v3`
 - Use if your Mailgun account is in the US
 
 **EU Region**:
+
 - Base URL: `https://api.eu.mailgun.net/v3`
 - Use if your Mailgun account is in the EU
 
@@ -96,11 +102,13 @@ supabase db push
 ## Webhook Configuration
 
 ### Webhook URL Format
+
 ```
 https://your-domain.com/api/webhooks/mailgun
 ```
 
 ### Supported Webhook Events
+
 - `delivered` - Email successfully delivered
 - `permanent_fail` - Permanent delivery failure
 - `temporary_fail` - Temporary delivery failure (will retry)
@@ -121,16 +129,19 @@ https://your-domain.com/api/webhooks/mailgun
 ## Common Issues
 
 ### Webhook 404 Errors
+
 - Ensure `MAILGUN_BASE_URL` matches your account region
 - Verify domain exists in Mailgun before webhook setup
 - Check that API key has domain management permissions
 
 ### Database Constraint Violations
+
 - Ensure user authentication is working
 - Verify `user_id` is not null when creating domains
 - Check that all ID references are valid UUIDs
 
 ### UUID Format Errors
+
 - Never manually set `domains.id` in application code
 - Always use database-generated UUIDs for primary keys
 - Validate UUID format before using as foreign key references
@@ -138,6 +149,7 @@ https://your-domain.com/api/webhooks/mailgun
 ## Development vs Production
 
 ### Development
+
 ```bash
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 MAILGUN_REGION=US
@@ -145,6 +157,7 @@ MAILGUN_REGION=US
 ```
 
 ### Production
+
 ```bash
 NEXT_PUBLIC_APP_URL=https://your-production-domain.com
 MAILGUN_BASE_URL=https://api.mailgun.net/v3  # Explicit region

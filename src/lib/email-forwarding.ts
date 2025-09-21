@@ -20,7 +20,8 @@ export class EmailForwarder {
   constructor() {
     this.mailgunApiKey = process.env.MAILGUN_API_KEY || ''
     this.mailgunDomain = process.env.MAILGUN_DOMAIN || 'do-mails.space'
-    this.mailgunApiUrl = `https://api.mailgun.net/v3/${this.mailgunDomain}`
+    const baseUrl = process.env.MAILGUN_BASE_URL || 'https://api.mailgun.net'
+    this.mailgunApiUrl = `${baseUrl}/v3/${this.mailgunDomain}`
 
     if (!this.mailgunApiKey) {
       console.warn(
