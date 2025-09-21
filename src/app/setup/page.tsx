@@ -309,22 +309,19 @@ export default function SetupPage() {
               </CardContent>
             </Card>
 
-            {/* DKIM Records - Required for Reply Functionality */}
+            {/* DKIM Records - Email Authentication */}
             {setupResult.dns_instructions.dkim_records &&
               setupResult.dns_instructions.dkim_records.length > 0 && (
-                <Card className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950">
+                <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-lg">
                       DKIM Records
-                      <Badge variant="destructive" className="text-xs">
-                        Required for Replies
+                      <Badge variant="secondary" className="text-xs">
+                        Optional
                       </Badge>
                     </CardTitle>
                     <p className="text-sm text-muted-foreground">
-                      <strong>Required for Reply Feature:</strong> Add these TXT
-                      records for email authentication (DKIM). Without these,
-                      replies sent from your domain will be marked as spam or
-                      rejected by email providers.
+                      Add these TXT records for DKIM email authentication.
                     </p>
                   </CardHeader>
                   <CardContent>
