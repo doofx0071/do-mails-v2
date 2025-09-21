@@ -11,10 +11,9 @@ import {
   ReplyAll,
   Trash2,
   Loader2,
-  Mail as MailIcon,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
-import { sanitizeEmailHtml } from '@/lib/email-sanitizer'
+import { EmailHtmlRenderer } from './email-html-renderer'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -24,20 +23,23 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
-import { Switch } from '@/components/ui/switch'
-import { Textarea } from '@/components/ui/textarea'
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { EmailThread, EmailMessage } from './mail'
+import { EmailThread } from './mail'
 
 interface MailDisplayProps {
   thread: EmailThread | null
-  onReply?: (replyData: { to: string; subject: string; inReplyTo?: string; references?: string[] }) => void
+  onReply?: (replyData: { 
+    to: string; 
+    subject: string; 
+    inReplyTo?: string; 
+    references?: string[];
+    fromAddress?: string;
+  }) => void
 }
 
 interface ThreadMessage {
@@ -130,8 +132,6 @@ export function MailDisplay({ thread, onReply }: MailDisplayProps) {
       console.error('Failed to mark thread as read:', error)
     }
   }
-
-  const today = new Date()
 
   // Handle reply button click
   const handleReply = () => {
@@ -305,7 +305,7 @@ export function MailDisplay({ thread, onReply }: MailDisplayProps) {
           </div>
         ) : messages.length > 0 ? (
           <div className="space-y-6 p-8">
-            {messages.map((message, index) => (
+            {messages.map((message, _index) => (
               <div
                 key={message.id}
                 className="rounded-lg border bg-card p-4 shadow-sm"
@@ -338,27 +338,11 @@ export function MailDisplay({ thread, onReply }: MailDisplayProps) {
                   </div>
                 </div>
                 <div className="text-sm">
-                  {message.body_html ? (
-                    <div
-                      className="email-content prose prose-sm max-w-none prose-headings:text-foreground prose-p:text-foreground prose-a:text-blue-600 prose-blockquote:text-muted-foreground prose-strong:text-foreground prose-em:text-foreground prose-code:text-foreground prose-pre:bg-muted prose-pre:text-foreground prose-th:text-foreground prose-td:text-foreground prose-img:rounded-md"
-                      dangerouslySetInnerHTML={{
-                        __html: sanitizeEmailHtml(message.body_html),
-                      }}
-                      style={{
-                        wordWrap: 'break-word',
-                        overflowWrap: 'break-word',
-                        maxWidth: '100%',
-                      }}
-                    />
-                  ) : message.body_text ? (
-                    <div className="whitespace-pre-wrap leading-relaxed">
-                      {message.body_text}
-                    </div>
-                  ) : (
-                    <div className="italic text-muted-foreground">
-                      No content available
-                    </div>
-                  )}
+                  <EmailHtmlRenderer 
+                    htmlContent={message.body_html}
+                    textContent={message.body_text}
+                    className="max-w-none"
+                  />
                 </div>
               </div>
             ))}
