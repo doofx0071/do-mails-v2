@@ -201,62 +201,32 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!process.env.MAILGUN_DOMAIN) {
-      console.error('MAILGUN_DOMAIN environment variable is not set')
-      return NextResponse.json(
-        { error: 'Email service domain not configured. Please contact administrator.' },
-        { status: 500 }
-      )
-    }
+    // MAILGUN_DOMAIN not required for dynamic domain approach
+    // Each domain will send from itself
 
-    // Use Mailgun domain as sender or fall back to user domain
-    const mailgunDomain = process.env.MAILGUN_DOMAIN
+    // Dynamic domain sending - each verified domain sends from itself
+    // No global MAILGUN_DOMAIN needed - each domain must be configured in Mailgun
+    const actualSender = from_address  // Always send from the actual user's domain
+    const actualDomain = domain.domain_name  // Always use the user's domain
     
-    // Check if the user's domain is the same as Mailgun domain or if we should use user domain
-    let actualSender: string
-    let actualDomain: string
-    
-    if (domain.domain_name === mailgunDomain) {
-      // User domain matches Mailgun domain, can send directly
-      actualSender = from_address
-      actualDomain = domain.domain_name
-    } else {
-      // User domain is different, send from Mailgun domain with reply-to
-      actualSender = process.env.MAILGUN_DEFAULT_SENDER || `noreply@${mailgunDomain}`
-      actualDomain = mailgunDomain
-    }
+    // Note: This requires each domain to be added and verified in your Mailgun account
+    console.log(`📤 Attempting to send from domain: ${actualDomain} (${actualSender})`)
 
     console.log('📧 Email Configuration Debug:', {
-      mailgunDomain,
-      actualSender,
-      actualDomain,
-      userDomain: domain.domain_name,
+      sendingDomain: actualDomain,
       fromAddress: from_address,
+      actualSender: actualSender,
       replyTo: from_address,
-      sendingMethod: domain.domain_name === mailgunDomain ? 'direct' : 'proxy',
+      sendingMethod: 'direct', // Always direct from user's domain
       environmentCheck: {
-        MAILGUN_DOMAIN: process.env.MAILGUN_DOMAIN,
         MAILGUN_API_KEY: process.env.MAILGUN_API_KEY ? '✅ Set' : '❌ Missing',
-        MAILGUN_DEFAULT_SENDER: process.env.MAILGUN_DEFAULT_SENDER || 'Not set'
-      }
+        MAILGUN_DOMAIN: process.env.MAILGUN_DOMAIN || 'Not used (dynamic domains)',
+      },
+      note: 'Each domain must be added and verified in your Mailgun account'
     })
 
-    // Validate that we have a proper sender address for Mailgun domain
-    if (domain.domain_name !== mailgunDomain && !actualSender.includes(mailgunDomain)) {
-      return NextResponse.json(
-        { 
-          error: `❌ Email Configuration Error: Cannot send from domain "${domain.domain_name}" because it's not the configured Mailgun domain "${mailgunDomain}". 
-          
-To fix this, either:
-          1. Add "${mailgunDomain}" to your Mailgun account and verify it
-          2. OR change MAILGUN_DOMAIN environment variable to "${domain.domain_name}"
-          3. OR ensure MAILGUN_DEFAULT_SENDER is set to use ${mailgunDomain}
-          
-Current attempt: Send from "${actualSender}" on domain "${actualDomain}"` 
-        },
-        { status: 400 }
-      )
-    }
+    // Dynamic domain approach: each domain sends from itself
+    // This requires the domain to be added and verified in Mailgun
 
     // Prepare email request
     const emailRequest = {
@@ -286,33 +256,30 @@ Current attempt: Send from "${actualSender}" on domain "${actualDomain}"`
         userDomain: domain.domain_name
       })
       
-      // Provide more helpful error messages
+      // Provide more helpful error messages for dynamic domain approach
       let errorMessage = 'Failed to send email'
       if (error.message.includes('Not Found')) {
-        if (domain.domain_name !== mailgunDomain) {
-          errorMessage = `❌ Mailgun Configuration Issue: 
+        errorMessage = `❌ Domain Not Configured in Mailgun:
 
-The Mailgun domain "${mailgunDomain}" is not properly configured. 
+The domain "${actualDomain}" is not configured in your Mailgun account.
 
 To fix this:
-1. Log in to your Mailgun dashboard
-2. Add domain "${mailgunDomain}" to your Mailgun account
-3. Verify the domain with DNS records
-4. OR update MAILGUN_DOMAIN environment variable to use a verified domain
+1. Log in to your Mailgun dashboard (https://app.mailgun.com/)
+2. Go to "Domains" section
+3. Add domain "${actualDomain}"
+4. Complete DNS verification for this domain
+5. Wait for verification to complete
 
-Current setup:
-- User domain: ${domain.domain_name} 
-- Mailgun domain: ${mailgunDomain}
-- Attempted sender: ${actualSender}`
-        } else {
-          errorMessage = `❌ Mailgun Domain Error: The domain "${mailgunDomain}" is not configured in your Mailgun account. Please add and verify this domain in Mailgun dashboard.`
-        }
+Current attempt:
+- Domain: ${actualDomain}
+- From: ${actualSender}
+- Status: Not found in Mailgun account`
       } else if (error.message.includes('Unauthorized')) {
         errorMessage = `❌ Mailgun API Error: Invalid API key. Please check your MAILGUN_API_KEY environment variable.`
       } else if (error.message.includes('Forbidden')) {
-        errorMessage = `❌ Mailgun Permission Error: Domain not authorized for sending emails. Check domain verification status in Mailgun.`
+        errorMessage = `❌ Domain Not Verified: The domain "${actualDomain}" exists in Mailgun but is not verified. Complete DNS verification in Mailgun dashboard.`
       } else {
-        errorMessage = `❌ Mailgun Error: ${error.message}\n\nDebug info:\n- Domain: ${mailgunDomain}\n- Sender: ${actualSender}\n- API Key: ${process.env.MAILGUN_API_KEY ? 'Set' : 'Missing'}`
+        errorMessage = `❌ Mailgun Error: ${error.message}\n\nDebug info:\n- Domain: ${actualDomain}\n- Sender: ${actualSender}\n- API Key: ${process.env.MAILGUN_API_KEY ? 'Set' : 'Missing'}`
       }
       
       return NextResponse.json(
