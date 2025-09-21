@@ -87,20 +87,42 @@ export async function GET(
       const rawDomain = await mailgunAPI.getDomain(domainName)
       console.log(`🔍 Raw domain response:`, JSON.stringify(rawDomain, null, 2))
 
-      // Extract DNS records directly from raw response
-      const sendingRecords = rawDomain.domain?.sending_dns_records || []
-      const receivingRecords = rawDomain.domain?.receiving_dns_records || []
+      // Extract DNS records - try both possible paths from Mailgun API
+      let sendingRecords = rawDomain.domain?.sending_dns_records || []
+      let receivingRecords = rawDomain.domain?.receiving_dns_records || []
+      
+      // Fallback: Check if records are in domainInfo (different API structure)
+      if (sendingRecords.length === 0 && rawDomain.domainInfo?.sending_dns_records) {
+        sendingRecords = rawDomain.domainInfo.sending_dns_records
+      }
+      if (receivingRecords.length === 0 && rawDomain.domainInfo?.receiving_dns_records) {
+        receivingRecords = rawDomain.domainInfo.receiving_dns_records
+      }
+      
+      // Direct access if the response structure is different
+      if (sendingRecords.length === 0 && rawDomain.sending_dns_records) {
+        sendingRecords = rawDomain.sending_dns_records
+      }
+      if (receivingRecords.length === 0 && rawDomain.receiving_dns_records) {
+        receivingRecords = rawDomain.receiving_dns_records
+      }
 
       console.log(
-        `📊 Direct extraction - Sending records: ${sendingRecords.length}`
+        `📊 Final extraction - Sending records: ${sendingRecords.length}`
       )
       console.log(
-        `📊 Direct extraction - Receiving records: ${receivingRecords.length}`
+        `📊 Final extraction - Receiving records: ${receivingRecords.length}`
       )
       console.log(
-        `🔍 Sending records:`,
-        JSON.stringify(sendingRecords, null, 2)
+        `🔍 Sending records (first 2):`,
+        JSON.stringify(sendingRecords.slice(0, 2), null, 2)
       )
+      
+      // Debug: Log all possible paths to understand the structure
+      console.log('🐛 Debug paths:')
+      console.log('  rawDomain.domain?.sending_dns_records length:', rawDomain.domain?.sending_dns_records?.length || 'undefined')
+      console.log('  rawDomain.domainInfo?.sending_dns_records length:', rawDomain.domainInfo?.sending_dns_records?.length || 'undefined') 
+      console.log('  rawDomain.sending_dns_records length:', rawDomain.sending_dns_records?.length || 'undefined')
 
       const dnsRecords = {
         sending_dns_records: sendingRecords,
