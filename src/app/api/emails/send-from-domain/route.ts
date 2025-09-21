@@ -254,11 +254,20 @@ export async function POST(request: NextRequest) {
       `🔧 Using Mailgun domain: ${mailgunDomain} (original: ${actualDomain})`
     )
 
+    // 🔧 FIX: Ensure baseUrl doesn't include /v3 (EmailProcessing adds it internally)
+    const mailgunBaseUrl = (
+      process.env.MAILGUN_BASE_URL || 'https://api.mailgun.net'
+    ).replace('/v3', '') // Remove /v3 if present
+
+    console.log(
+      `🔧 Using Mailgun baseUrl: ${mailgunBaseUrl} (original: ${process.env.MAILGUN_BASE_URL})`
+    )
+
     const domainEmailProcessor = new EmailProcessing({
       mailgun: {
         apiKey: process.env.MAILGUN_API_KEY!,
         domain: mailgunDomain, // Use lowercase domain for Mailgun API
-        baseUrl: process.env.MAILGUN_BASE_URL || 'https://api.mailgun.net',
+        baseUrl: mailgunBaseUrl, // Use corrected base URL
       },
       threading: {
         subjectNormalization: true,
