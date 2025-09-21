@@ -37,6 +37,7 @@ import { EmailThread, EmailMessage } from './mail'
 
 interface MailDisplayProps {
   thread: EmailThread | null
+  onReply?: (replyData: { to: string; subject: string; inReplyTo?: string; references?: string[] }) => void
 }
 
 interface ThreadMessage {
@@ -53,7 +54,7 @@ interface ThreadMessage {
   is_sent: boolean
 }
 
-export function MailDisplay({ thread }: MailDisplayProps) {
+export function MailDisplay({ thread, onReply }: MailDisplayProps) {
   const [messages, setMessages] = useState<ThreadMessage[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -89,6 +90,11 @@ export function MailDisplay({ thread }: MailDisplayProps) {
         const data = await response.json()
         console.log('🔍 Loaded thread messages:', data.messages?.length || 0)
         setMessages(data.messages || [])
+
+        // Mark thread as read when viewed (if it has unread messages)
+        if (!thread.isRead) {
+          markThreadAsRead(thread.id)
+        }
       } catch (err) {
         console.error('Error loading thread messages:', err)
         setError(err instanceof Error ? err.message : 'Failed to load messages')
@@ -98,9 +104,55 @@ export function MailDisplay({ thread }: MailDisplayProps) {
     }
 
     loadMessages()
-  }, [thread?.id])
+  }, [thread?.id, thread?.isRead])
+
+  // Function to mark thread as read
+  const markThreadAsRead = async (threadId: string) => {
+    try {
+      const token = localStorage.getItem('auth_token')
+      if (!token) return
+
+      const response = await fetch('/api/emails/mark-read', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          thread_id: threadId,
+        }),
+      })
+
+      if (response.ok) {
+        console.log('✅ Thread marked as read:', threadId)
+      }
+    } catch (error) {
+      console.error('Failed to mark thread as read:', error)
+    }
+  }
 
   const today = new Date()
+
+  // Handle reply button click
+  const handleReply = () => {
+    if (!thread || !onReply || messages.length === 0) return
+    
+    const latestMessage = messages[messages.length - 1]
+    const replyTo = latestMessage.is_sent 
+      ? latestMessage.to_addresses[0] 
+      : latestMessage.from_address
+      
+    // Use the recipient address (the address this email was sent to) as the from address for reply
+    const fromAddress = thread.recipient_address || latestMessage.recipient_address
+      
+    onReply({
+      to: replyTo,
+      subject: thread.subject.startsWith('Re:') ? thread.subject : `Re: ${thread.subject}`,
+      inReplyTo: latestMessage.id,
+      references: [latestMessage.id], // In real implementation, you'd build a proper references chain
+      fromAddress: fromAddress, // Pass the recipient address to use as from address
+    })
+  }
 
   if (!thread) {
     return null
@@ -152,7 +204,12 @@ export function MailDisplay({ thread }: MailDisplayProps) {
         <div className="flex items-center gap-2">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" disabled={!thread}>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                disabled={!thread || !onReply}
+                onClick={handleReply}
+              >
                 <Reply className="h-4 w-4" />
                 <span className="sr-only">Reply</span>
               </Button>
@@ -308,31 +365,26 @@ export function MailDisplay({ thread }: MailDisplayProps) {
 
       {/* Reply section */}
       <div className="border-t bg-muted/30 p-4">
-        <form>
-          <div className="space-y-4">
-            <Textarea
-              className="min-h-[100px] resize-none"
-              placeholder={`Reply to ${thread.participants[0]?.split('@')[0] || 'sender'}...`}
-            />
-            <div className="flex items-center justify-between">
-              <Label
-                htmlFor="mute"
-                className="flex items-center gap-2 text-xs font-normal"
-              >
-                <Switch id="mute" aria-describedby="mute-description" />
-                Mute this thread
-              </Label>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm">
-                  Save Draft
-                </Button>
-                <Button onClick={(e) => e.preventDefault()} size="sm">
-                  Send Reply
-                </Button>
-              </div>
-            </div>
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            {messages.length > 0 && (
+              <>
+                {messages.length} message{messages.length !== 1 ? 's' : ''} in this thread
+              </>
+            )}
           </div>
-        </form>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              disabled={!thread || !onReply}
+              onClick={handleReply}
+            >
+              <Reply className="mr-2 h-4 w-4" />
+              Reply
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   )

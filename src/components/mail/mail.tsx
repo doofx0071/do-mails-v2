@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { format } from 'date-fns'
 import {
   AlertCircle,
   Archive,
@@ -10,6 +11,7 @@ import {
   Inbox,
   MessagesSquare,
   PenTool,
+  RefreshCw,
   Search,
   Send,
   ShoppingCart,
@@ -57,6 +59,7 @@ export interface Account {
   label: string
   email: string
   icon: React.ReactNode
+  domains?: string[]
 }
 
 export interface PaginationInfo {
@@ -70,6 +73,13 @@ export interface PaginationInfo {
 interface MailProps {
   accounts: Account[]
   threads: EmailThread[]
+  selectedAccount?: string | null
+  onAccountChange?: (accountEmail: string) => void
+  onCompose?: () => void
+  onReply?: (replyData: { to: string; subject: string; inReplyTo?: string; references?: string[]; fromAddress?: string }) => void
+  onRefresh?: () => void
+  isRefreshing?: boolean
+  lastRefreshTime?: Date
   defaultLayout?: number[]
   defaultCollapsed?: boolean
   navCollapsedSize: number
@@ -79,6 +89,13 @@ interface MailProps {
 export function Mail({
   accounts,
   threads,
+  selectedAccount,
+  onAccountChange,
+  onCompose,
+  onReply,
+  onRefresh,
+  isRefreshing,
+  lastRefreshTime,
   defaultLayout = [20, 32, 48],
   defaultCollapsed = false,
   navCollapsedSize,
@@ -126,7 +143,12 @@ export function Mail({
               isCollapsed ? 'h-[52px]' : 'px-2'
             )}
           >
-            <AccountSwitcher isCollapsed={isCollapsed} accounts={accounts} />
+            <AccountSwitcher 
+              isCollapsed={isCollapsed} 
+              accounts={accounts} 
+              selectedAccount={selectedAccount}
+              onAccountChange={onAccountChange}
+            />
           </div>
           <Separator />
           <Nav
@@ -136,7 +158,7 @@ export function Mail({
                 title: 'Compose',
                 icon: PenTool,
                 variant: 'ghost',
-                href: '/dashboard/compose',
+                onClick: onCompose,
               },
               {
                 title: 'Inbox',
@@ -196,20 +218,46 @@ export function Mail({
             <Tabs defaultValue="all" className="flex h-full flex-1 flex-col">
               <div className="flex items-center border-b px-4 py-2">
                 <h1 className="text-xl font-bold">Inbox</h1>
-                <TabsList className="ml-auto">
-                  <TabsTrigger
-                    value="all"
-                    className="text-zinc-600 dark:text-zinc-200"
-                  >
-                    All mail
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="unread"
-                    className="text-zinc-600 dark:text-zinc-200"
-                  >
-                    Unread
-                  </TabsTrigger>
-                </TabsList>
+                <div className="ml-auto flex items-center gap-4">
+                  {/* Refresh button */}
+                  {onRefresh && (
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={onRefresh}
+                        disabled={isRefreshing}
+                        className="gap-2"
+                      >
+                        <RefreshCw className={cn(
+                          "h-4 w-4",
+                          isRefreshing && "animate-spin"
+                        )} />
+                        {isRefreshing ? 'Refreshing...' : 'Refresh'}
+                      </Button>
+                      {lastRefreshTime && (
+                        <span className="text-xs text-muted-foreground">
+                          Last updated {format(lastRefreshTime, 'HH:mm:ss')}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  
+                  <TabsList>
+                    <TabsTrigger
+                      value="all"
+                      className="text-zinc-600 dark:text-zinc-200"
+                    >
+                      All mail
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="unread"
+                      className="text-zinc-600 dark:text-zinc-200"
+                    >
+                      Unread
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
               </div>
               <div className="border-b bg-background/95 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                 <form>
@@ -257,7 +305,7 @@ export function Mail({
               </div>
               {/* Email content */}
               <div className="flex-1 overflow-hidden">
-                <MailDisplay thread={selectedThread} />
+                <MailDisplay thread={selectedThread} onReply={onReply} />
               </div>
             </div>
           )}

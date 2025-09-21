@@ -37,6 +37,7 @@ export async function GET(request: NextRequest) {
     // Parse query parameters
     const { searchParams } = new URL(request.url)
     const aliasId = searchParams.get('alias_id')
+    const forwardEmail = searchParams.get('forward_email')
     const archived = searchParams.get('archived')
     const limit = searchParams.get('limit')
     const offset = searchParams.get('offset')
@@ -62,7 +63,13 @@ export async function GET(request: NextRequest) {
     }
 
     // Build query - fetch both alias-based and domain-based threads
-    // First get alias-based threads
+    // If forward_email is specified, filter by domains that forward to that email
+    let domainFilter = ''
+    if (forwardEmail) {
+      domainFilter = `domains.default_forward_email.eq.${forwardEmail}`
+    }
+
+    // First get alias-based threads (if any still exist)
     let aliasThreadsQuery = supabase
       .from('email_threads')
       .select(
@@ -74,7 +81,8 @@ export async function GET(request: NextRequest) {
           domains!inner(
             id,
             domain_name,
-            user_id
+            user_id,
+            default_forward_email
           )
         )
       `
@@ -82,7 +90,7 @@ export async function GET(request: NextRequest) {
       .eq('email_aliases.domains.user_id', user.id)
       .not('alias_id', 'is', null)
 
-    // Then get domain-based threads (catch-all)
+    // Then get domain-based threads (catch-all) - main source of emails
     let domainThreadsQuery = supabase
       .from('email_threads')
       .select(
@@ -91,12 +99,19 @@ export async function GET(request: NextRequest) {
         domains!inner(
           id,
           domain_name,
-          user_id
+          user_id,
+          default_forward_email
         )
       `
       )
       .eq('domains.user_id', user.id)
       .not('domain_id', 'is', null)
+
+    // Apply forward_email filter if specified
+    if (forwardEmail) {
+      aliasThreadsQuery = aliasThreadsQuery.eq('email_aliases.domains.default_forward_email', forwardEmail)
+      domainThreadsQuery = domainThreadsQuery.eq('domains.default_forward_email', forwardEmail)
+    }
 
     // Apply alias filter if provided
     if (aliasId) {
@@ -193,8 +208,29 @@ export async function GET(request: NextRequest) {
     // Get total count for pagination
     const totalCount = allThreads.length
 
+    // Get unread status for each thread by checking for unread messages
+    const threadIds = threads.map(t => t.id)
+    const unreadStatusPromises = threadIds.map(async (threadId) => {
+      const { data: unreadMessages, error } = await supabase
+        .from('email_messages')
+        .select('id')
+        .eq('thread_id', threadId)
+        .eq('is_read', false)
+        .limit(1)
+      
+      return {
+        threadId,
+        hasUnread: !error && unreadMessages && unreadMessages.length > 0
+      }
+    })
+    
+    const unreadStatuses = await Promise.all(unreadStatusPromises)
+    const unreadMap = new Map(unreadStatuses.map(status => [status.threadId, status.hasUnread]))
+
     // Transform the data to include computed fields
     const transformedThreads = (threads || []).map((thread) => {
+      const isUnread = unreadMap.get(thread.id) || false
+      
       // Handle both alias-based and domain-based threads
       if (thread.email_aliases) {
         // Alias-based thread
@@ -208,6 +244,7 @@ export async function GET(request: NextRequest) {
           message_count: thread.message_count,
           last_message_at: thread.last_message_at,
           is_archived: thread.is_archived,
+          is_read: !isUnread, // Thread is read if it has no unread messages
           labels: thread.labels,
           created_at: thread.created_at,
           updated_at: thread.updated_at,
@@ -233,6 +270,7 @@ export async function GET(request: NextRequest) {
           message_count: thread.message_count,
           last_message_at: thread.last_message_at,
           is_archived: thread.is_archived,
+          is_read: !isUnread, // Thread is read if it has no unread messages
           labels: thread.labels,
           created_at: thread.created_at,
           updated_at: thread.updated_at,

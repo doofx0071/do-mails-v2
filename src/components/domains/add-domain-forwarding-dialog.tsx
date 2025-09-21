@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useState, useEffect } from 'react'
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -21,14 +21,20 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Switch } from '@/components/ui/switch'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useToast } from '@/components/ui/use-toast'
-import { Mail, Globe, Shield, Copy, CheckCircle } from 'lucide-react'
+import { Mail, Globe, Shield, Copy, CheckCircle, Plus } from 'lucide-react'
 // Removed useAuth import - not using authentication for ImprovMX-style setup
 
 const formSchema = z.object({
@@ -43,7 +49,6 @@ const formSchema = z.object({
     .string()
     .min(1, 'Email address is required')
     .email('Please enter a valid email address'),
-  enable_forwarding: z.boolean().default(true),
 })
 
 interface AddDomainForwardingDialogProps {
@@ -79,6 +84,8 @@ export function AddDomainForwardingDialog({
   onOpenChange,
 }: AddDomainForwardingDialogProps) {
   const [setupResult, setSetupResult] = useState<SetupResponse | null>(null)
+  const [showNewEmailInput, setShowNewEmailInput] = useState(false)
+  const [existingEmails, setExistingEmails] = useState<string[]>([])
   const { toast } = useToast()
   const queryClient = useQueryClient()
 
@@ -87,66 +94,92 @@ export function AddDomainForwardingDialog({
     defaultValues: {
       domain_name: '',
       forward_to_email: '',
-      enable_forwarding: true,
     },
   })
 
-  const addDomainMutation = useMutation({
-    mutationFn: async (values: z.infer<typeof formSchema>) => {
-      if (values.enable_forwarding && values.forward_to_email) {
-        // Use the new forwarding setup API
+  // Fetch existing forwarding emails
+  useEffect(() => {
+    const fetchExistingEmails = async () => {
+      try {
         const token = localStorage.getItem('auth_token')
-        const headers: Record<string, string> = {
-          'Content-Type': 'application/json',
-        }
+        if (!token) return
 
-        if (token) {
-          headers.Authorization = `Bearer ${token}`
-        }
-
-        const response = await fetch('/api/domains/setup-forwarding', {
-          method: 'POST',
-          headers,
-          credentials: 'include',
-          body: JSON.stringify({
-            domain_name: values.domain_name,
-            forward_to_email: values.forward_to_email,
-          }),
+        const response = await fetch('/api/domains', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         })
 
-        if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(
-            errorData.error || 'Failed to setup domain forwarding'
-          )
+        if (response.ok) {
+          const data = await response.json()
+          const emails = data.domains
+            ?.map((domain: any) => domain.default_forward_email)
+            ?.filter((email: string) => email)
+            ?.filter((email: string, index: number, arr: string[]) => arr.indexOf(email) === index) // Remove duplicates
+          setExistingEmails(emails || [])
         }
-
-        return await response.json()
-      } else {
-        // Use regular domain API
-        const { domainsAPI } = await import('@/lib/api/client')
-        return await domainsAPI.create({ domain_name: values.domain_name })
+      } catch (error) {
+        console.error('Failed to fetch existing emails:', error)
       }
+    }
+
+    if (open) {
+      fetchExistingEmails()
+    }
+  }, [open])
+
+  const addDomainMutation = useMutation({
+    mutationFn: async (values: z.infer<typeof formSchema>) => {
+      // Always use forwarding setup API since forwarding is always enabled
+      const token = localStorage.getItem('auth_token')
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      }
+
+      if (token) {
+        headers.Authorization = `Bearer ${token}`
+      }
+
+      const response = await fetch('/api/domains/setup-forwarding', {
+        method: 'POST',
+        headers,
+        credentials: 'include',
+        body: JSON.stringify({
+          domain_name: values.domain_name,
+          forward_to_email: values.forward_to_email,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(
+          errorData.error || 'Failed to setup domain forwarding'
+        )
+      }
+
+      return await response.json()
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['domains'] })
 
-      if (data.dns_instructions) {
-        // This is a forwarding setup response
-        setSetupResult(data)
-        toast({
-          title: 'Domain Setup Complete!',
-          description: `Forwarding configured for ${data.domain.domain_name} to ${data.domain.forward_to_email}`,
-        })
-      } else {
-        // Regular domain creation
-        onOpenChange(false)
-        form.reset()
-        toast({
-          title: 'Domain Added',
-          description: `${data.domain_name} has been added successfully`,
-        })
-      }
+      // Always close dialog and redirect to domains page for DNS setup
+      onOpenChange(false)
+      form.reset()
+      setSetupResult(null)
+      setShowNewEmailInput(false)
+      
+      const domainName = data.domain?.domain_name || data.domain_name
+      const forwardEmail = data.domain?.forward_to_email || data.forward_to_email
+      
+      toast({
+        title: 'Domain Added Successfully!',
+        description: `${domainName} has been configured to forward to ${forwardEmail}. Please add the DNS records to complete setup.`,
+      })
+      
+      // Optional: You could add a redirect to the specific domain page
+      // if (data.domain?.id) {
+      //   window.location.href = `/dashboard/domains/${data.domain.id}`
+      // }
     },
     onError: (error: Error) => {
       toast({
@@ -168,11 +201,22 @@ export function AddDomainForwardingDialog({
   const handleClose = () => {
     onOpenChange(false)
     setSetupResult(null)
+    setShowNewEmailInput(false)
     form.reset()
   }
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     addDomainMutation.mutate(values)
+  }
+
+  const handleEmailSelection = (value: string) => {
+    if (value === 'add_new') {
+      setShowNewEmailInput(true)
+      form.setValue('forward_to_email', '')
+    } else {
+      setShowNewEmailInput(false)
+      form.setValue('forward_to_email', value)
+    }
   }
 
   // Show DNS instructions after successful forwarding setup
@@ -387,12 +431,46 @@ export function AddDomainForwardingDialog({
                 <FormItem>
                   <FormLabel>Forward To Email</FormLabel>
                   <FormControl>
-                    <Input
-                      type="email"
-                      placeholder="your.email@gmail.com"
-                      {...field}
-                      value={field.value || ''}
-                    />
+                    {!showNewEmailInput ? (
+                      <Select onValueChange={handleEmailSelection} value={field.value || ''}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select an email or add new" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {existingEmails.map((email) => (
+                            <SelectItem key={email} value={email}>
+                              {email}
+                            </SelectItem>
+                          ))}
+                          <SelectItem value="add_new">
+                            <div className="flex items-center gap-2">
+                              <Plus className="h-4 w-4" />
+                              Add new email
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <div className="space-y-2">
+                        <Input
+                          type="email"
+                          placeholder="your.email@gmail.com"
+                          {...field}
+                          value={field.value || ''}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setShowNewEmailInput(false)
+                            form.setValue('forward_to_email', '')
+                          }}
+                        >
+                          Back to selection
+                        </Button>
+                      </div>
+                    )}
                   </FormControl>
                   <FormDescription>
                     All emails to your domain will be forwarded to this address
@@ -402,32 +480,9 @@ export function AddDomainForwardingDialog({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="enable_forwarding"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">
-                      Enable Email Forwarding
-                    </FormLabel>
-                    <FormDescription>
-                      Forward all emails to the email address specified above
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
 
-            {form.watch('enable_forwarding') && (
-              <div className="space-y-3">
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+            <div className="space-y-3">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                   <Card className="text-center">
                     <CardContent className="p-4">
                       <Mail className="mx-auto mb-2 h-8 w-8 text-blue-600" />
@@ -471,7 +526,6 @@ export function AddDomainForwardingDialog({
                   </p>
                 </div>
               </div>
-            )}
 
             <DialogFooter>
               <Button

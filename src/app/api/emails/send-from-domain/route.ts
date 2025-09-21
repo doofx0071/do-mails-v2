@@ -192,13 +192,58 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Use default sender for Mailgun but set reply-to as the from_address
-    const defaultSender =
-      process.env.MAILGUN_DEFAULT_SENDER || `noreply@${domain.domain_name}`
+    // Check Mailgun configuration
+    if (!process.env.MAILGUN_API_KEY) {
+      console.error('MAILGUN_API_KEY environment variable is not set')
+      return NextResponse.json(
+        { error: 'Email service not configured. Please contact administrator.' },
+        { status: 500 }
+      )
+    }
+
+    if (!process.env.MAILGUN_DOMAIN) {
+      console.error('MAILGUN_DOMAIN environment variable is not set')
+      return NextResponse.json(
+        { error: 'Email service domain not configured. Please contact administrator.' },
+        { status: 500 }
+      )
+    }
+
+    // Use Mailgun domain as sender or fall back to user domain
+    const mailgunDomain = process.env.MAILGUN_DOMAIN
+    
+    // Check if the user's domain is the same as Mailgun domain or if we should use user domain
+    let actualSender: string
+    let actualDomain: string
+    
+    if (domain.domain_name === mailgunDomain) {
+      // User domain matches Mailgun domain, can send directly
+      actualSender = from_address
+      actualDomain = domain.domain_name
+    } else {
+      // User domain is different, send from Mailgun domain with reply-to
+      actualSender = process.env.MAILGUN_DEFAULT_SENDER || `noreply@${mailgunDomain}`
+      actualDomain = mailgunDomain
+    }
+
+    console.log('📧 Email Configuration Debug:', {
+      mailgunDomain,
+      actualSender,
+      actualDomain,
+      userDomain: domain.domain_name,
+      fromAddress: from_address,
+      replyTo: from_address,
+      sendingMethod: domain.domain_name === mailgunDomain ? 'direct' : 'proxy',
+      environmentCheck: {
+        MAILGUN_DOMAIN: process.env.MAILGUN_DOMAIN,
+        MAILGUN_API_KEY: process.env.MAILGUN_API_KEY ? '✅ Set' : '❌ Missing',
+        MAILGUN_DEFAULT_SENDER: process.env.MAILGUN_DEFAULT_SENDER || 'Not set'
+      }
+    })
 
     // Prepare email request
     const emailRequest = {
-      from: defaultSender,
+      from: actualSender,
       to: to_addresses,
       cc: cc_addresses.length > 0 ? cc_addresses : undefined,
       bcc: bcc_addresses.length > 0 ? bcc_addresses : undefined,
@@ -215,9 +260,33 @@ export async function POST(request: NextRequest) {
     try {
       mailgunResponse = await emailProcessor.sendEmail(emailRequest)
     } catch (error: any) {
-      console.error('Mailgun send error:', error)
+      console.error('Mailgun send error details:', {
+        error: error.message,
+        code: error.code,
+        details: error.details,
+        mailgunDomain,
+        defaultSender,
+        userDomain: domain.domain_name
+      })
+      
+      // Provide more helpful error messages
+      let errorMessage = 'Failed to send email'
+      if (error.message.includes('Not Found')) {
+        if (domain.domain_name !== mailgunDomain) {
+          errorMessage = `Email sending failed. Domain "${domain.domain_name}" is not configured in Mailgun. Only the configured Mailgun domain "${mailgunDomain}" can send emails. The email will be sent from "${actualSender}" with reply-to set to "${from_address}" for proper routing.`
+        } else {
+          errorMessage = `Email sending failed. The domain "${mailgunDomain}" may not be configured in Mailgun, or check your API settings.`
+        }
+      } else if (error.message.includes('Unauthorized')) {
+        errorMessage = 'Email sending failed. Invalid API key or unauthorized access.'
+      } else if (error.message.includes('Forbidden')) {
+        errorMessage = 'Email sending failed. Domain not authorized for sending emails.'
+      } else {
+        errorMessage = `Email sending failed: ${error.message}`
+      }
+      
       return NextResponse.json(
-        { error: `Failed to send email: ${error.message}` },
+        { error: errorMessage },
         { status: 500 }
       )
     }

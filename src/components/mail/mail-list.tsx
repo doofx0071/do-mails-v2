@@ -61,7 +61,8 @@ export function MailList({ items, onEmailSelect, pagination }: MailListProps) {
               key={item.id}
               className={cn(
                 'flex items-center gap-3 rounded-none border-b border-border/30 px-4 py-3 text-left text-sm transition-all hover:bg-accent/50',
-                mail.selected === item.id && 'bg-muted'
+                mail.selected === item.id && 'bg-muted',
+                !item.isRead && 'bg-blue-50/30 dark:bg-blue-950/20 border-l-4 border-l-blue-500'
               )}
               onClick={() => {
                 if (onEmailSelect) {
@@ -82,24 +83,41 @@ export function MailList({ items, onEmailSelect, pagination }: MailListProps) {
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex min-w-0 flex-1 items-center gap-2">
-                    <span className="truncate font-medium">
+                    <span className={cn(
+                      "truncate",
+                      !item.isRead ? "font-bold text-foreground" : "font-medium text-foreground"
+                    )}>
                       {item.participants.length > 0
                         ? item.participants[0].split('@')[0]
                         : 'Unknown'}
                     </span>
-                    <span className="truncate text-sm text-muted-foreground">
+                    <span className={cn(
+                      "truncate text-sm",
+                      !item.isRead ? "font-semibold text-foreground" : "text-muted-foreground"
+                    )}>
                       {item.subject}
                     </span>
                     {!item.isRead && (
-                      <span className="flex h-2 w-2 flex-shrink-0 rounded-full bg-blue-600" />
+                      <div className="flex items-center gap-1">
+                        <span className="flex h-2 w-2 flex-shrink-0 rounded-full bg-blue-600" />
+                        <Badge variant="secondary" className="h-4 px-1 text-[10px] font-medium">
+                          NEW
+                        </Badge>
+                      </div>
                     )}
                   </div>
-                  <div className="flex-shrink-0 text-xs text-muted-foreground">
+                  <div className={cn(
+                    "flex-shrink-0 text-xs",
+                    !item.isRead ? "font-semibold text-blue-600" : "text-muted-foreground"
+                  )}>
                     {formatEmailTime(new Date(item.lastMessageAt))}
                   </div>
                 </div>
 
-                <div className="line-clamp-1 text-xs text-muted-foreground">
+                <div className={cn(
+                  "line-clamp-1 text-xs",
+                  !item.isRead ? "font-medium text-foreground" : "text-muted-foreground"
+                )}>
                   {item.messages[0]?.bodyPlain?.substring(0, 100) || ''}
                 </div>
               </div>
