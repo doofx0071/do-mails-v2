@@ -64,7 +64,7 @@ export default function Home() {
             <div className="flex items-center space-x-3 sm:space-x-4">
               <ThemeToggle />
               <Link href="/auth/signin" className="hidden sm:block">
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className="font-medium">
                   Login
                 </Button>
               </Link>
@@ -93,7 +93,7 @@ export default function Home() {
                 <Link href="/auth/signup">
                   <Button
                     size="lg"
-                    className="w-full max-w-xs sm:w-auto px-8 py-3 text-base"
+                    className="w-full max-w-xs sm:w-auto px-8 py-3 text-base font-medium"
                   >
                     Get Started
                     <ArrowRight className="ml-2 h-5 w-5" />
