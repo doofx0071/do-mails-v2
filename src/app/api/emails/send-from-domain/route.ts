@@ -211,24 +211,7 @@ export async function POST(request: NextRequest) {
     const actualSender = from_address // Always send from the actual user's domain
     const actualDomain = domain.domain_name // Always use the user's domain
 
-    // Note: This requires each domain to be added and verified in your Mailgun account
-    console.log(
-      `📤 Attempting to send from domain: ${actualDomain} (${actualSender})`
-    )
-
-    console.log('📧 Email Configuration Debug:', {
-      sendingDomain: actualDomain,
-      fromAddress: from_address,
-      actualSender: actualSender,
-      replyTo: from_address,
-      sendingMethod: 'direct', // Always direct from user's domain
-      environmentCheck: {
-        MAILGUN_API_KEY: process.env.MAILGUN_API_KEY ? '✅ Set' : '❌ Missing',
-        MAILGUN_DOMAIN:
-          process.env.MAILGUN_DOMAIN || 'Not used (dynamic domains)',
-      },
-      note: 'Each domain must be added and verified in your Mailgun account',
-    })
+    console.log(`📤 Sending email from domain: ${actualDomain}`)
 
     // Dynamic domain approach: each domain sends from itself
     // This requires the domain to be added and verified in Mailgun
@@ -248,17 +231,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Create dynamic email processor for this domain
-    // 🔧 FIX: Ensure domain is lowercase for Mailgun API consistency
     const mailgunDomain = actualDomain.toLowerCase()
-    console.log(
-      `🔧 Using Mailgun domain: ${mailgunDomain} (original: ${actualDomain})`
-    )
-
-    // Use the correct base URL from environment (should not include /v3)
     const mailgunBaseUrl =
       process.env.MAILGUN_BASE_URL || 'https://api.mailgun.net'
-
-    console.log(`🔧 Using Mailgun baseUrl: ${mailgunBaseUrl}`)
 
     const domainEmailProcessor = new EmailProcessing({
       mailgun: {
@@ -293,44 +268,17 @@ export async function POST(request: NextRequest) {
     try {
       mailgunResponse = await domainEmailProcessor.sendEmail(emailRequest)
     } catch (error: any) {
-      console.error('Mailgun send error details:', {
-        error: error.message,
-        code: error.code,
-        details: error.details,
-        sendingDomain: actualDomain,
-        mailgunDomain: mailgunDomain,
-        actualSender,
-        userDomain: domain.domain_name,
-        caseMatch:
-          actualDomain === mailgunDomain ? 'exact' : 'converted_to_lowercase',
-      })
+      console.error('Email send error:', error.message)
 
-      // Provide more helpful error messages for dynamic domain approach
       let errorMessage = 'Failed to send email'
       if (error.message.includes('Not Found')) {
-        errorMessage = `❌ Domain Not Configured in Mailgun:
-
-The domain "${actualDomain}" is not configured in your Mailgun account.
-
-To fix this:
-1. Log in to your Mailgun dashboard (https://app.mailgun.com/)
-2. Go to "Domains" section
-3. Add domain "${actualDomain}" (or "${mailgunDomain}")
-4. Complete DNS verification for this domain
-5. Wait for verification to complete
-
-Current attempt:
-- Domain: ${actualDomain}
-- Mailgun Domain: ${mailgunDomain}
-- From: ${actualSender}
-- Status: Not found in Mailgun account
-- Case Conversion: ${actualDomain === mailgunDomain ? 'None (exact match)' : 'Converted to lowercase'}`
+        errorMessage = `Domain "${actualDomain}" is not configured in your Mailgun account. Please add and verify this domain in your Mailgun dashboard.`
       } else if (error.message.includes('Unauthorized')) {
-        errorMessage = `❌ Mailgun API Error: Invalid API key. Please check your MAILGUN_API_KEY environment variable.`
+        errorMessage = `Invalid Mailgun API key. Please check your configuration.`
       } else if (error.message.includes('Forbidden')) {
-        errorMessage = `❌ Domain Not Verified: The domain "${actualDomain}" exists in Mailgun but is not verified. Complete DNS verification in Mailgun dashboard.`
+        errorMessage = `Domain "${actualDomain}" exists but is not verified. Please complete DNS verification.`
       } else {
-        errorMessage = `❌ Mailgun Error: ${error.message}\n\nDebug info:\n- Domain: ${actualDomain}\n- Sender: ${actualSender}\n- API Key: ${process.env.MAILGUN_API_KEY ? 'Set' : 'Missing'}`
+        errorMessage = `Mailgun error: ${error.message}`
       }
 
       return NextResponse.json({ error: errorMessage }, { status: 500 })
