@@ -5,16 +5,16 @@ import DOMPurify from 'dompurify'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { 
-  Eye, 
-  EyeOff, 
-  ExternalLink, 
-  Shield, 
+import {
+  Eye,
+  EyeOff,
+  ExternalLink,
+  Shield,
   Monitor,
   Sun,
   Moon,
   AlertTriangle,
-  Image as ImageIcon
+  Image as ImageIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -35,11 +35,11 @@ type DisplayMode = 'original' | 'light' | 'dark'
  * - Proxies images for privacy (optional)
  * - Preserves original email styling while maintaining security
  */
-export function EmailHtmlRenderer({ 
-  htmlContent, 
-  textContent, 
+export function EmailHtmlRenderer({
+  htmlContent,
+  textContent,
   className,
-  onImageProxyError 
+  onImageProxyError,
 }: EmailHtmlRendererProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('html')
   const [displayMode, setDisplayMode] = useState<DisplayMode>('original')
@@ -47,71 +47,174 @@ export function EmailHtmlRenderer({
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set())
 
   // DOMPurify configuration for email sanitization
-  const purifyConfig = useMemo(() => ({
-    // Keep most HTML elements for email rendering
-    ALLOWED_TAGS: [
-      'div', 'span', 'p', 'br', 'hr', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-      'strong', 'em', 'i', 'b', 'u', 'strike', 'blockquote', 'pre', 'code',
-      'ul', 'ol', 'li', 'table', 'thead', 'tbody', 'tr', 'td', 'th',
-      'a', 'img', 'font', 'center', 'small', 'big', 'sub', 'sup',
-      // SVG elements (common in emails)
-      'svg', 'path', 'circle', 'rect', 'line', 'polygon', 'g', 'text',
-      // Common email elements
-      'article', 'section', 'header', 'footer', 'main', 'aside'
-    ],
-    ALLOWED_ATTR: [
-      // Standard attributes
-      'id', 'class', 'style', 'title', 'lang', 'dir',
-      // Link attributes
-      'href', 'target', 'rel',
-      // Image attributes
-      'src', 'alt', 'width', 'height', 'srcset', 'sizes',
-      // Table attributes
-      'colspan', 'rowspan', 'cellpadding', 'cellspacing', 'border',
-      'align', 'valign', 'bgcolor',
-      // SVG attributes
-      'viewBox', 'xmlns', 'fill', 'stroke', 'stroke-width', 'd', 'x', 'y', 'cx', 'cy', 'r',
-      // Font attributes (legacy email styling)
-      'color', 'face', 'size',
-      // Email-specific
-      'role', 'aria-label', 'aria-hidden'
-    ],
-    // Allow CSS properties while blocking dangerous ones
-    ALLOWED_CSS_PROPERTIES: [
-      'color', 'background', 'background-color', 'background-image',
-      'font-family', 'font-size', 'font-weight', 'font-style',
-      'text-align', 'text-decoration', 'line-height',
-      'width', 'height', 'max-width', 'max-height', 'min-width', 'min-height',
-      'padding', 'margin', 'border', 'border-radius',
-      'display', 'vertical-align',
-      // Block dangerous positioning
-      'position: static', 'position: relative'
-    ],
-    // Block dangerous CSS
-    FORBID_CSS_PROPERTIES: [
-      'position: fixed', 'position: absolute', 'position: sticky',
-      'z-index', 'transform', 'animation', 'transition'
-    ],
-    // Return clean HTML string
-    RETURN_DOM: false,
-    RETURN_DOM_FRAGMENT: false,
-    RETURN_TRUSTED_TYPE: false,
-    // Security settings
-    SAFE_FOR_TEMPLATES: true,
-    WHOLE_DOCUMENT: false,
-    KEEP_CONTENT: true,
-    // Custom URL handler for security
-    SANITIZE_NAMED_PROPS: true,
-    SANITIZE_NAMED_PROPS_PREFIX: 'user-content-'
-  }), [])
+  const purifyConfig = useMemo(
+    () => ({
+      // Keep most HTML elements for email rendering
+      ALLOWED_TAGS: [
+        'div',
+        'span',
+        'p',
+        'br',
+        'hr',
+        'h1',
+        'h2',
+        'h3',
+        'h4',
+        'h5',
+        'h6',
+        'strong',
+        'em',
+        'i',
+        'b',
+        'u',
+        'strike',
+        'blockquote',
+        'pre',
+        'code',
+        'ul',
+        'ol',
+        'li',
+        'table',
+        'thead',
+        'tbody',
+        'tr',
+        'td',
+        'th',
+        'a',
+        'img',
+        'font',
+        'center',
+        'small',
+        'big',
+        'sub',
+        'sup',
+        // SVG elements (common in emails)
+        'svg',
+        'path',
+        'circle',
+        'rect',
+        'line',
+        'polygon',
+        'g',
+        'text',
+        // Common email elements
+        'article',
+        'section',
+        'header',
+        'footer',
+        'main',
+        'aside',
+      ],
+      ALLOWED_ATTR: [
+        // Standard attributes
+        'id',
+        'class',
+        'style',
+        'title',
+        'lang',
+        'dir',
+        // Link attributes
+        'href',
+        'target',
+        'rel',
+        // Image attributes
+        'src',
+        'alt',
+        'width',
+        'height',
+        'srcset',
+        'sizes',
+        // Table attributes
+        'colspan',
+        'rowspan',
+        'cellpadding',
+        'cellspacing',
+        'border',
+        'align',
+        'valign',
+        'bgcolor',
+        // SVG attributes
+        'viewBox',
+        'xmlns',
+        'fill',
+        'stroke',
+        'stroke-width',
+        'd',
+        'x',
+        'y',
+        'cx',
+        'cy',
+        'r',
+        // Font attributes (legacy email styling)
+        'color',
+        'face',
+        'size',
+        // Email-specific
+        'role',
+        'aria-label',
+        'aria-hidden',
+      ],
+      // Allow CSS properties while blocking dangerous ones
+      ALLOWED_CSS_PROPERTIES: [
+        'color',
+        'background',
+        'background-color',
+        'background-image',
+        'font-family',
+        'font-size',
+        'font-weight',
+        'font-style',
+        'text-align',
+        'text-decoration',
+        'line-height',
+        'width',
+        'height',
+        'max-width',
+        'max-height',
+        'min-width',
+        'min-height',
+        'padding',
+        'margin',
+        'border',
+        'border-radius',
+        'display',
+        'vertical-align',
+        // Block dangerous positioning
+        'position: static',
+        'position: relative',
+      ],
+      // Block dangerous CSS
+      FORBID_CSS_PROPERTIES: [
+        'position: fixed',
+        'position: absolute',
+        'position: sticky',
+        'z-index',
+        'transform',
+        'animation',
+        'transition',
+      ],
+      // Return clean HTML string
+      RETURN_DOM: false,
+      RETURN_DOM_FRAGMENT: false,
+      RETURN_TRUSTED_TYPE: false,
+      // Security settings
+      SAFE_FOR_TEMPLATES: true,
+      WHOLE_DOCUMENT: false,
+      KEEP_CONTENT: true,
+      // Custom URL handler for security
+      SANITIZE_NAMED_PROPS: true,
+      SANITIZE_NAMED_PROPS_PREFIX: 'user-content-',
+    }),
+    []
+  )
 
   // Sanitize HTML content with DOMPurify
   const sanitizedHtml = useMemo(() => {
     if (!htmlContent) return ''
-    
+
     try {
       let cleanHtml = DOMPurify.sanitize(htmlContent, purifyConfig)
-      
+
       // Replace external image URLs with proxy if images are disabled
       if (!showImages) {
         cleanHtml = cleanHtml.replace(
@@ -121,7 +224,7 @@ export function EmailHtmlRenderer({
             if (src.startsWith('data:') || src.startsWith('/api/proxy')) {
               return match
             }
-            
+
             return `<div class="email-image-blocked" style="
               display: inline-block; 
               padding: 8px 12px; 
@@ -145,7 +248,7 @@ export function EmailHtmlRenderer({
             if (src.startsWith('data:') || src.startsWith('/api/proxy')) {
               return match
             }
-            
+
             // Proxy external images
             const proxiedSrc = `/api/proxy?url=${encodeURIComponent(src)}`
             return `<img${before}src="${proxiedSrc}"${after} onError="this.style.display='none'; this.nextSibling.style.display='inline-block'" style="max-width: 100%; height: auto;" />
@@ -155,10 +258,10 @@ export function EmailHtmlRenderer({
           }
         )
       }
-      
+
       // Remove potentially problematic event handlers (extra safety)
       cleanHtml = cleanHtml.replace(/\s*on\w+\s*=\s*["'][^"']*["']/gi, '')
-      
+
       return cleanHtml
     } catch (error) {
       console.error('DOMPurify sanitization error:', error)
@@ -168,15 +271,21 @@ export function EmailHtmlRenderer({
 
   // Get display classes based on mode
   const getDisplayClasses = () => {
-    const base = "email-content prose prose-sm max-w-none"
-    
+    const base = 'email-content prose prose-sm max-w-none'
+
     switch (displayMode) {
       case 'light':
-        return cn(base, "bg-white text-gray-900 p-4 rounded-lg shadow-sm border")
+        return cn(
+          base,
+          'bg-white text-gray-900 p-4 rounded-lg shadow-sm border'
+        )
       case 'dark':
-        return cn(base, "bg-gray-900 text-gray-100 p-4 rounded-lg shadow-sm border border-gray-700")
+        return cn(
+          base,
+          'bg-gray-900 text-gray-100 p-4 rounded-lg shadow-sm border border-gray-700'
+        )
       default:
-        return cn(base, "bg-background text-foreground")
+        return cn(base, 'bg-background text-foreground')
     }
   }
 
@@ -184,7 +293,7 @@ export function EmailHtmlRenderer({
   const renderEmailContent = () => {
     if (viewMode === 'text') {
       return (
-        <div className="whitespace-pre-wrap font-mono text-sm leading-relaxed p-4 bg-muted/30 rounded-lg">
+        <div className="whitespace-pre-wrap rounded-lg bg-muted/30 p-4 font-mono text-sm leading-relaxed">
           {textContent || 'No text content available'}
         </div>
       )
@@ -195,24 +304,27 @@ export function EmailHtmlRenderer({
         <Alert>
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            No HTML content available. {textContent ? 'Switch to text view to see content.' : 'No content found.'}
+            No HTML content available.{' '}
+            {textContent
+              ? 'Switch to text view to see content.'
+              : 'No content found.'}
           </AlertDescription>
         </Alert>
       )
     }
 
     return (
-      <div className={cn("email-html-container", getDisplayClasses())}>
+      <div className={cn('email-html-container', getDisplayClasses())}>
         {/* Email content wrapper with CSS isolation */}
-        <div 
+        <div
           className={cn(
-            "email-body",
-            "prose prose-sm max-w-none",
-            "prose-headings:text-current prose-p:text-current prose-a:text-blue-600 dark:prose-a:text-blue-400",
-            "prose-blockquote:text-muted-foreground prose-strong:text-current prose-em:text-current",
-            "prose-code:text-current prose-pre:bg-muted prose-pre:text-current",
-            "prose-th:text-current prose-td:text-current",
-            "prose-img:rounded-md prose-img:max-w-full prose-img:h-auto"
+            'email-body',
+            'prose prose-sm max-w-none',
+            'prose-headings:text-current prose-p:text-current prose-a:text-blue-600 dark:prose-a:text-blue-400',
+            'prose-blockquote:text-muted-foreground prose-strong:text-current prose-em:text-current',
+            'prose-code:text-current prose-pre:bg-muted prose-pre:text-current',
+            'prose-th:text-current prose-td:text-current',
+            'prose-img:h-auto prose-img:max-w-full prose-img:rounded-md'
           )}
           dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
           style={{
@@ -223,7 +335,7 @@ export function EmailHtmlRenderer({
             // Prevent layout breaking
             overflow: 'hidden',
             // Ensure email content doesn't escape its container
-            contain: 'layout style'
+            contain: 'layout style',
           }}
         />
       </div>
@@ -231,12 +343,12 @@ export function EmailHtmlRenderer({
   }
 
   return (
-    <div className={cn("email-renderer space-y-4", className)}>
+    <div className={cn('email-renderer space-y-4', className)}>
       {/* Control Bar */}
-      <div className="flex items-center justify-between gap-2 p-2 bg-muted/30 rounded-lg">
+      <div className="flex items-center justify-between gap-2 rounded-lg bg-muted/30 p-2">
         <div className="flex items-center gap-2">
           {/* View Mode Toggle */}
-          <div className="flex items-center bg-background rounded-md p-1">
+          <div className="flex items-center rounded-md bg-background p-1">
             <Button
               variant={viewMode === 'html' ? 'default' : 'ghost'}
               size="sm"
@@ -244,7 +356,7 @@ export function EmailHtmlRenderer({
               disabled={!htmlContent}
               className="h-7 px-2"
             >
-              <Monitor className="h-3 w-3 mr-1" />
+              <Monitor className="mr-1 h-3 w-3" />
               HTML
             </Button>
             <Button
@@ -260,14 +372,14 @@ export function EmailHtmlRenderer({
 
           {/* Display Mode Toggle (for HTML view) */}
           {viewMode === 'html' && htmlContent && (
-            <div className="flex items-center bg-background rounded-md p-1">
+            <div className="flex items-center rounded-md bg-background p-1">
               <Button
                 variant={displayMode === 'original' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => setDisplayMode('original')}
                 className="h-7 px-2"
               >
-                <Shield className="h-3 w-3 mr-1" />
+                <Shield className="mr-1 h-3 w-3" />
                 Original
               </Button>
               <Button
@@ -276,7 +388,7 @@ export function EmailHtmlRenderer({
                 onClick={() => setDisplayMode('light')}
                 className="h-7 px-2"
               >
-                <Sun className="h-3 w-3 mr-1" />
+                <Sun className="mr-1 h-3 w-3" />
                 Light
               </Button>
               <Button
@@ -285,7 +397,7 @@ export function EmailHtmlRenderer({
                 onClick={() => setDisplayMode('dark')}
                 className="h-7 px-2"
               >
-                <Moon className="h-3 w-3 mr-1" />
+                <Moon className="mr-1 h-3 w-3" />
                 Dark
               </Button>
             </div>
@@ -303,12 +415,12 @@ export function EmailHtmlRenderer({
             >
               {showImages ? (
                 <>
-                  <Eye className="h-3 w-3 mr-1" />
+                  <Eye className="mr-1 h-3 w-3" />
                   Images On
                 </>
               ) : (
                 <>
-                  <EyeOff className="h-3 w-3 mr-1" />
+                  <EyeOff className="mr-1 h-3 w-3" />
                   Images Off
                 </>
               )}
@@ -323,9 +435,9 @@ export function EmailHtmlRenderer({
           <ImageIcon className="h-4 w-4" />
           <AlertDescription className="text-sm">
             Images are blocked for privacy. They may contain tracking pixels.{' '}
-            <Button 
-              variant="link" 
-              size="sm" 
+            <Button
+              variant="link"
+              size="sm"
               className="h-auto p-0 text-sm underline"
               onClick={() => setShowImages(true)}
             >
@@ -337,14 +449,12 @@ export function EmailHtmlRenderer({
 
       {/* Email Content */}
       <Card className="overflow-hidden">
-        <CardContent className="p-0">
-          {renderEmailContent()}
-        </CardContent>
+        <CardContent className="p-0">{renderEmailContent()}</CardContent>
       </Card>
 
       {/* Security Notice */}
       <div className="text-xs text-muted-foreground">
-        <Shield className="inline h-3 w-3 mr-1" />
+        <Shield className="mr-1 inline h-3 w-3" />
         Content has been sanitized for security. External links open safely.
       </div>
     </div>
@@ -407,7 +517,7 @@ const emailStyles = `
   border-radius: 8px;
   padding: 16px;
 }
-`;
+`
 
 // Export styles for global CSS injection
 export const EMAIL_RENDERER_STYLES = emailStyles

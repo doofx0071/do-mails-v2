@@ -33,12 +33,12 @@ import { EmailThread } from './mail'
 
 interface MailDisplayProps {
   thread: EmailThread | null
-  onReply?: (replyData: { 
-    to: string; 
-    subject: string; 
-    inReplyTo?: string; 
-    references?: string[];
-    fromAddress?: string;
+  onReply?: (replyData: {
+    to: string
+    subject: string
+    inReplyTo?: string
+    references?: string[]
+    fromAddress?: string
   }) => void
 }
 
@@ -136,25 +136,27 @@ export function MailDisplay({ thread, onReply }: MailDisplayProps) {
   // Handle reply button click
   const handleReply = () => {
     if (!thread || !onReply || messages.length === 0) return
-    
+
     const latestMessage = messages[messages.length - 1]
-    const replyTo = latestMessage.is_sent 
-      ? latestMessage.to_addresses[0] 
+    const replyTo = latestMessage.is_sent
+      ? latestMessage.to_addresses[0]
       : latestMessage.from_address
-      
+
     // Use the recipient address from thread (the exact domain email that received this thread)
     const fromAddress = thread.recipient_address
-    
+
     console.log('🔄 Reply setup:', {
       threadId: thread.id,
       threadRecipientAddress: thread.recipient_address,
       replyTo: replyTo,
-      fromAddress: fromAddress
+      fromAddress: fromAddress,
     })
-      
+
     onReply({
       to: replyTo,
-      subject: thread.subject.startsWith('Re:') ? thread.subject : `Re: ${thread.subject}`,
+      subject: thread.subject.startsWith('Re:')
+        ? thread.subject
+        : `Re: ${thread.subject}`,
       inReplyTo: latestMessage.id,
       references: [latestMessage.id], // In real implementation, you'd build a proper references chain
       fromAddress: fromAddress, // Pass the recipient address to use as from address
@@ -211,9 +213,9 @@ export function MailDisplay({ thread, onReply }: MailDisplayProps) {
         <div className="flex items-center gap-2">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="icon" 
+              <Button
+                variant="ghost"
+                size="icon"
                 disabled={!thread || !onReply}
                 onClick={handleReply}
               >
@@ -338,7 +340,7 @@ export function MailDisplay({ thread, onReply }: MailDisplayProps) {
                   </div>
                 </div>
                 <div className="text-sm">
-                  <EmailHtmlRenderer 
+                  <EmailHtmlRenderer
                     htmlContent={message.body_html}
                     textContent={message.body_text}
                     className="max-w-none"
@@ -360,13 +362,14 @@ export function MailDisplay({ thread, onReply }: MailDisplayProps) {
           <div className="text-sm text-muted-foreground">
             {messages.length > 0 && (
               <>
-                {messages.length} message{messages.length !== 1 ? 's' : ''} in this thread
+                {messages.length} message{messages.length !== 1 ? 's' : ''} in
+                this thread
               </>
             )}
           </div>
           <div className="flex gap-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               disabled={!thread || !onReply}
               onClick={handleReply}

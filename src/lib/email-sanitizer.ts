@@ -11,27 +11,87 @@ import DOMPurify from 'dompurify'
 const EMAIL_PURIFY_CONFIG = {
   // Allow most HTML elements for email rendering
   ALLOWED_TAGS: [
-    'div', 'span', 'p', 'br', 'hr', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-    'strong', 'em', 'i', 'b', 'u', 'strike', 'blockquote', 'pre', 'code',
-    'ul', 'ol', 'li', 'table', 'thead', 'tbody', 'tr', 'td', 'th',
-    'a', 'img', 'font', 'center', 'small', 'big', 'sub', 'sup',
+    'div',
+    'span',
+    'p',
+    'br',
+    'hr',
+    'h1',
+    'h2',
+    'h3',
+    'h4',
+    'h5',
+    'h6',
+    'strong',
+    'em',
+    'i',
+    'b',
+    'u',
+    'strike',
+    'blockquote',
+    'pre',
+    'code',
+    'ul',
+    'ol',
+    'li',
+    'table',
+    'thead',
+    'tbody',
+    'tr',
+    'td',
+    'th',
+    'a',
+    'img',
+    'font',
+    'center',
+    'small',
+    'big',
+    'sub',
+    'sup',
     // Common email elements
-    'article', 'section', 'header', 'footer', 'main', 'aside'
+    'article',
+    'section',
+    'header',
+    'footer',
+    'main',
+    'aside',
   ],
   ALLOWED_ATTR: [
     // Standard attributes
-    'id', 'class', 'style', 'title', 'lang', 'dir',
+    'id',
+    'class',
+    'style',
+    'title',
+    'lang',
+    'dir',
     // Link attributes
-    'href', 'target', 'rel',
+    'href',
+    'target',
+    'rel',
     // Image attributes
-    'src', 'alt', 'width', 'height', 'srcset', 'sizes',
+    'src',
+    'alt',
+    'width',
+    'height',
+    'srcset',
+    'sizes',
     // Table attributes
-    'colspan', 'rowspan', 'cellpadding', 'cellspacing', 'border',
-    'align', 'valign', 'bgcolor',
+    'colspan',
+    'rowspan',
+    'cellpadding',
+    'cellspacing',
+    'border',
+    'align',
+    'valign',
+    'bgcolor',
     // Font attributes (legacy email styling)
-    'color', 'face', 'size',
+    'color',
+    'face',
+    'size',
     // Email-specific
-    'role', 'aria-label', 'aria-hidden'
+    'role',
+    'aria-label',
+    'aria-hidden',
   ],
   // Security settings
   SAFE_FOR_TEMPLATES: true,
@@ -45,7 +105,20 @@ const EMAIL_PURIFY_CONFIG = {
   // Add hooks to clean up dangerous CSS
   ADD_ATTR: [],
   FORBID_ATTR: ['onload', 'onerror', 'onclick', 'onmouseover'],
-  FORBID_TAGS: ['script', 'style', 'link', 'meta', 'object', 'embed', 'iframe', 'form', 'input', 'textarea', 'button', 'select']
+  FORBID_TAGS: [
+    'script',
+    'style',
+    'link',
+    'meta',
+    'object',
+    'embed',
+    'iframe',
+    'form',
+    'input',
+    'textarea',
+    'button',
+    'select',
+  ],
 }
 
 /**
@@ -59,49 +132,49 @@ export function sanitizeEmailHtml(html: string): string {
     let sanitized = DOMPurify.sanitize(html, EMAIL_PURIFY_CONFIG)
 
     // Second pass: Additional custom cleaning for email-specific issues
-    
+
     // Remove dangerous positioning and layout properties
     sanitized = sanitized.replace(
       /style\s*=\s*["'][^"']*position\s*:\s*(fixed|absolute|sticky)[^"']*["']/gi,
       (match) => match.replace(/(fixed|absolute|sticky)/, 'static')
     )
-    
+
     // Remove z-index that could cause overlay issues
     sanitized = sanitized.replace(
       /style\s*=\s*["'][^"']*z-index\s*:[^"']*["']/gi,
       (match) => match.replace(/z-index\s*:[^;"']+/gi, '')
     )
-    
+
     // Remove transform properties that could cause layout issues
     sanitized = sanitized.replace(
       /style\s*=\s*["'][^"']*transform\s*:[^"']*["']/gi,
       (match) => match.replace(/transform\s*:[^;"']+/gi, '')
     )
-    
+
     // Limit image dimensions to prevent layout breaking
-    sanitized = sanitized.replace(
-      /<img([^>]*?)>/gi,
-      (match, attrs) => {
-        // Add max-width constraint if not present
-        if (!attrs.includes('style=') || !attrs.includes('max-width')) {
-          const style = attrs.includes('style=')
-            ? attrs.replace(/style\s*=\s*["']([^"']*)["']/, 'style="$1; max-width: 100%; height: auto;"')
-            : attrs + ' style="max-width: 100%; height: auto;"'
-          return `<img${style}>`
-        }
-        return match
+    sanitized = sanitized.replace(/<img([^>]*?)>/gi, (match, attrs) => {
+      // Add max-width constraint if not present
+      if (!attrs.includes('style=') || !attrs.includes('max-width')) {
+        const style = attrs.includes('style=')
+          ? attrs.replace(
+              /style\s*=\s*["']([^"']*)["']/,
+              'style="$1; max-width: 100%; height: auto;"'
+            )
+          : attrs + ' style="max-width: 100%; height: auto;"'
+        return `<img${style}>`
       }
-    )
-    
+      return match
+    })
+
     // Remove any remaining dangerous event handlers (extra safety)
     sanitized = sanitized.replace(/\s*on\w+\s*=\s*["'][^"']*["']/gi, '')
-    
+
     // Remove javascript: URLs
     sanitized = sanitized.replace(/javascript:/gi, '')
-    
+
     // Remove data: URLs that could contain scripts
     sanitized = sanitized.replace(/data:text\/html/gi, 'data:text/plain')
-    
+
     return sanitized
   } catch (error) {
     console.error('DOMPurify sanitization failed:', error)
@@ -119,8 +192,14 @@ function sanitizeEmailHtmlFallback(html: string): string {
   let sanitized = html
 
   // Remove dangerous tags
-  sanitized = sanitized.replace(/<(script|style|link|meta|object|embed|iframe|form)[^>]*>[\s\S]*?<\/\1>/gi, '')
-  sanitized = sanitized.replace(/<(script|style|link|meta|object|embed|iframe|form|input|textarea|button|select)[^>]*\/?>/gi, '')
+  sanitized = sanitized.replace(
+    /<(script|style|link|meta|object|embed|iframe|form)[^>]*>[\s\S]*?<\/\1>/gi,
+    ''
+  )
+  sanitized = sanitized.replace(
+    /<(script|style|link|meta|object|embed|iframe|form|input|textarea|button|select)[^>]*\/?>/gi,
+    ''
+  )
 
   // Remove dangerous event handlers
   sanitized = sanitized.replace(/\s*on\w+\s*=\s*["'][^"']*["']/gi, '')

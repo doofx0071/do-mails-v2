@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 
 /**
  * Image Proxy API Route for Email Privacy Protection
- * 
+ *
  * This endpoint proxies external images in emails to:
  * 1. Prevent tracking pixels from revealing user's IP address
  * 2. Block malicious images that could exploit browser vulnerabilities
  * 3. Provide consistent image loading experience
- * 
+ *
  * Similar to Gmail's image proxy functionality
  */
 export async function GET(request: NextRequest) {
@@ -28,10 +28,7 @@ export async function GET(request: NextRequest) {
     try {
       targetUrl = new URL(imageUrl)
     } catch (error) {
-      return NextResponse.json(
-        { error: 'Invalid URL format' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Invalid URL format' }, { status: 400 })
     }
 
     // Only allow HTTP/HTTPS protocols
@@ -44,14 +41,8 @@ export async function GET(request: NextRequest) {
 
     // Security: Block local/internal network requests
     const hostname = targetUrl.hostname.toLowerCase()
-    const blockedHosts = [
-      'localhost',
-      '127.0.0.1',
-      '0.0.0.0',
-      '::1',
-      '[::1]'
-    ]
-    
+    const blockedHosts = ['localhost', '127.0.0.1', '0.0.0.0', '::1', '[::1]']
+
     // Block local IP ranges
     if (
       blockedHosts.includes(hostname) ||
@@ -80,14 +71,15 @@ export async function GET(request: NextRequest) {
         // Generic user agent
         'User-Agent': 'Mozilla/5.0 (compatible; EmailProxy/1.0)',
         // Request specific image formats
-        'Accept': 'image/webp,image/avif,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+        Accept:
+          'image/webp,image/avif,image/apng,image/svg+xml,image/*,*/*;q=0.8',
         // Limit response size
-        'Range': 'bytes=0-10485760' // Max 10MB
+        Range: 'bytes=0-10485760', // Max 10MB
       },
       // Set timeout
       signal: AbortSignal.timeout(15000), // 15 second timeout
       // Don't follow too many redirects
-      redirect: 'follow'
+      redirect: 'follow',
     })
 
     if (!imageResponse.ok) {
@@ -101,17 +93,19 @@ export async function GET(request: NextRequest) {
     const contentType = imageResponse.headers.get('content-type') || ''
     const allowedTypes = [
       'image/jpeg',
-      'image/jpg', 
+      'image/jpg',
       'image/png',
       'image/gif',
       'image/webp',
       'image/avif',
       'image/svg+xml',
       'image/bmp',
-      'image/tiff'
+      'image/tiff',
     ]
 
-    if (!allowedTypes.some(type => contentType.toLowerCase().includes(type))) {
+    if (
+      !allowedTypes.some((type) => contentType.toLowerCase().includes(type))
+    ) {
       return NextResponse.json(
         { error: 'Invalid content type. Only images are allowed.' },
         { status: 400 }
@@ -120,7 +114,8 @@ export async function GET(request: NextRequest) {
 
     // Check content length
     const contentLength = imageResponse.headers.get('content-length')
-    if (contentLength && parseInt(contentLength) > 10 * 1024 * 1024) { // 10MB limit
+    if (contentLength && parseInt(contentLength) > 10 * 1024 * 1024) {
+      // 10MB limit
       return NextResponse.json(
         { error: 'Image too large. Maximum size is 10MB.' },
         { status: 413 }
@@ -136,45 +131,41 @@ export async function GET(request: NextRequest) {
       headers: {
         // Set correct content type
         'Content-Type': contentType,
-        
+
         // Security headers
         'X-Content-Type-Options': 'nosniff',
         'X-Frame-Options': 'DENY',
         'X-XSS-Protection': '1; mode=block',
         'Referrer-Policy': 'no-referrer',
-        
+
         // Cache for a reasonable time to improve performance
         'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
-        'ETag': `"${Date.now()}"`,
-        
+        ETag: `"${Date.now()}"`,
+
         // CORS headers for cross-origin requests
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET',
         'Access-Control-Allow-Headers': 'Content-Type',
-        
-        // Content length
-        'Content-Length': imageBuffer.byteLength.toString()
-      }
-    })
 
+        // Content length
+        'Content-Length': imageBuffer.byteLength.toString(),
+      },
+    })
   } catch (error) {
     console.error('Image proxy error:', error)
-    
+
     // Return error response
     if (error instanceof Error) {
       if (error.name === 'AbortError') {
-        return NextResponse.json(
-          { error: 'Request timeout' },
-          { status: 408 }
-        )
+        return NextResponse.json({ error: 'Request timeout' }, { status: 408 })
       }
-      
+
       return NextResponse.json(
         { error: 'Failed to fetch image' },
         { status: 500 }
       )
     }
-    
+
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -192,7 +183,7 @@ export async function OPTIONS(_request: NextRequest) {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
-      'Access-Control-Max-Age': '86400'
-    }
+      'Access-Control-Max-Age': '86400',
+    },
   })
 }
