@@ -145,6 +145,7 @@ export default function MailPage() {
               isRead: thread.is_read ?? true, // Use actual read status from API
               labels,
               messages,
+              recipient_address: thread.recipient_address, // Include the domain email address
             }
           }
         )

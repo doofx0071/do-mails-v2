@@ -183,38 +183,34 @@ export function ComposeEmailDialog({
       }
     }
 
-    if (open && selectedAccount) {
+    if (open && selectedAccount && !replyTo) {
+      // Only fetch addresses if not in reply mode
       fetchAddresses()
     }
   }, [open, selectedAccount, form, replyTo])
 
   // Set reply defaults - this should run AFTER addresses are fetched
   useEffect(() => {
-    if (replyTo && availableAddresses.length > 0) {
+    if (replyTo && replyTo.fromAddress) {
+      // For replies, set the form data
       form.setValue('to_addresses', replyTo.to)
       form.setValue('subject', replyTo.subject.startsWith('Re:') ? replyTo.subject : `Re: ${replyTo.subject}`)
       
-      // If reply has a specific fromAddress, use that and ensure it's in the list
-      if (replyTo.fromAddress) {
-        // Check if the reply address is already in availableAddresses
-        const existingAddress = availableAddresses.find(addr => addr.address === replyTo.fromAddress)
-        
-        if (!existingAddress) {
-          // Add the reply address to the beginning of the list
-          const domain = replyTo.fromAddress.split('@')[1]
-          const replyAddressObj = {
-            domain: domain,
-            address: replyTo.fromAddress,
-            forwardEmail: selectedAccount || '',
-          }
-          setAvailableAddresses([replyAddressObj, ...availableAddresses])
-        }
-        
-        form.setValue('from_address', replyTo.fromAddress)
-        console.log('✅ Reply from address set to:', replyTo.fromAddress)
+      // For replies, only show the specific reply address
+      const domain = replyTo.fromAddress.split('@')[1]
+      const replyAddressObj = {
+        domain: domain,
+        address: replyTo.fromAddress,
+        forwardEmail: selectedAccount || '',
       }
+      
+      // Replace the entire addresses list with just the reply address
+      setAvailableAddresses([replyAddressObj])
+      form.setValue('from_address', replyTo.fromAddress)
+      
+      console.log('✅ Reply mode - only showing:', replyTo.fromAddress)
     }
-  }, [replyTo, availableAddresses, form, selectedAccount])
+  }, [replyTo, form, selectedAccount])
 
   const onSubmit = async (values: ComposeFormData) => {
     const attemptSend = async (attempt: number = 0): Promise<void> => {
@@ -385,10 +381,7 @@ export function ComposeEmailDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {(replyTo && replyTo.fromAddress 
-                          ? availableAddresses.filter(addr => addr.address === replyTo.fromAddress)
-                          : availableAddresses
-                        ).map((addr) => (
+                        {availableAddresses.map((addr) => (
                           <SelectItem key={addr.address} value={addr.address}>
                             <div className="flex flex-col">
                               <span>{addr.address}</span>

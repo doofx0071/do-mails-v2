@@ -142,8 +142,15 @@ export function MailDisplay({ thread, onReply }: MailDisplayProps) {
       ? latestMessage.to_addresses[0] 
       : latestMessage.from_address
       
-    // Use the recipient address (the address this email was sent to) as the from address for reply
-    const fromAddress = thread.recipient_address || latestMessage.recipient_address
+    // Use the recipient address from thread (the exact domain email that received this thread)
+    const fromAddress = thread.recipient_address
+    
+    console.log('🔄 Reply setup:', {
+      threadId: thread.id,
+      threadRecipientAddress: thread.recipient_address,
+      replyTo: replyTo,
+      fromAddress: fromAddress
+    })
       
     onReply({
       to: replyTo,

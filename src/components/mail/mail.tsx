@@ -40,6 +40,7 @@ export interface EmailThread {
   isRead: boolean
   labels: string[]
   messages: EmailMessage[]
+  recipient_address?: string // The domain email address that received this thread
 }
 
 export interface EmailMessage {
