@@ -1,12 +1,41 @@
 'use client'
 
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Logo } from '@/components/ui/logo'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { Button } from '@/components/ui/button'
 import { Mail, Shield, Globe, Inbox, ArrowRight } from 'lucide-react'
+import { useAuth } from '@/lib/providers/auth-provider'
 
 export default function Home() {
+  const { user, loading } = useAuth()
+  const router = useRouter()
+
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (!loading && user) {
+      router.push('/dashboard')
+    }
+  }, [user, loading, router])
+
+  // Show loading state while checking auth
+  if (loading) {
+    return (
+      <div className="relative h-screen w-full overflow-hidden bg-white dark:bg-gray-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-300">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Don't render if user is authenticated (will redirect)
+  if (user) {
+    return null
+  }
   return (
     <div className="relative h-screen w-full overflow-hidden bg-white dark:bg-gray-950">
       {/* Noise Texture Background - Light Mode */}
