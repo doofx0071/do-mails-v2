@@ -56,14 +56,8 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Navigation */}
+            {/* Navigation - Empty for clean design */}
             <nav className="hidden items-center space-x-6 md:flex">
-              <Link
-                href="#features"
-                className="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
-              >
-                Features
-              </Link>
             </nav>
 
             {/* Actions */}
@@ -74,12 +68,6 @@ export default function Home() {
                   Login
                 </Button>
               </Link>
-              <Link href="/dashboard">
-                <Button size="sm" className="text-sm">
-                  Open Dashboard
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
             </div>
           </div>
         </header>
@@ -87,49 +75,40 @@ export default function Home() {
         {/* Main Content */}
         <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-full flex flex-col">
           {/* Hero Content */}
-          <div className="flex-1 flex items-center justify-center py-8">
+          <div className="flex-1 flex items-center justify-center py-4 sm:py-8">
             <div className="mx-auto max-w-6xl text-center">
-              <h1 className="mb-4 text-3xl font-bold leading-tight text-gray-900 dark:text-white sm:text-4xl lg:text-5xl">
+              <h1 className="mb-3 sm:mb-4 text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight text-gray-900 dark:text-white">
                 Personal Email
                 <span className="block text-blue-600 dark:text-blue-400">
                   Alias Management
                 </span>
               </h1>
 
-              <p className="mx-auto mb-8 max-w-2xl text-lg leading-relaxed text-gray-600 dark:text-gray-300">
+              <p className="mx-auto mb-6 sm:mb-8 max-w-2xl text-base sm:text-lg leading-relaxed text-gray-600 dark:text-gray-300 px-4 sm:px-0">
                 My personal system to create unlimited email aliases, manage domains, and organize
                 communications with privacy-first approach.
               </p>
 
-              <div className="mb-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
-                <Link href="/dashboard">
+              <div className="mb-6 sm:mb-8 flex justify-center px-4 sm:px-0">
+                <Link href="/auth/signup">
                   <Button
                     size="lg"
-                    className="w-full px-8 py-3 text-base sm:w-auto"
+                    className="w-full max-w-xs sm:w-auto px-8 py-3 text-base"
                   >
-                    Open Dashboard
+                    Get Started
                     <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </Link>
-                <Link href="/auth/signin">
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="w-full px-8 py-3 text-base sm:w-auto"
-                  >
-                    Sign In
                   </Button>
                 </Link>
               </div>
 
-              {/* Features Grid - Compact */}
-              <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
+              {/* Features Grid - Compact & Responsive */}
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 sm:gap-4 lg:gap-6 px-4 sm:px-0">
                 {/* Feature 1 */}
-                <div className="group rounded-2xl border border-gray-200 bg-white/50 p-4 backdrop-blur-sm transition-all duration-300 hover:border-blue-300 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900/50 dark:hover:border-blue-600">
-                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 transition-transform duration-300 group-hover:scale-110 dark:bg-blue-900/30">
-                    <Globe className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <div className="group rounded-2xl border border-gray-200 bg-white/50 p-3 sm:p-4 backdrop-blur-sm transition-all duration-300 hover:border-blue-300 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900/50 dark:hover:border-blue-600">
+                  <div className="mb-2 sm:mb-3 flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-blue-100 transition-transform duration-300 group-hover:scale-110 dark:bg-blue-900/30">
+                    <Globe className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <h3 className="mb-2 text-sm font-semibold text-gray-900 dark:text-white">
+                  <h3 className="mb-1 sm:mb-2 text-xs sm:text-sm font-semibold text-gray-900 dark:text-white">
                     Domain Management
                   </h3>
                   <p className="text-xs leading-relaxed text-gray-600 dark:text-gray-300">
@@ -138,11 +117,11 @@ export default function Home() {
                 </div>
 
                 {/* Feature 2 */}
-                <div className="group rounded-2xl border border-gray-200 bg-white/50 p-4 backdrop-blur-sm transition-all duration-300 hover:border-blue-300 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900/50 dark:hover:border-blue-600">
-                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-green-100 transition-transform duration-300 group-hover:scale-110 dark:bg-green-900/30">
-                    <Mail className="h-5 w-5 text-green-600 dark:text-green-400" />
+                <div className="group rounded-2xl border border-gray-200 bg-white/50 p-3 sm:p-4 backdrop-blur-sm transition-all duration-300 hover:border-blue-300 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900/50 dark:hover:border-blue-600">
+                  <div className="mb-2 sm:mb-3 flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-green-100 transition-transform duration-300 group-hover:scale-110 dark:bg-green-900/30">
+                    <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 dark:text-green-400" />
                   </div>
-                  <h3 className="mb-2 text-sm font-semibold text-gray-900 dark:text-white">
+                  <h3 className="mb-1 sm:mb-2 text-xs sm:text-sm font-semibold text-gray-900 dark:text-white">
                     Unlimited Aliases
                   </h3>
                   <p className="text-xs leading-relaxed text-gray-600 dark:text-gray-300">
@@ -151,11 +130,11 @@ export default function Home() {
                 </div>
 
                 {/* Feature 3 */}
-                <div className="group rounded-2xl border border-gray-200 bg-white/50 p-4 backdrop-blur-sm transition-all duration-300 hover:border-blue-300 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900/50 dark:hover:border-blue-600">
-                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-purple-100 transition-transform duration-300 group-hover:scale-110 dark:bg-purple-900/30">
-                    <Inbox className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                <div className="group rounded-2xl border border-gray-200 bg-white/50 p-3 sm:p-4 backdrop-blur-sm transition-all duration-300 hover:border-blue-300 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900/50 dark:hover:border-blue-600">
+                  <div className="mb-2 sm:mb-3 flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-purple-100 transition-transform duration-300 group-hover:scale-110 dark:bg-purple-900/30">
+                    <Inbox className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600 dark:text-purple-400" />
                   </div>
-                  <h3 className="mb-2 text-sm font-semibold text-gray-900 dark:text-white">
+                  <h3 className="mb-1 sm:mb-2 text-xs sm:text-sm font-semibold text-gray-900 dark:text-white">
                     Unified Inbox
                   </h3>
                   <p className="text-xs leading-relaxed text-gray-600 dark:text-gray-300">
@@ -164,11 +143,11 @@ export default function Home() {
                 </div>
 
                 {/* Feature 4 */}
-                <div className="group rounded-2xl border border-gray-200 bg-white/50 p-4 backdrop-blur-sm transition-all duration-300 hover:border-blue-300 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900/50 dark:hover:border-blue-600">
-                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-orange-100 transition-transform duration-300 group-hover:scale-110 dark:bg-orange-900/30">
-                    <Shield className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                <div className="group rounded-2xl border border-gray-200 bg-white/50 p-3 sm:p-4 backdrop-blur-sm transition-all duration-300 hover:border-blue-300 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900/50 dark:hover:border-blue-600">
+                  <div className="mb-2 sm:mb-3 flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-orange-100 transition-transform duration-300 group-hover:scale-110 dark:bg-orange-900/30">
+                    <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-orange-600 dark:text-orange-400" />
                   </div>
-                  <h3 className="mb-2 text-sm font-semibold text-gray-900 dark:text-white">
+                  <h3 className="mb-1 sm:mb-2 text-xs sm:text-sm font-semibold text-gray-900 dark:text-white">
                     Privacy First
                   </h3>
                   <p className="text-xs leading-relaxed text-gray-600 dark:text-gray-300">
