@@ -419,6 +419,52 @@ export class MailgunAPI {
   }
 
   /**
+   * Find and delete all inbound routes for a specific domain
+   */
+  async deleteInboundRoutesForDomain(domainName: string): Promise<{ deleted: number; errors: string[] }> {
+    console.log(`🔍 Finding inbound routes for domain: ${domainName}`)
+    
+    try {
+      const routesResponse = await this.listInboundRoutes()
+      const routes = routesResponse.items || []
+      
+      // Find routes that match this domain
+      const domainRoutes = routes.filter((route: any) => {
+        const expression = route.expression || ''
+        const description = route.description || ''
+        return (
+          expression.includes(`@${domainName}`) ||
+          description.includes(domainName)
+        )
+      })
+      
+      console.log(`📬 Found ${domainRoutes.length} inbound routes for ${domainName}`)
+      
+      let deleted = 0
+      const errors: string[] = []
+      
+      // Delete each route
+      for (const route of domainRoutes) {
+        try {
+          await this.deleteInboundRoute(route.id)
+          deleted++
+          console.log(`✅ Deleted inbound route: ${route.id} (${route.description})`)
+        } catch (routeError: any) {
+          const errorMsg = `Failed to delete route ${route.id}: ${routeError.message}`
+          errors.push(errorMsg)
+          console.warn(`⚠️ ${errorMsg}`)
+        }
+      }
+      
+      return { deleted, errors }
+    } catch (error: any) {
+      const errorMsg = `Failed to list inbound routes: ${error.message}`
+      console.warn(`⚠️ ${errorMsg}`)
+      return { deleted: 0, errors: [errorMsg] }
+    }
+  }
+
+  /**
    * Send test email through Mailgun
    */
   async sendTestEmail(

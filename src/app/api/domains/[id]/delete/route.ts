@@ -38,11 +38,21 @@ export async function DELETE(
       // Delete from forwarding config
       const deleted = await ForwardingConfigDBManager.removeConfig(domainName)
       
-      // Also try to delete from Mailgun
+      // Also try to delete from Mailgun (including inbound routes)
       let mailgunDeleted = false
+      let routesDeleted = 0
       try {
         const mailgunAPI = new MailgunAPI()
         if (mailgunAPI.isConfigured()) {
+          // First, find and delete all inbound routes for this domain
+          const routeResult = await mailgunAPI.deleteInboundRoutesForDomain(domainName)
+          routesDeleted = routeResult.deleted
+          
+          if (routeResult.errors.length > 0) {
+            console.warn(`⚠️ Some route deletion errors occurred:`, routeResult.errors)
+          }
+          
+          // Then delete the domain itself
           await mailgunAPI.deleteDomain(domainName)
           mailgunDeleted = true
           console.log('✅ Domain deleted from Mailgun:', domainName)
@@ -57,7 +67,8 @@ export async function DELETE(
           success: true,
           message: `Domain ${domainName} deleted successfully`,
           deleted_domain: domainName,
-          mailgun_deleted: mailgunDeleted
+          mailgun_deleted: mailgunDeleted,
+          routes_deleted: routesDeleted
         })
       } else {
         return NextResponse.json(
@@ -120,11 +131,21 @@ export async function DELETE(
     const ForwardingConfigDBManager = (await import('@/lib/forwarding-config-db')).default
     await ForwardingConfigDBManager.removeConfig(domain.domain_name)
     
-    // Try to delete from Mailgun as well
+    // Try to delete from Mailgun as well (including inbound routes)
     let mailgunDeleted = false
+    let routesDeleted = 0
     try {
       const mailgunAPI = new MailgunAPI()
       if (mailgunAPI.isConfigured()) {
+        // First, find and delete all inbound routes for this domain
+        const routeResult = await mailgunAPI.deleteInboundRoutesForDomain(domain.domain_name)
+        routesDeleted = routeResult.deleted
+        
+        if (routeResult.errors.length > 0) {
+          console.warn(`⚠️ Some route deletion errors occurred:`, routeResult.errors)
+        }
+        
+        // Then delete the domain itself
         await mailgunAPI.deleteDomain(domain.domain_name)
         mailgunDeleted = true
         console.log('✅ Domain deleted from Mailgun:', domain.domain_name)
@@ -139,7 +160,8 @@ export async function DELETE(
       success: true,
       message: `Domain ${domain.domain_name} deleted successfully`,
       deleted_domain: domain.domain_name,
-      mailgun_deleted: mailgunDeleted
+      mailgun_deleted: mailgunDeleted,
+      routes_deleted: routesDeleted
     }, {
       headers: {
         'Access-Control-Allow-Origin': '*',
