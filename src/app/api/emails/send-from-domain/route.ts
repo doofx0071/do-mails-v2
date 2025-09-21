@@ -251,7 +251,7 @@ export async function POST(request: NextRequest) {
         error: error.message,
         code: error.code,
         details: error.details,
-        mailgunDomain,
+        sendingDomain: actualDomain,
         actualSender,
         userDomain: domain.domain_name
       })

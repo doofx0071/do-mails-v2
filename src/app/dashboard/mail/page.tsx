@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Mail } from '@/components/mail/mail'
-import { ComposeEmailDialog } from '@/components/mail/compose-email-dialog'
+import { GmailComposeDialog } from '@/components/mail/gmail-compose-dialog'
 import { EmailThread, EmailMessage, Account } from '@/components/mail/mail'
 import { Mail as MailIcon, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -359,7 +359,7 @@ export default function MailPage() {
         />
       </div>
       
-      <ComposeEmailDialog
+      <GmailComposeDialog
         open={composeOpen}
         onOpenChange={handleComposeClose}
         selectedAccount={selectedAccount}
