@@ -18,7 +18,6 @@ import { Loader2, Mail, AlertCircle, ArrowLeft } from 'lucide-react'
 import { AuthService } from '@/lib/supabase/auth'
 import { useToast } from '@/components/ui/use-toast'
 import { Logo } from '@/components/ui/logo'
-import { DemoCredentials } from '@/components/auth/demo-credentials'
 
 export default function SignInPage() {
   const [email, setEmail] = useState('')
@@ -117,13 +116,6 @@ export default function SignInPage() {
             </p>
           </div>
 
-          {/* Demo Credentials */}
-          <DemoCredentials
-            onFillCredentials={(email, password) => {
-              setEmail(email)
-              setPassword(password)
-            }}
-          />
 
           {/* Sign In Form */}
           <Card>
@@ -203,16 +195,6 @@ export default function SignInPage() {
             </CardContent>
           </Card>
 
-          {/* Demo Account Info */}
-          <Card className="border-dashed">
-            <CardContent className="pt-6">
-              <div className="text-center text-sm text-muted-foreground">
-                <p className="mb-2 font-medium">Demo Account</p>
-                <p>Email: demo@veenusra.com</p>
-                <p>Password: demo123</p>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>
