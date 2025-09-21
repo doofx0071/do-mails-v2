@@ -6,11 +6,11 @@ import {
   createUserClient,
 } from '@/lib/supabase/server'
 
-// Initialize email processing service
+// Initialize email processing service (domain will be set dynamically per request)
 const emailProcessor = new EmailProcessing({
   mailgun: {
     apiKey: process.env.MAILGUN_API_KEY!,
-    domain: process.env.MAILGUN_DOMAIN!,
+    domain: 'placeholder.com', // Will be overridden dynamically
     baseUrl: process.env.MAILGUN_BASE_URL || 'https://api.mailgun.net',
   },
   threading: {
@@ -242,10 +242,39 @@ export async function POST(request: NextRequest) {
       replyTo: from_address, // Set the desired from_address as reply-to
     }
 
+    // Create dynamic email processor for this domain
+    const domainEmailProcessor = new EmailProcessing({
+      mailgun: {
+        apiKey: process.env.MAILGUN_API_KEY!,
+        domain: actualDomain, // Use the actual domain dynamically
+        baseUrl: process.env.MAILGUN_BASE_URL || 'https://api.mailgun.net',
+      },
+      threading: {
+        subjectNormalization: true,
+        referencesTracking: true,
+        participantGrouping: true,
+        timeWindowHours: 24,
+      },
+      maxAttachmentSize: 25 * 1024 * 1024, // 25MB
+      allowedAttachmentTypes: [
+        'image/jpeg',
+        'image/png',
+        'image/gif',
+        'image/webp',
+        'application/pdf',
+        'text/plain',
+        'text/csv',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      ],
+    })
+
     // Send email via Mailgun
     let mailgunResponse
     try {
-      mailgunResponse = await emailProcessor.sendEmail(emailRequest)
+      mailgunResponse = await domainEmailProcessor.sendEmail(emailRequest)
     } catch (error: any) {
       console.error('Mailgun send error details:', {
         error: error.message,
