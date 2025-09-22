@@ -492,13 +492,6 @@ export function GmailComposeDialog({
                             <option key={addr.address} value={addr.address} />
                           ))}
                         </datalist>
-                                  <span className="text-sm">
-                                    {addr.address}
-                                  </span>
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
                         </FormControl>
                       </div>
                       <FormMessage />
