@@ -13,7 +13,7 @@ import {
   Loader2,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
-import { EmailHtmlRenderer } from './email-html-renderer'
+import { GmailEmailRenderer } from './gmail-email-renderer'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -340,10 +340,19 @@ export function MailDisplay({ thread, onReply }: MailDisplayProps) {
                   </div>
                 </div>
                 <div className="text-sm">
-                  <EmailHtmlRenderer
+                  <GmailEmailRenderer
                     htmlContent={message.body_html}
                     textContent={message.body_text}
                     className="max-w-none"
+                    messageData={{
+                      from: message.from_address,
+                      to: message.to_addresses,
+                      subject: message.subject,
+                      receivedAt: message.received_at,
+                      isRead: message.is_read
+                    }}
+                    onReply={handleReply}
+                    onForward={() => console.log('Forward clicked')}
                   />
                 </div>
               </div>
