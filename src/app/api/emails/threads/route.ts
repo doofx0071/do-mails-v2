@@ -39,13 +39,23 @@ export async function GET(request: NextRequest) {
     const aliasId = searchParams.get('alias_id')
     const forwardEmail = searchParams.get('forward_email')
     const archived = searchParams.get('archived')
+    const folder = searchParams.get('folder') // inbox | archived | junk | trash | sent
     const limit = searchParams.get('limit')
     const offset = searchParams.get('offset')
 
-    // Validate archived parameter if provided
+    // Validate params
     if (archived && !['true', 'false'].includes(archived)) {
       return NextResponse.json(
         { error: 'Invalid archived parameter. Must be: true or false' },
+        { status: 400 }
+      )
+    }
+    if (
+      folder &&
+      !['inbox', 'archived', 'junk', 'trash', 'sent'].includes(folder)
+    ) {
+      return NextResponse.json(
+        { error: 'Invalid folder parameter' },
         { status: 400 }
       )
     }
@@ -109,8 +119,14 @@ export async function GET(request: NextRequest) {
 
     // Apply forward_email filter if specified
     if (forwardEmail) {
-      aliasThreadsQuery = aliasThreadsQuery.eq('email_aliases.domains.default_forward_email', forwardEmail)
-      domainThreadsQuery = domainThreadsQuery.eq('domains.default_forward_email', forwardEmail)
+      aliasThreadsQuery = aliasThreadsQuery.eq(
+        'email_aliases.domains.default_forward_email',
+        forwardEmail
+      )
+      domainThreadsQuery = domainThreadsQuery.eq(
+        'domains.default_forward_email',
+        forwardEmail
+      )
     }
 
     // Apply alias filter if provided
@@ -140,7 +156,7 @@ export async function GET(request: NextRequest) {
       domainThreadsQuery = domainThreadsQuery.limit(0)
     }
 
-    // Apply archived filter if provided
+    // Apply archived filter if provided (legacy)
     if (archived !== null) {
       aliasThreadsQuery = aliasThreadsQuery.eq(
         'is_archived',
@@ -150,6 +166,38 @@ export async function GET(request: NextRequest) {
         'is_archived',
         archived === 'true'
       )
+    }
+
+    // Apply folder filter if provided
+    if (folder) {
+      if (folder === 'archived') {
+        aliasThreadsQuery = aliasThreadsQuery.eq('is_archived', true)
+        domainThreadsQuery = domainThreadsQuery.eq('is_archived', true)
+      }
+      if (folder === 'junk') {
+        aliasThreadsQuery = aliasThreadsQuery.contains('labels', ['junk'])
+        domainThreadsQuery = domainThreadsQuery.contains('labels', ['junk'])
+      }
+      if (folder === 'trash') {
+        aliasThreadsQuery = aliasThreadsQuery.contains('labels', ['trash'])
+        domainThreadsQuery = domainThreadsQuery.contains('labels', ['trash'])
+      }
+      if (folder === 'sent') {
+        aliasThreadsQuery = aliasThreadsQuery.contains('labels', ['sent'])
+        domainThreadsQuery = domainThreadsQuery.contains('labels', ['sent'])
+      }
+      if (folder === 'inbox') {
+        aliasThreadsQuery = aliasThreadsQuery
+          .eq('is_archived', false)
+          .not('labels', 'cs', ['junk'])
+          .not('labels', 'cs', ['trash'])
+          .not('labels', 'cs', ['sent'])
+        domainThreadsQuery = domainThreadsQuery
+          .eq('is_archived', false)
+          .not('labels', 'cs', ['junk'])
+          .not('labels', 'cs', ['trash'])
+          .not('labels', 'cs', ['sent'])
+      }
     }
 
     // Apply pagination
@@ -209,7 +257,7 @@ export async function GET(request: NextRequest) {
     const totalCount = allThreads.length
 
     // Get unread status for each thread by checking for unread messages
-    const threadIds = threads.map(t => t.id)
+    const threadIds = threads.map((t) => t.id)
     const unreadStatusPromises = threadIds.map(async (threadId) => {
       const { data: unreadMessages, error } = await supabase
         .from('email_messages')
@@ -217,20 +265,22 @@ export async function GET(request: NextRequest) {
         .eq('thread_id', threadId)
         .eq('is_read', false)
         .limit(1)
-      
+
       return {
         threadId,
-        hasUnread: !error && unreadMessages && unreadMessages.length > 0
+        hasUnread: !error && unreadMessages && unreadMessages.length > 0,
       }
     })
-    
+
     const unreadStatuses = await Promise.all(unreadStatusPromises)
-    const unreadMap = new Map(unreadStatuses.map(status => [status.threadId, status.hasUnread]))
+    const unreadMap = new Map(
+      unreadStatuses.map((status) => [status.threadId, status.hasUnread])
+    )
 
     // Transform the data to include computed fields
     const transformedThreads = (threads || []).map((thread) => {
       const isUnread = unreadMap.get(thread.id) || false
-      
+
       // Handle both alias-based and domain-based threads
       if (thread.email_aliases) {
         // Alias-based thread

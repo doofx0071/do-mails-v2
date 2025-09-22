@@ -14,6 +14,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { useToast } from '@/components/ui/use-toast'
+import { ToastAction } from '@/components/ui/toast'
 import { useMail } from '@/components/mail/use-mail'
 import { EmailThread, PaginationInfo } from './mail'
 
@@ -41,6 +43,89 @@ export function MailList({
   isRefreshing,
 }: MailListProps) {
   const [mail, setMail] = useMail()
+  const { toast } = useToast()
+  const [selectedIds, setSelectedIds] = React.useState<string[]>([])
+
+  const allSelected =
+    selectedIds.length > 0 && selectedIds.length === items.length
+
+  const toggleSelectAll = () => {
+    setSelectedIds(allSelected ? [] : items.map((i) => i.id))
+  }
+
+  const toggleOne = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    )
+  }
+
+  const undoBulk = async (
+    ids: string[],
+    action: 'unarchive' | 'unjunk' | 'untrash'
+  ) => {
+    const token = localStorage.getItem('auth_token')
+    if (!token || ids.length === 0) return
+    await fetch('/api/emails/threads/bulk-update', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ thread_ids: ids, action }),
+    })
+  }
+
+  const performBulk = async (
+    action: 'archive' | 'unarchive' | 'junk' | 'trash'
+  ) => {
+    const token = localStorage.getItem('auth_token')
+    const ids = [...selectedIds]
+    if (!token || ids.length === 0) return
+
+    const res = await fetch('/api/emails/threads/bulk-update', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ thread_ids: ids, action }),
+    })
+
+    const count = ids.length
+    if (!res.ok) {
+      console.error('Bulk update failed', res.status)
+      toast({
+        title: 'Bulk action failed',
+        description: `Server responded ${res.status}`,
+      })
+    } else {
+      const inverse =
+        action === 'archive'
+          ? 'unarchive'
+          : action === 'unarchive'
+            ? 'archive'
+            : action === 'junk'
+              ? 'unjunk'
+              : action === 'trash'
+                ? 'untrash'
+                : undefined
+      const label = action.charAt(0).toUpperCase() + action.slice(1)
+      toast({
+        title: `${label} applied`,
+        description: `${count} thread${count > 1 ? 's' : ''} updated`,
+        action: inverse ? (
+          <ToastAction
+            altText="Undo"
+            onClick={() => undoBulk(ids, inverse as any)}
+          >
+            Undo
+          </ToastAction>
+        ) : undefined,
+      })
+    }
+
+    setSelectedIds([])
+  }
 
   if (items.length === 0) {
     return (
@@ -70,6 +155,48 @@ export function MailList({
           </div>
         </div>
       )}
+      {/* Bulk actions toolbar */}
+      {selectedIds.length > 0 && (
+        <div className="border-b bg-background/80 p-2">
+          <div className="flex items-center gap-3 text-sm">
+            <Checkbox checked={allSelected} onCheckedChange={toggleSelectAll} />
+            <span className="text-muted-foreground">
+              {selectedIds.length} selected
+            </span>
+            <div className="ml-auto flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => performBulk('archive')}
+              >
+                Archive
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => performBulk('unarchive')}
+              >
+                Unarchive
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => performBulk('junk')}
+              >
+                Junk
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => performBulk('trash')}
+              >
+                Trash
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <ScrollArea className="flex-1">
         <div className="flex flex-col gap-0">
           {items.map((item) => (
@@ -109,6 +236,10 @@ export function MailList({
             >
               <Checkbox
                 className="h-4 w-4"
+                checked={selectedIds.includes(item.id)}
+                onCheckedChange={(checked) => {
+                  toggleOne(item.id)
+                }}
                 onClick={(e) => e.stopPropagation()}
               />
 

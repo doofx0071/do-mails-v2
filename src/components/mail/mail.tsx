@@ -77,7 +77,13 @@ interface MailProps {
   selectedAccount?: string | null
   onAccountChange?: (accountEmail: string) => void
   onCompose?: () => void
-  onReply?: (replyData: { to: string; subject: string; inReplyTo?: string; references?: string[]; fromAddress?: string }) => void
+  onReply?: (replyData: {
+    to: string
+    subject: string
+    inReplyTo?: string
+    references?: string[]
+    fromAddress?: string
+  }) => void
   onRefresh?: () => void
   isRefreshing?: boolean
   lastRefreshTime?: Date
@@ -86,6 +92,10 @@ interface MailProps {
   defaultCollapsed?: boolean
   navCollapsedSize: number
   pagination?: PaginationInfo
+  selectedFolder?: 'inbox' | 'archived' | 'junk' | 'trash' | 'sent'
+  onFolderChange?: (
+    folder: 'inbox' | 'archived' | 'junk' | 'trash' | 'sent'
+  ) => void
 }
 
 export function Mail({
@@ -93,6 +103,8 @@ export function Mail({
   threads,
   selectedAccount,
   onAccountChange,
+  selectedFolder = 'inbox',
+  onFolderChange,
   onCompose,
   onReply,
   onRefresh,
@@ -146,9 +158,9 @@ export function Mail({
               isCollapsed ? 'h-[52px]' : 'px-2'
             )}
           >
-            <AccountSwitcher 
-              isCollapsed={isCollapsed} 
-              accounts={accounts} 
+            <AccountSwitcher
+              isCollapsed={isCollapsed}
+              accounts={accounts}
               selectedAccount={selectedAccount}
               onAccountChange={onAccountChange}
             />
@@ -167,7 +179,8 @@ export function Mail({
                 title: 'Inbox',
                 label: inboxCount.toString(),
                 icon: Inbox,
-                variant: 'default',
+                variant: selectedFolder === 'inbox' ? 'default' : 'ghost',
+                onClick: () => onFolderChange?.('inbox'),
               },
               {
                 title: 'Drafts',
@@ -179,25 +192,29 @@ export function Mail({
                 title: 'Sent',
                 label: sentCount.toString(),
                 icon: Send,
-                variant: 'ghost',
+                variant: selectedFolder === 'sent' ? 'default' : 'ghost',
+                onClick: () => onFolderChange?.('sent'),
               },
               {
                 title: 'Junk',
                 label: '0',
                 icon: ArchiveX,
-                variant: 'ghost',
+                variant: selectedFolder === 'junk' ? 'default' : 'ghost',
+                onClick: () => onFolderChange?.('junk'),
               },
               {
                 title: 'Trash',
                 label: '0',
                 icon: Trash2,
-                variant: 'ghost',
+                variant: selectedFolder === 'trash' ? 'default' : 'ghost',
+                onClick: () => onFolderChange?.('trash'),
               },
               {
                 title: 'Archive',
                 label: '0',
                 icon: Archive,
-                variant: 'ghost',
+                variant: selectedFolder === 'archived' ? 'default' : 'ghost',
+                onClick: () => onFolderChange?.('archived'),
               },
             ]}
           />
@@ -220,7 +237,17 @@ export function Mail({
             /* List View - Gmail Inbox Style */
             <Tabs defaultValue="all" className="flex h-full flex-1 flex-col">
               <div className="flex items-center border-b px-4 py-2">
-                <h1 className="text-xl font-bold">Inbox</h1>
+                <h1 className="text-xl font-bold">
+                  {selectedFolder === 'inbox'
+                    ? 'Inbox'
+                    : selectedFolder === 'archived'
+                      ? 'Archive'
+                      : selectedFolder === 'junk'
+                        ? 'Junk'
+                        : selectedFolder === 'trash'
+                          ? 'Trash'
+                          : 'Sent'}
+                </h1>
                 <div className="ml-auto flex items-center gap-4">
                   {/* Refresh button */}
                   {onRefresh && (
@@ -232,10 +259,12 @@ export function Mail({
                         disabled={isRefreshing}
                         className="gap-2"
                       >
-                        <RefreshCw className={cn(
-                          "h-4 w-4",
-                          isRefreshing && "animate-spin"
-                        )} />
+                        <RefreshCw
+                          className={cn(
+                            'h-4 w-4',
+                            isRefreshing && 'animate-spin'
+                          )}
+                        />
                         {isRefreshing ? 'Refreshing...' : 'Refresh'}
                       </Button>
                       {lastRefreshTime && !refreshError && (
@@ -258,7 +287,7 @@ export function Mail({
                       )}
                     </div>
                   )}
-                  
+
                   <TabsList>
                     <TabsTrigger
                       value="all"
