@@ -53,3 +53,7 @@ Thumbs.db
 
 # Forwarding configurations
 /data/
+
+
+# MCP config (contains local credentials)
+mcp.json
