@@ -189,14 +189,10 @@ export async function GET(request: NextRequest) {
       if (folder === 'inbox') {
         aliasThreadsQuery = aliasThreadsQuery
           .eq('is_archived', false)
-          .not('labels', 'cs', ['junk'])
-          .not('labels', 'cs', ['trash'])
-          .not('labels', 'cs', ['sent'])
+          .not('labels', 'ov', '{junk,trash,sent}')
         domainThreadsQuery = domainThreadsQuery
           .eq('is_archived', false)
-          .not('labels', 'cs', ['junk'])
-          .not('labels', 'cs', ['trash'])
-          .not('labels', 'cs', ['sent'])
+          .not('labels', 'ov', '{junk,trash,sent}')
       }
     }
 
