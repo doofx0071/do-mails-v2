@@ -280,7 +280,9 @@ export function GmailComposeDialog({
             )
           )
           if (!allowedDomains.includes(fromDomain)) {
-            throw new Error('From address domain is not one of your verified domains')
+            throw new Error(
+              'From address domain is not one of your verified domains'
+            )
           }
         }
 
@@ -474,7 +476,7 @@ export function GmailComposeDialog({
                             <Input
                               value={field.value}
                               readOnly
-                              className="h-8 rounded-none border-0 border-b text-sm focus:ring-0 bg-muted"
+                              className="h-8 rounded-none border-0 border-b bg-muted text-sm focus:ring-0"
                             />
                           ) : (
                             // New compose: always use input field
@@ -492,7 +494,6 @@ export function GmailComposeDialog({
                             <option key={addr.address} value={addr.address} />
                           ))}
                         </datalist>
-                        </FormControl>
                       </div>
                       <FormMessage />
                     </FormItem>
