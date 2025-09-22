@@ -34,7 +34,12 @@ function formatEmailTime(date: Date): string {
   }
 }
 
-export function MailList({ items, onEmailSelect, pagination, isRefreshing }: MailListProps) {
+export function MailList({
+  items,
+  onEmailSelect,
+  pagination,
+  isRefreshing,
+}: MailListProps) {
   const [mail, setMail] = useMail()
 
   if (items.length === 0) {
@@ -54,12 +59,12 @@ export function MailList({ items, onEmailSelect, pagination, isRefreshing }: Mai
   }
 
   return (
-    <div className="flex h-full flex-col relative">
+    <div className="relative flex h-full flex-col">
       {isRefreshing && (
-        <div className="absolute top-0 left-0 right-0 z-10 bg-background/80 backdrop-blur-sm border-b">
-          <div className="flex items-center justify-center py-2 px-4">
+        <div className="absolute left-0 right-0 top-0 z-10 border-b bg-background/80 backdrop-blur-sm">
+          <div className="flex items-center justify-center px-4 py-2">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full" />
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
               Refreshing...
             </div>
           </div>
@@ -68,12 +73,15 @@ export function MailList({ items, onEmailSelect, pagination, isRefreshing }: Mai
       <ScrollArea className="flex-1">
         <div className="flex flex-col gap-0">
           {items.map((item) => (
-            <button
+            <div
+              role="button"
+              tabIndex={0}
               key={item.id}
               className={cn(
                 'flex items-center gap-3 rounded-none border-b border-border/30 px-4 py-3 text-left text-sm transition-all hover:bg-accent/50',
                 mail.selected === item.id && 'bg-muted',
-                !item.isRead && 'bg-blue-50/30 dark:bg-blue-950/20 border-l-4 border-l-blue-500'
+                !item.isRead &&
+                  'border-l-4 border-l-blue-500 bg-blue-50/30 dark:bg-blue-950/20'
               )}
               onClick={() => {
                 if (onEmailSelect) {
@@ -85,6 +93,19 @@ export function MailList({ items, onEmailSelect, pagination, isRefreshing }: Mai
                   })
                 }
               }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  if (onEmailSelect) {
+                    onEmailSelect(item)
+                  } else {
+                    setMail({
+                      ...mail,
+                      selected: item.id,
+                    })
+                  }
+                }
+              }}
             >
               <Checkbox
                 className="h-4 w-4"
@@ -94,41 +115,60 @@ export function MailList({ items, onEmailSelect, pagination, isRefreshing }: Mai
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex min-w-0 flex-1 items-center gap-2">
-                    <span className={cn(
-                      "truncate",
-                      !item.isRead ? "font-bold text-foreground" : "font-medium text-foreground"
-                    )}>
+                    <span
+                      className={cn(
+                        'truncate',
+                        !item.isRead
+                          ? 'font-bold text-foreground'
+                          : 'font-medium text-foreground'
+                      )}
+                    >
                       {item.participants.length > 0
                         ? item.participants[0].split('@')[0]
                         : 'Unknown'}
                     </span>
-                    <span className={cn(
-                      "truncate text-sm",
-                      !item.isRead ? "font-semibold text-foreground" : "text-muted-foreground"
-                    )}>
+                    <span
+                      className={cn(
+                        'truncate text-sm',
+                        !item.isRead
+                          ? 'font-semibold text-foreground'
+                          : 'text-muted-foreground'
+                      )}
+                    >
                       {item.subject}
                     </span>
                     {!item.isRead && (
                       <div className="flex items-center gap-1">
                         <span className="flex h-2 w-2 flex-shrink-0 rounded-full bg-blue-600" />
-                        <Badge variant="secondary" className="h-4 px-1 text-[10px] font-medium">
+                        <Badge
+                          variant="secondary"
+                          className="h-4 px-1 text-[10px] font-medium"
+                        >
                           NEW
                         </Badge>
                       </div>
                     )}
                   </div>
-                  <div className={cn(
-                    "flex-shrink-0 text-xs",
-                    !item.isRead ? "font-semibold text-blue-600" : "text-muted-foreground"
-                  )}>
+                  <div
+                    className={cn(
+                      'flex-shrink-0 text-xs',
+                      !item.isRead
+                        ? 'font-semibold text-blue-600'
+                        : 'text-muted-foreground'
+                    )}
+                  >
                     {formatEmailTime(new Date(item.lastMessageAt))}
                   </div>
                 </div>
 
-                <div className={cn(
-                  "line-clamp-1 text-xs",
-                  !item.isRead ? "font-medium text-foreground" : "text-muted-foreground"
-                )}>
+                <div
+                  className={cn(
+                    'line-clamp-1 text-xs',
+                    !item.isRead
+                      ? 'font-medium text-foreground'
+                      : 'text-muted-foreground'
+                  )}
+                >
                   {item.messages[0]?.bodyPlain?.substring(0, 100) || ''}
                 </div>
               </div>
@@ -146,7 +186,7 @@ export function MailList({ items, onEmailSelect, pagination, isRefreshing }: Mai
                   ))}
                 </div>
               )}
-            </button>
+            </div>
           ))}
         </div>
       </ScrollArea>

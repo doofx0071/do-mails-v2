@@ -5,10 +5,8 @@ import {
   Archive,
   ArchiveX,
   Clock,
-  Forward,
   MoreVertical,
   Reply,
-  ReplyAll,
   Trash2,
   Loader2,
 } from 'lucide-react'
@@ -133,7 +131,7 @@ export function MailDisplay({ thread, onReply }: MailDisplayProps) {
     }
   }
 
-  // Handle reply button click
+  // Handle reply button click (top-right)
   const handleReply = () => {
     if (!thread || !onReply || messages.length === 0) return
 
@@ -142,15 +140,7 @@ export function MailDisplay({ thread, onReply }: MailDisplayProps) {
       ? latestMessage.to_addresses[0]
       : latestMessage.from_address
 
-    // Use the recipient address from thread (the exact domain email that received this thread)
     const fromAddress = thread.recipient_address
-
-    console.log('🔄 Reply setup:', {
-      threadId: thread.id,
-      threadRecipientAddress: thread.recipient_address,
-      replyTo: replyTo,
-      fromAddress: fromAddress,
-    })
 
     onReply({
       to: replyTo,
@@ -158,8 +148,8 @@ export function MailDisplay({ thread, onReply }: MailDisplayProps) {
         ? thread.subject
         : `Re: ${thread.subject}`,
       inReplyTo: latestMessage.id,
-      references: [latestMessage.id], // In real implementation, you'd build a proper references chain
-      fromAddress: fromAddress, // Pass the recipient address to use as from address
+      references: [latestMessage.id],
+      fromAddress,
     })
   }
 
@@ -218,32 +208,14 @@ export function MailDisplay({ thread, onReply }: MailDisplayProps) {
                 size="icon"
                 disabled={!thread || !onReply}
                 onClick={handleReply}
+                aria-label="Reply"
+                title="Reply"
               >
                 <Reply className="h-4 w-4" />
-                <span className="sr-only">Reply</span>
               </Button>
             </TooltipTrigger>
             <TooltipContent>Reply</TooltipContent>
           </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" disabled={!thread}>
-                <ReplyAll className="h-4 w-4" />
-                <span className="sr-only">Reply all</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Reply all</TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" disabled={!thread}>
-                <Forward className="h-4 w-4" />
-                <span className="sr-only">Forward</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Forward</TooltipContent>
-          </Tooltip>
-          <Separator orientation="vertical" className="mx-2 h-6" />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" disabled={!thread}>
@@ -312,33 +284,6 @@ export function MailDisplay({ thread, onReply }: MailDisplayProps) {
                 key={message.id}
                 className="rounded-lg border bg-card p-4 shadow-sm"
               >
-                <div className="mb-4 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="text-sm">
-                        {message.is_sent
-                          ? 'You'
-                          : message.from_address.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className="font-medium">
-                        {message.is_sent ? 'You' : message.from_address}
-                      </div>
-                      {message.to_addresses.length > 0 && (
-                        <div className="text-xs text-muted-foreground">
-                          to {message.to_addresses.join(', ')}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {format(
-                      new Date(message.received_at),
-                      'MMM d, yyyy h:mm a'
-                    )}
-                  </div>
-                </div>
                 <div className="text-sm">
                   <GmailEmailRenderer
                     htmlContent={message.body_html}
@@ -349,10 +294,8 @@ export function MailDisplay({ thread, onReply }: MailDisplayProps) {
                       to: message.to_addresses,
                       subject: message.subject,
                       receivedAt: message.received_at,
-                      isRead: message.is_read
+                      isRead: message.is_read,
                     }}
-                    onReply={handleReply}
-                    onForward={() => console.log('Forward clicked')}
                   />
                 </div>
               </div>
@@ -363,31 +306,6 @@ export function MailDisplay({ thread, onReply }: MailDisplayProps) {
             No messages found in this thread.
           </div>
         )}
-      </div>
-
-      {/* Reply section */}
-      <div className="border-t bg-muted/30 p-4">
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
-            {messages.length > 0 && (
-              <>
-                {messages.length} message{messages.length !== 1 ? 's' : ''} in
-                this thread
-              </>
-            )}
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={!thread || !onReply}
-              onClick={handleReply}
-            >
-              <Reply className="mr-2 h-4 w-4" />
-              Reply
-            </Button>
-          </div>
-        </div>
       </div>
     </div>
   )
