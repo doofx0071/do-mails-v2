@@ -9,7 +9,15 @@ import {
   isYesterday,
   isThisYear,
 } from 'date-fns'
-import { Mail as MailIcon, ChevronLeft, ChevronRight } from 'lucide-react'
+import {
+  Mail as MailIcon,
+  ChevronLeft,
+  ChevronRight,
+  Archive,
+  ArchiveRestore,
+  AlertTriangle,
+  Trash2,
+} from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
@@ -24,6 +32,7 @@ import { EmailThread, PaginationInfo } from './mail'
 interface MailListProps {
   items: EmailThread[]
   onEmailSelect?: (thread: EmailThread) => void
+  currentFolder?: 'inbox' | 'archived' | 'junk' | 'trash' | 'sent'
   pagination?: PaginationInfo
   isRefreshing?: boolean
 }
@@ -43,6 +52,7 @@ export function MailList({
   onEmailSelect,
   pagination,
   isRefreshing,
+  currentFolder = 'inbox',
 }: MailListProps) {
   const [mail, setMail] = useMail()
   const { toast } = useToast()
@@ -165,34 +175,42 @@ export function MailList({
             <span className="text-muted-foreground">
               {selectedIds.length} selected
             </span>
-            <div className="ml-auto flex items-center gap-2">
+            <div className="ml-auto flex items-center gap-1">
+              {currentFolder !== 'archived' && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => performBulk('archive')}
+                  className="h-8 w-8 p-0"
+                >
+                  <Archive className="h-4 w-4" />
+                </Button>
+              )}
+              {currentFolder === 'archived' && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => performBulk('unarchive')}
+                  className="h-8 w-8 p-0"
+                >
+                  <ArchiveRestore className="h-4 w-4" />
+                </Button>
+              )}
               <Button
                 size="sm"
-                variant="outline"
-                onClick={() => performBulk('archive')}
-              >
-                Archive
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => performBulk('unarchive')}
-              >
-                Unarchive
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
+                variant="ghost"
                 onClick={() => performBulk('junk')}
+                className="h-8 w-8 p-0"
               >
-                Junk
+                <AlertTriangle className="h-4 w-4" />
               </Button>
               <Button
                 size="sm"
-                variant="destructive"
+                variant="ghost"
                 onClick={() => performBulk('trash')}
+                className="h-8 w-8 p-0"
               >
-                Trash
+                <Trash2 className="h-4 w-4" />
               </Button>
             </div>
           </div>

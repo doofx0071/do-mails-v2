@@ -40,6 +40,13 @@ interface MailDisplayProps {
   }) => void
 }
 
+interface AttachmentMeta {
+  id: string
+  filename: string
+  content_type?: string
+  file_size?: number
+}
+
 interface ThreadMessage {
   id: string
   thread_id: string
@@ -52,12 +59,39 @@ interface ThreadMessage {
   created_at: string
   is_read: boolean
   is_sent: boolean
+  attachments?: AttachmentMeta[]
 }
 
 export function MailDisplay({ thread, onReply }: MailDisplayProps) {
   const [messages, setMessages] = useState<ThreadMessage[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Handle thread actions (archive, junk, trash)
+  const handleThreadAction = async (
+    threadId: string,
+    action: 'archive' | 'junk' | 'trash'
+  ) => {
+    try {
+      const token = localStorage.getItem('auth_token')
+      if (!token) return
+
+      const response = await fetch('/api/emails/threads/bulk-update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ thread_ids: [threadId], action }),
+      })
+
+      if (!response.ok) {
+        console.error('Thread action failed:', response.status)
+      }
+    } catch (error) {
+      console.error('Thread action error:', error)
+    }
+  }
 
   // Load messages when thread changes
   useEffect(() => {
@@ -164,7 +198,14 @@ export function MailDisplay({ thread, onReply }: MailDisplayProps) {
         <div className="flex items-center gap-2">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" disabled={!thread}>
+              <Button
+                variant="ghost"
+                size="icon"
+                disabled={!thread}
+                onClick={() =>
+                  thread && handleThreadAction(thread.id, 'archive')
+                }
+              >
                 <Archive className="h-4 w-4" />
                 <span className="sr-only">Archive</span>
               </Button>
@@ -173,7 +214,12 @@ export function MailDisplay({ thread, onReply }: MailDisplayProps) {
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" disabled={!thread}>
+              <Button
+                variant="ghost"
+                size="icon"
+                disabled={!thread}
+                onClick={() => thread && handleThreadAction(thread.id, 'junk')}
+              >
                 <ArchiveX className="h-4 w-4" />
                 <span className="sr-only">Move to junk</span>
               </Button>
@@ -182,7 +228,12 @@ export function MailDisplay({ thread, onReply }: MailDisplayProps) {
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" disabled={!thread}>
+              <Button
+                variant="ghost"
+                size="icon"
+                disabled={!thread}
+                onClick={() => thread && handleThreadAction(thread.id, 'trash')}
+              >
                 <Trash2 className="h-4 w-4" />
                 <span className="sr-only">Move to trash</span>
               </Button>
@@ -298,6 +349,30 @@ export function MailDisplay({ thread, onReply }: MailDisplayProps) {
                     }}
                   />
                 </div>
+
+                {/* Attachments */}
+                {message.attachments && message.attachments.length > 0 && (
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {message.attachments.map((att) => (
+                      <a
+                        key={att.id}
+                        href={`/api/emails/attachments/${att.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 rounded-md border px-2 py-1 text-xs hover:bg-accent"
+                      >
+                        <span className="max-w-[180px] truncate">
+                          {att.filename}
+                        </span>
+                        {typeof att.file_size === 'number' && (
+                          <span className="text-muted-foreground">
+                            {(att.file_size / 1024).toFixed(0)} KB
+                          </span>
+                        )}
+                      </a>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>

@@ -104,6 +104,10 @@ export function GmailComposeDialog({
     },
   })
 
+  // Custom From support (new compose only)
+  const [showCustomFromInput, setShowCustomFromInput] = useState(false)
+  const [customFromAddress, setCustomFromAddress] = useState('')
+
   // Fetch available sending addresses when dialog opens (skip for reply mode)
   useEffect(() => {
     const fetchAddresses = async () => {
@@ -264,6 +268,20 @@ export function GmailComposeDialog({
 
         if (!fromDomain) {
           throw new Error('Invalid from address format')
+        }
+
+        // If composing new (not replying) and using custom from, ensure domain is permitted
+        if (!replyTo && showCustomFromInput) {
+          const allowedDomains = Array.from(
+            new Set(
+              availableAddresses
+                .map((a) => a.domain || a.address.split('@')[1])
+                .filter(Boolean)
+            )
+          )
+          if (!allowedDomains.includes(fromDomain)) {
+            throw new Error('From address domain is not one of your verified domains')
+          }
         }
 
         const response = await fetch('/api/domains', {
@@ -451,19 +469,29 @@ export function GmailComposeDialog({
                       <div className="flex items-center gap-2">
                         <FormLabel className="w-12 text-xs">From</FormLabel>
                         <FormControl>
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value}
-                          >
-                            <SelectTrigger className="h-8 rounded-none border-0 border-b text-sm focus:ring-0">
-                              <SelectValue placeholder="Select address" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {availableAddresses.map((addr) => (
-                                <SelectItem
-                                  key={addr.address}
-                                  value={addr.address}
-                                >
+                          {replyTo ? (
+                            // Reply mode: lock to the reply address
+                            <Input
+                              value={field.value}
+                              readOnly
+                              className="h-8 rounded-none border-0 border-b text-sm focus:ring-0 bg-muted"
+                            />
+                          ) : (
+                            // New compose: always use input field
+                            <Input
+                              placeholder="you@yourdomain.com"
+                              value={field.value}
+                              onChange={(e) => field.onChange(e.target.value)}
+                              list="from-suggestions"
+                              className="h-8 rounded-none border-0 border-b text-sm focus:ring-0"
+                            />
+                          )}
+                        </FormControl>
+                        <datalist id="from-suggestions">
+                          {availableAddresses.map((addr) => (
+                            <option key={addr.address} value={addr.address} />
+                          ))}
+                        </datalist>
                                   <span className="text-sm">
                                     {addr.address}
                                   </span>

@@ -123,11 +123,31 @@ export function Mail({
 
   // Calculate counts for navigation
   const inboxCount =
-    pagination?.totalCount ||
-    threads.filter(
-      (t) => !t.labels.includes('sent') && !t.labels.includes('archived')
-    ).length
-  const sentCount = threads.filter((t) => t.labels.includes('sent')).length
+    selectedFolder === 'inbox'
+      ? pagination?.totalCount || 0
+      : threads.filter(
+          (t) =>
+            !t.labels.includes('sent') &&
+            !t.labels.includes('archived') &&
+            !t.labels.includes('junk') &&
+            !t.labels.includes('trash')
+        ).length
+  const sentCount =
+    selectedFolder === 'sent'
+      ? pagination?.totalCount || 0
+      : threads.filter((t) => t.labels.includes('sent')).length
+  const archivedCount =
+    selectedFolder === 'archived'
+      ? pagination?.totalCount || 0
+      : threads.filter((t) => t.labels.includes('archived')).length
+  const junkCount =
+    selectedFolder === 'junk'
+      ? pagination?.totalCount || 0
+      : threads.filter((t) => t.labels.includes('junk')).length
+  const trashCount =
+    selectedFolder === 'trash'
+      ? pagination?.totalCount || 0
+      : threads.filter((t) => t.labels.includes('trash')).length
   const unreadCount = threads.filter((t) => !t.isRead).length
 
   // Handle email selection
@@ -183,12 +203,6 @@ export function Mail({
                 onClick: () => onFolderChange?.('inbox'),
               },
               {
-                title: 'Drafts',
-                label: '0',
-                icon: File,
-                variant: 'ghost',
-              },
-              {
                 title: 'Sent',
                 label: sentCount.toString(),
                 icon: Send,
@@ -197,21 +211,21 @@ export function Mail({
               },
               {
                 title: 'Junk',
-                label: '0',
+                label: junkCount.toString(),
                 icon: ArchiveX,
                 variant: selectedFolder === 'junk' ? 'default' : 'ghost',
                 onClick: () => onFolderChange?.('junk'),
               },
               {
                 title: 'Trash',
-                label: '0',
+                label: trashCount.toString(),
                 icon: Trash2,
                 variant: selectedFolder === 'trash' ? 'default' : 'ghost',
                 onClick: () => onFolderChange?.('trash'),
               },
               {
                 title: 'Archive',
-                label: '0',
+                label: archivedCount.toString(),
                 icon: Archive,
                 variant: selectedFolder === 'archived' ? 'default' : 'ghost',
                 onClick: () => onFolderChange?.('archived'),
@@ -318,6 +332,7 @@ export function Mail({
                   onEmailSelect={handleEmailSelect}
                   pagination={pagination}
                   isRefreshing={isRefreshing}
+                  currentFolder={selectedFolder}
                 />
               </TabsContent>
               <TabsContent
@@ -329,6 +344,7 @@ export function Mail({
                   onEmailSelect={handleEmailSelect}
                   pagination={pagination}
                   isRefreshing={isRefreshing}
+                  currentFolder={selectedFolder}
                 />
               </TabsContent>
             </Tabs>

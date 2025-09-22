@@ -236,10 +236,10 @@ export default function MailPage() {
       fetchEmails(1)
     }
   }, [selectedAccount, fetchEmails])
-  // Reload when folder changes
+  // Reload when folder changes (silent to avoid loading spinner)
   useEffect(() => {
     if (selectedAccount) {
-      fetchEmails(1)
+      fetchEmails(1, true) // Silent refresh for folder changes
     }
   }, [folder, selectedAccount, fetchEmails])
 
