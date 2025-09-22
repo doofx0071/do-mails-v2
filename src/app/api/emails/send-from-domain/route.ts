@@ -112,6 +112,9 @@ export async function POST(request: NextRequest) {
       references = [],
     } = body
 
+    // Optional attachments from client (array of { filename, contentType, data(base64) })
+    const attachments = Array.isArray(body.attachments) ? body.attachments : []
+
     // Parse from_address to get domain
     const [fromAlias, fromDomain] = from_address.split('@')
     if (!fromAlias || !fromDomain) {
@@ -216,7 +219,7 @@ export async function POST(request: NextRequest) {
     // Dynamic domain approach: each domain sends from itself
     // This requires the domain to be added and verified in Mailgun
 
-    // Prepare email request
+    // Prepare email request (include attachments if provided)
     const emailRequest = {
       from: actualSender,
       to: to_addresses,
@@ -228,6 +231,8 @@ export async function POST(request: NextRequest) {
       inReplyTo: in_reply_to,
       references: references.length > 0 ? references : undefined,
       replyTo: from_address, // Set the desired from_address as reply-to
+      attachments:
+        attachments && attachments.length > 0 ? attachments : undefined,
     }
 
     // Create dynamic email processor for this domain
