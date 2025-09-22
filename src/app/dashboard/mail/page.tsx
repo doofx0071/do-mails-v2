@@ -388,6 +388,8 @@ export default function MailPage() {
           onFolderChange={(f) => {
             setFolder(f as any)
             setCurrentPage(1)
+            // Silent refresh for folder changes - no loading spinner
+            fetchEmails(1, true)
           }}
           pagination={{
             currentPage,

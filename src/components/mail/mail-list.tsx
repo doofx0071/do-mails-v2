@@ -26,6 +26,12 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useToast } from '@/components/ui/use-toast'
 import { ToastAction } from '@/components/ui/toast'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { useMail } from '@/components/mail/use-mail'
 import { EmailThread, PaginationInfo } from './mail'
 
@@ -176,42 +182,64 @@ export function MailList({
               {selectedIds.length} selected
             </span>
             <div className="ml-auto flex items-center gap-1">
-              {currentFolder !== 'archived' && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => performBulk('archive')}
-                  className="h-8 w-8 p-0"
-                >
-                  <Archive className="h-4 w-4" />
-                </Button>
-              )}
-              {currentFolder === 'archived' && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => performBulk('unarchive')}
-                  className="h-8 w-8 p-0"
-                >
-                  <ArchiveRestore className="h-4 w-4" />
-                </Button>
-              )}
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => performBulk('junk')}
-                className="h-8 w-8 p-0"
-              >
-                <AlertTriangle className="h-4 w-4" />
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => performBulk('trash')}
-                className="h-8 w-8 p-0"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              <TooltipProvider>
+                {currentFolder !== 'archived' && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => performBulk('archive')}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Archive className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Archive</TooltipContent>
+                  </Tooltip>
+                )}
+                {currentFolder === 'archived' && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => performBulk('unarchive')}
+                        className="h-8 w-8 p-0"
+                      >
+                        <ArchiveRestore className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Unarchive</TooltipContent>
+                  </Tooltip>
+                )}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => performBulk('junk')}
+                      className="h-8 w-8 p-0"
+                    >
+                      <AlertTriangle className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Move to junk</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => performBulk('trash')}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Move to trash</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </div>
         </div>
